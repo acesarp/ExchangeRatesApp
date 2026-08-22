@@ -1,0 +1,6 @@
+@ExchangeRates.Server_HostAddress = http://localhost:5018
+
+GET {{ExchangeRates.Server_HostAddress}}/ExchangeRate/
+Accept: application/json
+
+###
