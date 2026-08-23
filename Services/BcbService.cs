@@ -4,6 +4,9 @@ using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Models;
 
 using Microsoft.Extensions.Options;
+
+using System.Net.Http.Json;
+
 public class BcbService {
 	private readonly HttpClient _httpClient;
 	private readonly BcbApiOptions _options;
@@ -13,7 +16,7 @@ public class BcbService {
 		_options = options.Value;
 	}
 
-	public async Task<List<BcbQuote?>> GetQuoteAsync(DateTime date, ICurrency currency = ICurrency.USD) {
+	public async Task<List<BcbQuote>> GetQuoteAsync(DateTime date, ICurrency currency = ICurrency.USD) {
 		var formattedDate = date.ToString("MM-dd-yyyy");
 
 		var url =
@@ -24,15 +27,12 @@ public class BcbService {
 			$"&$format=json";
 
 		try {
-			var response = await _httpClient.GetStringAsync(url);
-			var d = DateTime.Parse("2026-07-20 10:02:17.71519");
-			return null;
+			var response = await _httpClient.GetFromJsonAsync<BcbResponse>(url);
+			return response?.Value;
 		}
 		catch (Exception ex) {
 			Console.WriteLine(ex);
+			throw;
 		}
-		return null;
-
 	}
 }
-

@@ -1,3 +1,6 @@
+using ExchangeRates.Server.Utils;
+
+using System.Text.Json.Serialization;
 namespace ExchangeRates.Server.Models;
 
 public class BcbQuote {
@@ -16,6 +19,7 @@ public class BcbQuote {
 	/// <summary>
 	/// Data e hora da cotação Data, hora e minuto das paridades e cotações.
 	/// </summary>
+	[JsonConverter(typeof(BcbDateTimeConverter))]
 	public DateTime DataHoraCotacao { get; set; }
 	/// <summary>
 	/// Tipo do boletim Tipo das paridades e cotações para aquela data e hora.Podem ser dos tipos: Abertura, Intermediário, Fechamento Interbancário ou Fechamento.
