@@ -3,7 +3,7 @@ using ExchangeRates.Server.Utils;
 using System.Text.Json.Serialization;
 namespace ExchangeRates.Server.Models;
 
-public class BcbQuote {
+public class ExchangeRate {
 
 	public decimal ParidadeCompra { get; set; }
 	public decimal ParidadeVenda { get; set; }

@@ -1,9 +1,14 @@
-﻿using System.Globalization;
+﻿using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Utilities;
+
+using System.Globalization;
 using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
-
+/// <summary>
+/// Monetary Authority of Macao
+/// </summary>
 public sealed class AMCMProvider : CentralBankProviderBase {
 	public AMCMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -11,10 +16,10 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 	public override string Name => "Monetary Authority of Macao";
 	public override string NativeCurrency => "MOP";
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
 		var from = date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 		var url = $"{Url}?QueryType=1&Begin={from}&End={from}";
-		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, cancellationToken));
+		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 		var rates = new List<ExchangeRate>();
 
 		if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) {
@@ -37,9 +42,11 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 		}
 		return rates;
 	}
-
 }
 
+/// <summary>
+/// Bank Al-Maghrib
+/// </summary>
 public sealed class BAMProvider : CentralBankProviderBase {
 	public BAMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -47,7 +54,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 	public override string Name => "Bank Al-Maghrib";
 	public override string NativeCurrency => "MAD";
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
 		var apiKey = ApiKey;
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
@@ -57,10 +64,10 @@ public sealed class BAMProvider : CentralBankProviderBase {
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.TryAddWithoutValidation("Ocp-Apim-Subscription-Key", apiKey);
 
-		using var response = await Http.SendAsync(request, cancellationToken);
+		using var response = await Http.SendAsync(request, ct);
 		response.EnsureSuccessStatusCode();
 
-		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 		var rates = new List<ExchangeRate>();
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
@@ -91,6 +98,9 @@ public sealed class BAMProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco de la República
+/// </summary>
 public sealed class BANREPProvider : CentralBankProviderBase {
 	public BANREPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -100,6 +110,9 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco de México
+/// </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
 	public BANXICOProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -107,8 +120,45 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 	public override string Name => "Banco de México";
 	public override string NativeCurrency => "MXN";
 
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+		if (string.IsNullOrWhiteSpace(ApiKey)) {
+			throw new InvalidOperationException("Missing CentralBanks:BANXICO:ApiKey.");
+		}
+
+		// Example: USD/MXN FIX exchange rate series.
+		const string seriesId = "SF43718";
+		var url = $"{Url.TrimEnd('/')}/{seriesId}/datos/{date:yyyy-MM-dd}/{date:yyyy-MM-dd}";
+
+		using var request = new HttpRequestMessage(HttpMethod.Get, url);
+		request.Headers.Add("Bmx-Token", ApiKey);
+
+		using var response = await Http.SendAsync(request, cancellationToken);
+		response.EnsureSuccessStatusCode();
+
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+
+		var series = doc.RootElement.GetProperty("bmx")
+																		.GetProperty("series")[0];
+
+		if (!series.TryGetProperty("datos", out var data) || data.GetArrayLength() == 0) {
+			return [];
+		}
+
+		var value = data[0].GetProperty("dato")
+															.GetString();
+
+		if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
+			return [];
+		}
+
+		return [   new ExchangeRate(date,  "USD","MXN",rate,Code)
+		];
+	}
 }
 
+/// <summary>
+/// Deutsche Bundesbank
+/// </summary>
 public sealed class BBKProvider : CentralBankProviderBase {
 	public BBKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -118,6 +168,9 @@ public sealed class BBKProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central do Brasil
+/// </summary>
 public sealed class BCBProvider : CentralBankProviderBase {
 	public BCBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -125,16 +178,15 @@ public sealed class BCBProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central do Brasil";
 	public override string NativeCurrency => "BRL";
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
 		var currencies = new[] { "AUD", "CAD", "CHF", "DKK", "EUR", "GBP", "JPY", "NOK", "SEK", "USD" };
 		var rates = new List<ExchangeRate>();
 
 		foreach (var currency in currencies) {
-			var url =
-				$"{Url.TrimEnd('/')}/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)" +
+			var url = $"{Url.TrimEnd('/')}/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)" +
 				$"?@moeda='{currency}'&@dataCotacao='{date:MM-dd-yyyy}'&$format=json";
 
-			using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, cancellationToken));
+			using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 			if (!doc.RootElement.TryGetProperty("value", out var value) || value.GetArrayLength() == 0) {
 				continue;
 			}
@@ -153,6 +205,9 @@ public sealed class BCBProvider : CentralBankProviderBase {
 	}
 }
 
+/// <summary>
+/// Banco Central de Bolivia
+/// </summary>
 public sealed class BCBOProvider : CentralBankProviderBase {
 	public BCBOProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -162,6 +217,9 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central de Cuba
+/// </summary>
 public sealed class BCCProvider : CentralBankProviderBase {
 	public BCCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -171,6 +229,9 @@ public sealed class BCCProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central de Chile
+/// </summary>
 public sealed class BCCHProvider : CentralBankProviderBase {
 	public BCCHProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -180,6 +241,9 @@ public sealed class BCCHProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central de Costa Rica
+/// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
 	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -189,6 +253,9 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banque Centrale des Etats de l'Afrique de l'Ouest
+/// </summary>
 public sealed class BCEAOProvider : CentralBankProviderBase {
 	public BCEAOProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -198,6 +265,9 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central de Nicaragua
+/// </summary>
 public sealed class BCNProvider : CentralBankProviderBase {
 	public BCNProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -207,6 +277,9 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central del Paraguay
+/// </summary>
 public sealed class BCPProvider : CentralBankProviderBase {
 	public BCPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -216,6 +289,9 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central de la República Argentina
+/// </summary>
 public sealed class BCRAProvider : CentralBankProviderBase {
 	public BCRAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -225,6 +301,9 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banque Centrale de Tunisie
+/// </summary>
 public sealed class BCTProvider : CentralBankProviderBase {
 	public BCTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -234,6 +313,9 @@ public sealed class BCTProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Central del Uruguay
+/// </summary>
 public sealed class BCUProvider : CentralBankProviderBase {
 	public BCUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -243,6 +325,9 @@ public sealed class BCUProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banca d'Italia
+/// </summary>
 public sealed class BDIProvider : CentralBankProviderBase {
 	public BDIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -258,7 +343,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRate>();
 
 		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
-			var cols = SplitCsv(line);
+			var cols = TextUtils.SplitCsv(line);
 			if (cols.Count < 3) {
 				continue;
 			}
@@ -280,6 +365,9 @@ public sealed class BDIProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco de Portugal
+/// </summary>
 public sealed class BDPProvider : CentralBankProviderBase {
 	public BDPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -289,6 +377,9 @@ public sealed class BDPProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Bank Indonesia
+/// </summary>
 public sealed class BIProvider : CentralBankProviderBase {
 	public BIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -298,6 +389,9 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banco Nacional de Angola
+/// </summary>
 public sealed class BNAProvider : CentralBankProviderBase {
 	public BNAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -307,6 +401,9 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Bank Negara Malaysia
+/// </summary>
 public sealed class BNMProvider : CentralBankProviderBase {
 	public BNMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -316,6 +413,9 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banca Națională a României
+/// </summary>
 public sealed class BNRProvider : CentralBankProviderBase {
 	public BNRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -325,6 +425,9 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Banque Nationale du Rwanda
+/// </summary>
 public sealed class BNRRWProvider : CentralBankProviderBase {
 	public BNRRWProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -334,6 +437,9 @@ public sealed class BNRRWProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Bank of Algeria
+/// </summary>
 public sealed class BOAProvider : CentralBankProviderBase {
 	public BOAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -343,15 +449,20 @@ public sealed class BOAProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Bank of Botswana
+/// </summary>
 public sealed class BOBProvider : CentralBankProviderBase {
 	public BOBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOB";
 	public override string Name => "Bank of Botswana";
 	public override string NativeCurrency => "BWP";
-
 }
 
+/// <summary>
+/// Bank of Canada
+/// </summary>
 public sealed class BOCProvider : CentralBankProviderBase {
 	public BOCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -377,234 +488,286 @@ public sealed class BOCProvider : CentralBankProviderBase {
 
 		return [new ExchangeRate(date, "USD", "CAD", rate, Code)];
 	}
-
 }
 
+/// <summary>
+/// Bank of England
+/// </summary>
 public sealed class BOEProvider : CentralBankProviderBase {
 	public BOEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOE";
 	public override string Name => "Bank of England";
 	public override string NativeCurrency => "GBP";
-
 }
 
+/// <summary>
+/// Bank of Israel
+/// </summary>
 public sealed class BOIProvider : CentralBankProviderBase {
 	public BOIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOI";
 	public override string Name => "Bank of Israel";
 	public override string NativeCurrency => "ILS";
-
 }
 
+/// <summary>
+/// Bank of Japan
+/// </summary>
 public sealed class BOJProvider : CentralBankProviderBase {
 	public BOJProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOJ";
 	public override string Name => "Bank of Japan";
 	public override string NativeCurrency => "JPY";
-
 }
 
+/// <summary>
+/// Bank of Jamaica
+/// </summary>
 public sealed class BOJAProvider : CentralBankProviderBase {
 	public BOJAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOJA";
 	public override string Name => "Bank of Jamaica";
 	public override string NativeCurrency => "JMD";
-
 }
 
+/// <summary>
+/// Bank of Mongolia
+/// </summary>
 public sealed class BOMProvider : CentralBankProviderBase {
 	public BOMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOM";
 	public override string Name => "Bank of Mongolia";
 	public override string NativeCurrency => "MNT";
-
 }
 
+/// <summary>
+/// Bank of Thailand
+/// </summary>
 public sealed class BOTProvider : CentralBankProviderBase {
 	public BOTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOT";
 	public override string Name => "Bank of Thailand";
 	public override string NativeCurrency => "THB";
-
 }
 
+/// <summary>
+/// Bank of Tanzania
+/// </summary>
 public sealed class BOTAProvider : CentralBankProviderBase {
 	public BOTAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";
 	public override string NativeCurrency => "TZS";
-
 }
 
+/// <summary>
+/// Banque de la Republique du Burundi
+/// </summary>
 public sealed class BRBProvider : CentralBankProviderBase {
 	public BRBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BRB";
 	public override string Name => "Banque de la Republique du Burundi";
 	public override string NativeCurrency => "BIF";
-
 }
 
+/// <summary>
+/// Bangko Sentral ng Pilipinas
+/// </summary>
 public sealed class BSPProvider : CentralBankProviderBase {
 	public BSPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "BSP";
 	public override string Name => "Bangko Sentral ng Pilipinas";
 	public override string NativeCurrency => "PHP";
-
 }
 
+/// <summary>
+/// Central Bank of Armenia
+/// </summary>
 public sealed class CBAProvider : CentralBankProviderBase {
 	public CBAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBA";
 	public override string Name => "Central Bank of Armenia";
 	public override string NativeCurrency => "AMD";
-
 }
 
+/// <summary>
+/// Central Bank of the Republic of China (Taiwan)
+/// </summary>
 public sealed class CBCProvider : CentralBankProviderBase {
 	public CBCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBC";
 	public override string Name => "Central Bank of the Republic of China (Taiwan)";
 	public override string NativeCurrency => "TWD";
-
 }
 
+/// <summary>
+/// Central Bank of Egypt
+/// </summary>
 public sealed class CBEProvider : CentralBankProviderBase {
 	public CBEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBE";
 	public override string Name => "Central Bank of Egypt";
 	public override string NativeCurrency => "EGP";
-
 }
 
+/// <summary>
+/// Central Bank of The Gambia
+/// </summary>
 public sealed class CBGProvider : CentralBankProviderBase {
 	public CBGProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBG";
 	public override string Name => "Central Bank of The Gambia";
 	public override string NativeCurrency => "GMD";
-
 }
 
+/// <summary>
+/// Central Bank of Iraq
+/// </summary>
 public sealed class CBIProvider : CentralBankProviderBase {
 	public CBIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBI";
 	public override string Name => "Central Bank of Iraq";
 	public override string NativeCurrency => "IQD";
-
 }
 
+/// <summary>
+/// Central Bank of Kenya
+/// </summary>
 public sealed class CBKProvider : CentralBankProviderBase {
 	public CBKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBK";
 	public override string Name => "Central Bank of Kenya";
 	public override string NativeCurrency => "KES";
-
 }
 
+/// <summary>
+/// Central Bank of Liberia
+/// </summary>
 public sealed class CBLLRProvider : CentralBankProviderBase {
 	public CBLLRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBLLR";
 	public override string Name => "Central Bank of Liberia";
 	public override string NativeCurrency => "LRD";
-
 }
 
+/// <summary>
+/// Central Bank of Myanmar
+/// </summary>
 public sealed class CBMProvider : CentralBankProviderBase {
 	public CBMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBM";
 	public override string Name => "Central Bank of Myanmar";
 	public override string NativeCurrency => "MMK";
-
 }
 
+/// <summary>
+/// Central Bank of Nigeria
+/// </summary>
 public sealed class CBNProvider : CentralBankProviderBase {
 	public CBNProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBN";
 	public override string Name => "Central Bank of Nigeria";
 	public override string NativeCurrency => "NGN";
-
 }
 
+/// <summary>
+/// Central Bank of Russia
+/// </summary>
 public sealed class CBRProvider : CentralBankProviderBase {
 	public CBRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBR";
 	public override string Name => "Central Bank of Russia";
 	public override string NativeCurrency => "RUB";
-
 }
 
+/// <summary>
+/// Central Bank of Samoa
+/// </summary>
 public sealed class CBSProvider : CentralBankProviderBase {
 	public CBSProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBS";
 	public override string Name => "Central Bank of Samoa";
 	public override string NativeCurrency => "WST";
-
 }
 
+/// <summary>
+/// Central Bank of Sri Lanka
+/// </summary>
 public sealed class CBSLProvider : CentralBankProviderBase {
 	public CBSLProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBSL";
 	public override string Name => "Central Bank of Sri Lanka";
 	public override string NativeCurrency => "LKR";
-
 }
 
+/// <summary>
+/// Central Bank of Uzbekistan
+/// </summary>
 public sealed class CBUProvider : CentralBankProviderBase {
 	public CBUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CBU";
 	public override string Name => "Central Bank of Uzbekistan";
 	public override string NativeCurrency => "UZS";
-
 }
 
+/// <summary>
+/// Czech National Bank
+/// </summary>
 public sealed class CNBProvider : CentralBankProviderBase {
 	public CNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "CNB";
 	public override string Name => "Czech National Bank";
 	public override string NativeCurrency => "CZK";
-
 }
 
+/// <summary>
+/// Da Afghanistan Bank
+/// </summary>
 public sealed class DABProvider : CentralBankProviderBase {
 	public DABProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "DAB";
 	public override string Name => "Da Afghanistan Bank";
 	public override string NativeCurrency => "AFN";
-
 }
 
+/// <summary>
+/// Danmarks Nationalbank
+/// </summary>
 public sealed class DNBProvider : CentralBankProviderBase {
 	public DNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "DNB";
 	public override string Name => "Danmarks Nationalbank";
 	public override string NativeCurrency => "DKK";
-
 }
 
+/// <summary>
+/// European Central Bank
+/// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
 	public ECBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -612,15 +775,15 @@ public sealed class ECBProvider : CentralBankProviderBase {
 	public override string Name => "European Central Bank";
 	public override string NativeCurrency => "EUR";
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
 		var url =
 			$"{Url}?startPeriod={date:yyyy-MM-dd}&endPeriod={date:yyyy-MM-dd}&format=csvdata";
 
-		var csv = await Http.GetStringAsync(url, cancellationToken);
+		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
 
 		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
-			var cols = SplitCsv(line);
+			var cols = TextUtils.SplitCsv(line);
 			if (cols.Count < 2) {
 				continue;
 			}
@@ -636,138 +799,167 @@ public sealed class ECBProvider : CentralBankProviderBase {
 				rates.Add(new ExchangeRate(date, "EUR", currency.ToUpperInvariant(), rate, Code));
 			}
 		}
-
 		return rates;
 	}
-
 }
 
+/// <summary>
+/// Financial Benchmarks India
+/// </summary>
 public sealed class FBILProvider : CentralBankProviderBase {
 	public FBILProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "FBIL";
 	public override string Name => "Financial Benchmarks India";
 	public override string NativeCurrency => "INR";
-
 }
 
+/// <summary>
+/// Federal Reserve Bank of St. Louis
+/// </summary>
 public sealed class FREDProvider : CentralBankProviderBase {
 	public FREDProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "FRED";
 	public override string Name => "Federal Reserve Bank of St. Louis";
 	public override string NativeCurrency => "USD";
-
 }
 
+/// <summary>
+/// Hong Kong Monetary Authority
+/// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
 	public HKMAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "HKMA";
 	public override string Name => "Hong Kong Monetary Authority";
 	public override string NativeCurrency => "HKD";
-
 }
 
+/// <summary>
+/// Hrvatska Narodna Banka
+/// </summary>
 public sealed class HNBProvider : CentralBankProviderBase {
 	public HNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";
 	public override string NativeCurrency => "EUR";
-
 }
 
+/// <summary>
+/// International Monetary Fund
+/// </summary>
 public sealed class IMFProvider : CentralBankProviderBase {
 	public IMFProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "IMF";
 	public override string Name => "International Monetary Fund";
 	public override string NativeCurrency => "XDR";
-
 }
 
+/// <summary>
+/// Lietuvos Bankas
+/// </summary>
 public sealed class LBProvider : CentralBankProviderBase {
 	public LBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "LB";
 	public override string Name => "Lietuvos Bankas";
 	public override string NativeCurrency => "EUR";
-
 }
 
+/// <summary>
+/// Monetary Authority of Singapore
+/// </summary>
 public sealed class MASProvider : CentralBankProviderBase {
 	public MASProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "MAS";
 	public override string Name => "Monetary Authority of Singapore";
 	public override string NativeCurrency => "SGD";
-
 }
 
+/// <summary>
+/// Maldives Monetary Authority
+/// </summary>
 public sealed class MMAProvider : CentralBankProviderBase {
 	public MMAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "MMA";
 	public override string Name => "Maldives Monetary Authority";
 	public override string NativeCurrency => "MVR";
-
 }
 
+/// <summary>
+/// Magyar Nemzeti Bank
+/// </summary>
 public sealed class MNBProvider : CentralBankProviderBase {
 	public MNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "MNB";
 	public override string Name => "Magyar Nemzeti Bank";
 	public override string NativeCurrency => "HUF";
-
 }
 
+/// <summary>
+/// Norges Bank
+/// </summary>
 public sealed class NBProvider : CentralBankProviderBase {
 	public NBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NB";
 	public override string Name => "Norges Bank";
 	public override string NativeCurrency => "NOK";
-
 }
 
+/// <summary>
+/// National Bank of Cambodia
+/// </summary>
 public sealed class NBCProvider : CentralBankProviderBase {
 	public NBCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBC";
 	public override string Name => "National Bank of Cambodia";
 	public override string NativeCurrency => "KHR";
-
 }
 
+/// <summary>
+/// National Bank of Ethiopia
+/// </summary>
 public sealed class NBEProvider : CentralBankProviderBase {
 	public NBEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBE";
 	public override string Name => "National Bank of Ethiopia";
 	public override string NativeCurrency => "ETB";
-
 }
 
+/// <summary>
+/// National Bank of Georgia
+/// </summary>
 public sealed class NBGProvider : CentralBankProviderBase {
 	public NBGProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBG";
 	public override string Name => "National Bank of Georgia";
 	public override string NativeCurrency => "GEL";
-
 }
 
+/// <summary>
+/// National Bank of Kazakhstan
+/// </summary>
 public sealed class NBKProvider : CentralBankProviderBase {
 	public NBKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBK";
 	public override string Name => "National Bank of Kazakhstan";
 	public override string NativeCurrency => "KZT";
-
 }
 
+/// <summary>
+/// National Bank of the Kyrgyz Republic
+/// </summary>
 public sealed class NBKRProvider : CentralBankProviderBase {
 	public NBKRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -777,15 +969,20 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// National Bank of Moldova
+/// </summary>
 public sealed class NBMProvider : CentralBankProviderBase {
 	public NBMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBM";
 	public override string Name => "National Bank of Moldova";
 	public override string NativeCurrency => "MDL";
-
 }
 
+/// <summary>
+/// Narodowy Bank Polski
+/// </summary>
 public sealed class NBPProvider : CentralBankProviderBase {
 	public NBPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -815,39 +1012,46 @@ public sealed class NBPProvider : CentralBankProviderBase {
 				rates.Add(new ExchangeRate(date, code!, "PLN", rate, Code));
 			}
 		}
-
 		return rates;
 	}
-
 }
 
+/// <summary>
+/// Natsyyanalny Bank Respubliki Belarus
+/// </summary>
 public sealed class NBRBProvider : CentralBankProviderBase {
 	public NBRBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBRB";
 	public override string Name => "Natsyyanalny Bank Respubliki Belarus";
 	public override string NativeCurrency => "BYN";
-
 }
 
+/// <summary>
+/// Narodna Banka na Republika Severna Makedonija
+/// </summary>
 public sealed class NBRMProvider : CentralBankProviderBase {
 	public NBRMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBRM";
 	public override string Name => "Narodna Banka na Republika Severna Makedonija";
 	public override string NativeCurrency => "MKD";
-
 }
 
+/// <summary>
+/// National Bank of Tajikistan
+/// </summary>
 public sealed class NBTProvider : CentralBankProviderBase {
 	public NBTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";
 	public override string NativeCurrency => "TJS";
-
 }
 
+/// <summary>
+/// Natsionalnyi Bank Ukrainy
+/// </summary>
 public sealed class NBUProvider : CentralBankProviderBase {
 	public NBUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -856,7 +1060,8 @@ public sealed class NBUProvider : CentralBankProviderBase {
 	public override string NativeCurrency => "UAH";
 
 	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var url = $"{Url}?date={date:yyyyMMdd}&json";
+		var url =
+			$"{Url}?date={date:yyyyMMdd}&json";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 		var rates = new List<ExchangeRate>();
@@ -869,39 +1074,46 @@ public sealed class NBUProvider : CentralBankProviderBase {
 				rates.Add(new ExchangeRate(date, code!, "UAH", rate, Code));
 			}
 		}
-
 		return rates;
 	}
-
 }
 
+/// <summary>
+/// Nepal Rastra Bank
+/// </summary>
 public sealed class NRBProvider : CentralBankProviderBase {
 	public NRBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NRB";
 	public override string Name => "Nepal Rastra Bank";
 	public override string NativeCurrency => "NPR";
-
 }
 
+/// <summary>
+/// National Reserve Bank of Tonga
+/// </summary>
 public sealed class NRBTProvider : CentralBankProviderBase {
 	public NRBTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "NRBT";
 	public override string Name => "National Reserve Bank of Tonga";
 	public override string NativeCurrency => "TOP";
-
 }
 
+/// <summary>
+/// Sveriges Riksbank
+/// </summary>
 public sealed class RBProvider : CentralBankProviderBase {
 	public RBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "RB";
 	public override string Name => "Sveriges Riksbank";
 	public override string NativeCurrency => "SEK";
-
 }
 
+/// <summary>
+/// Reserve Bank of Australia
+/// </summary>
 public sealed class RBAProvider : CentralBankProviderBase {
 	public RBAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -911,60 +1123,75 @@ public sealed class RBAProvider : CentralBankProviderBase {
 
 }
 
+/// <summary>
+/// Reserve Bank of Fiji
+/// </summary>
 public sealed class RBFProvider : CentralBankProviderBase {
 	public RBFProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "RBF";
 	public override string Name => "Reserve Bank of Fiji";
 	public override string NativeCurrency => "FJD";
-
 }
 
+/// <summary>
+/// Reserve Bank of Malawi
+/// </summary>
 public sealed class RBMProvider : CentralBankProviderBase {
 	public RBMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "RBM";
 	public override string Name => "Reserve Bank of Malawi";
 	public override string NativeCurrency => "MWK";
-
 }
 
+/// <summary>
+/// Reserve Bank of Vanuatu
+/// </summary>
 public sealed class RBVProvider : CentralBankProviderBase {
 	public RBVProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "RBV";
 	public override string Name => "Reserve Bank of Vanuatu";
 	public override string NativeCurrency => "VUV";
-
 }
 
+/// <summary>
+/// South African Reserve Bank
+/// </summary>
 public sealed class SARBProvider : CentralBankProviderBase {
 	public SARBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "SARB";
 	public override string Name => "South African Reserve Bank";
 	public override string NativeCurrency => "ZAR";
-
 }
 
+/// <summary>
+/// Seðlabanki Íslands
+/// </summary>
 public sealed class SBIProvider : CentralBankProviderBase {
 	public SBIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "SBI";
 	public override string Name => "Seðlabanki Íslands";
 	public override string NativeCurrency => "ISK";
-
 }
 
+/// <summary>
+/// State Bank of Pakistan
+/// </summary>
 public sealed class SBPProvider : CentralBankProviderBase {
 	public SBPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
 	public override string Code => "SBP";
 	public override string Name => "State Bank of Pakistan";
 	public override string NativeCurrency => "PKR";
-
 }
 
+/// <summary>
+/// Türkiye Cumhuriyet Merkez Bankası
+/// </summary>
 public sealed class TCMBProvider : CentralBankProviderBase {
 	public TCMBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
 
@@ -1000,98 +1227,6 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 			}
 		}
 		return rates;
-	}
-}
-
-
-public static class CentralBankProviderRegistration {
-	public static IServiceCollection AddCentralBankProviders(this IServiceCollection services) {
-		services.AddTransient<AMCMProvider>();
-		services.AddTransient<BAMProvider>();
-		services.AddTransient<BANREPProvider>();
-		services.AddTransient<BANXICOProvider>();
-		services.AddTransient<BBKProvider>();
-		services.AddTransient<BCBProvider>();
-		services.AddTransient<BCBOProvider>();
-		services.AddTransient<BCCProvider>();
-		services.AddTransient<BCCHProvider>();
-		services.AddTransient<BCCRProvider>();
-		services.AddTransient<BCEAOProvider>();
-		services.AddTransient<BCNProvider>();
-		services.AddTransient<BCPProvider>();
-		services.AddTransient<BCRAProvider>();
-		services.AddTransient<BCTProvider>();
-		services.AddTransient<BCUProvider>();
-		services.AddTransient<BDIProvider>();
-		services.AddTransient<BDPProvider>();
-		services.AddTransient<BIProvider>();
-		services.AddTransient<BNAProvider>();
-		services.AddTransient<BNMProvider>();
-		services.AddTransient<BNRProvider>();
-		services.AddTransient<BNRRWProvider>();
-		services.AddTransient<BOAProvider>();
-		services.AddTransient<BOBProvider>();
-		services.AddTransient<BOCProvider>();
-		services.AddTransient<BOEProvider>();
-		services.AddTransient<BOIProvider>();
-		services.AddTransient<BOJProvider>();
-		services.AddTransient<BOJAProvider>();
-		services.AddTransient<BOMProvider>();
-		services.AddTransient<BOTProvider>();
-		services.AddTransient<BOTAProvider>();
-		services.AddTransient<BRBProvider>();
-		services.AddTransient<BSPProvider>();
-		services.AddTransient<CBAProvider>();
-		services.AddTransient<CBCProvider>();
-		services.AddTransient<CBEProvider>();
-		services.AddTransient<CBGProvider>();
-		services.AddTransient<CBIProvider>();
-		services.AddTransient<CBKProvider>();
-		services.AddTransient<CBLLRProvider>();
-		services.AddTransient<CBMProvider>();
-		services.AddTransient<CBNProvider>();
-		services.AddTransient<CBRProvider>();
-		services.AddTransient<CBSProvider>();
-		services.AddTransient<CBSLProvider>();
-		services.AddTransient<CBUProvider>();
-		services.AddTransient<CNBProvider>();
-		services.AddTransient<DABProvider>();
-		services.AddTransient<DNBProvider>();
-		services.AddTransient<ECBProvider>();
-		services.AddTransient<FBILProvider>();
-		services.AddTransient<FREDProvider>();
-		services.AddTransient<HKMAProvider>();
-		services.AddTransient<HNBProvider>();
-		services.AddTransient<IMFProvider>();
-		services.AddTransient<LBProvider>();
-		services.AddTransient<MASProvider>();
-		services.AddTransient<MMAProvider>();
-		services.AddTransient<MNBProvider>();
-		services.AddTransient<NBProvider>();
-		services.AddTransient<NBCProvider>();
-		services.AddTransient<NBEProvider>();
-		services.AddTransient<NBGProvider>();
-		services.AddTransient<NBKProvider>();
-		services.AddTransient<NBKRProvider>();
-		services.AddTransient<NBMProvider>();
-		services.AddTransient<NBPProvider>();
-		services.AddTransient<NBRBProvider>();
-		services.AddTransient<NBRMProvider>();
-		services.AddTransient<NBTProvider>();
-		services.AddTransient<NBUProvider>();
-		services.AddTransient<NRBProvider>();
-		services.AddTransient<NRBTProvider>();
-		services.AddTransient<RBProvider>();
-		services.AddTransient<RBAProvider>();
-		services.AddTransient<RBFProvider>();
-		services.AddTransient<RBMProvider>();
-		services.AddTransient<RBVProvider>();
-		services.AddTransient<SARBProvider>();
-		services.AddTransient<SBIProvider>();
-		services.AddTransient<SBPProvider>();
-		services.AddTransient<TCMBProvider>();
-		services.AddTransient<CentralBankProviderFactory>();
-		return services;
 	}
 }
 
@@ -1191,4 +1326,3 @@ public sealed class CentralBankProviderFactory {
 			_ => throw new ArgumentOutOfRangeException(nameof(providerCode), providerCode, "Unknown central-bank provider.")
 		};
 }
-

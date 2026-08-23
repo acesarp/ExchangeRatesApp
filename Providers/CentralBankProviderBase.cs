@@ -1,8 +1,15 @@
-﻿using System.Globalization;
+﻿using ExchangeRates.Server.Interfaces;
+
+using System.Globalization;
 using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
+/// <summary>
+/// Base class for central bank exchange rate providers.
+/// Provides shared HTTP, configuration, authentication, and utility functionality
+/// for retrieving and parsing exchange rate data from central bank sources.
+/// </summary>
 public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected CentralBankProviderBase(HttpClient http, IConfiguration configuration) {
 		Http = http;
@@ -17,18 +24,18 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 
 	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Code}:HistoricalUrl"];
 
-	protected string? ApiKey => Configuration[$"CentralBanks:{Code}:ApiKey"];
+	protected string? ApiKey => Configuration[$"ProviderKeys:{Code}"];
 
 	public abstract string Code { get; }
 	public abstract string Name { get; }
 	public abstract string NativeCurrency { get; }
 
-	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(DateOnly? date = null, CancellationToken cancellationToken = default)
-		=> FetchAsync(date ?? DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
-
-	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken)
-		=> throw new NotSupportedException($"{Code} ({Name}) is registered, but its direct-source adapter still needs a bank-specific parser/endpoint implementation.");
-
+	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(DateOnly? date, CancellationToken ct) {
+		return FetchAsync(date ?? DateOnly.FromDateTime(DateTime.UtcNow), ct);
+	}
+	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+		throw new NotSupportedException($"{Code} ({Name}) is registered, but its direct-source adapter still needs a bank-specific parser/endpoint implementation.");
+	}
 	protected static decimal GetDecimal(JsonElement element, string propertyName) {
 		if (!element.TryGetProperty(propertyName, out var property)) {
 			return 0m;
@@ -38,42 +45,10 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 			return number;
 		}
 
-		if (property.ValueKind == JsonValueKind.String &&
-			decimal.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)) {
+		if (property.ValueKind == JsonValueKind.String && decimal.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)) {
 			return parsed;
 		}
-
 		return 0m;
-	}
-
-	protected static List<string> SplitCsv(string line) {
-		var result = new List<string>();
-		var current = new System.Text.StringBuilder();
-		var quoted = false;
-
-		for (var i = 0; i < line.Length; i++) {
-			var ch = line[i];
-
-			if (ch == '"') {
-				if (quoted && i + 1 < line.Length && line[i + 1] == '"') {
-					current.Append('"');
-					i++;
-				}
-				else {
-					quoted = !quoted;
-				}
-			}
-			else if (ch == ',' && !quoted) {
-				result.Add(current.ToString().Trim());
-				current.Clear();
-			}
-			else {
-				current.Append(ch);
-			}
-		}
-
-		result.Add(current.ToString().Trim());
-		return result;
 	}
 }
 

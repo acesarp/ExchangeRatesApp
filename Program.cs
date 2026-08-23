@@ -1,5 +1,6 @@
 
 using ExchangeRates.Server.Configuration;
+using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
 
 namespace ExchangeRates.Server;
@@ -7,16 +8,22 @@ namespace ExchangeRates.Server;
 public class Program {
 	public static void Main(string[] args) {
 		var builder = WebApplication.CreateBuilder(args);
-		builder.Services.Configure<BcbApiOptions>(builder.Configuration.GetSection("BcbApi"));
+		builder.Configuration.AddJsonFile("providerkeys.json", optional: false, reloadOnChange: false);
+		builder.Services.Configure<Dictionary<string, string>>(builder.Configuration.GetSection("ProviderKeys"));
+
+		builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+		builder.Services.Configure<CentralBankOptions>(builder.Configuration.GetSection("CentralBanks"));
 		// Add services to the container.
 
 		builder.Services.AddControllers();
 		// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 		builder.Services.AddOpenApi();
 		builder.Services.AddHttpClient();
-		builder.Services.AddScoped<BcbService>();
+		builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen();
+
+		builder.Services.AddCentralBankProviders();
 
 		var app = builder.Build();
 
@@ -31,10 +38,7 @@ public class Program {
 		}
 
 		app.UseHttpsRedirection();
-
 		app.UseAuthorization();
-
-
 		app.MapControllers();
 
 		app.Run();

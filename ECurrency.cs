@@ -3,7 +3,7 @@
 /// <summary>
 /// ISO 4217
 /// </summary>
-public enum ICurrency {
+public enum ECurrency {
 	AED = 784, // UAE Dirham
 	AFN = 971, // Afghani
 	ALL = 8,   // Lek

@@ -1,5 +1,4 @@
-using ExchangeRates.Server.Models;
-using ExchangeRates.Server.Services;
+using ExchangeRates.Server.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,14 +7,14 @@ namespace ExchangeRates.Server.Controllers;
 [ApiController]
 [Route("[controller]")]
 public class QuotesController : ControllerBase {
-	private readonly BcbService _bcbService;
+	private readonly IExchangeRateService _service;
 
-	public QuotesController(BcbService bcbService) {
-		_bcbService = bcbService;
+	public QuotesController(IExchangeRateService service) {
+		_service = service;
 	}
 	[HttpGet(Name = "GetExchangeRate")]
-	public async Task<ActionResult<BcbQuote>> GetRate([FromQuery] DateTime date, ICurrency currency) {
-		var result = await _bcbService.GetQuoteAsync(date, currency);
+	public async Task<ActionResult<Models.ExchangeRate>> GetRate([FromQuery] DateOnly date, string provider) {
+		var result = await _service.GetRatesAsync(provider, date);
 		return Ok(result);
 	}
 }
