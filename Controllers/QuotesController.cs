@@ -14,8 +14,8 @@ public class QuotesController : ControllerBase {
 		_service = service;
 	}
 	[HttpGet(Name = "GetExchangeRate")]
-	public async Task<ActionResult<Server.ExchangeRate>> GetRate(ECurrency fromCurrency, ECurrency toCurrency, DateOnly? date) {
-		var result = await _service.GetRatesAsync(fromCurrency, toCurrency, date);
+	public async Task<ActionResult<Server.ExchangeRate>> GetRate(ECurrency fromCurrency, ECurrency toCurrency, DateOnly? fromDate, DateOnly? toDate) {
+		var result = await _service.GetRatesAsync(fromCurrency, toCurrency, fromDate, toDate);
 		return Ok(result);
 	}
 }

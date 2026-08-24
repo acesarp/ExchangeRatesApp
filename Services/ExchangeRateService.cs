@@ -8,45 +8,34 @@ using ExchangeRates.Server.Providers;
 public class ExchangeRateService : IExchangeRateService {
 	private readonly IConfiguration _configuration;
 	private readonly CentralBankProviderFactory _providerFactory;
+	private readonly string _pivotCurrency;
 
 	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory) {
 		_configuration = configuration;
 		_providerFactory = providerFactory;
+		_pivotCurrency = configuration["PivotCurrency"] ?? throw new Exception("Invalid PivotCurrency configuration");
 	}
 
-	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrency fromCurrency, ECurrency toCurrency, DateOnly? date, CancellationToken ct = default) {
+	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrency from, ECurrency to, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct = default) {
+		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+		var _toDate = toDate ?? _fromDate;
 
-		var section = _configuration.GetSection($"CentralBanks:{provider}");
-		if (!section.Exists()) {
-			throw new ArgumentException($"Unknown provider: {provider}");
+		if (from == to) {
+			return new List<ExchangeRate> { new ExchangeRate(_fromDate, from, to, 1m, "IDENTITY") };
+		}
+		var result = new List<ExchangeRate>();
+		// 1. Try direct provider
+		ICentralBankProvider? bankProvider = FindDirectProvider(from, to);
+
+		if (bankProvider != null) {
+			return await bankProvider.GetRatesAsync(to, _fromDate, _toDate, ct);
 		}
 
-		var bankProvider = _providerFactory.Get(provider);
-
-		return await bankProvider.GetRatesAsync(date, ct);
+		// 2. No direct rate - triangulate
+		return await GetTriangulatedRatesAsync(from, to, _fromDate, _toDate, ct);
 	}
 
-	private static readonly string[] PivotCurrencies = { "USD", "EUR", "GBP" };
-
-	private decimal GetRate(string fromCurrency, string toCurrency, IReadOnlyList<ExchangeRate> rates) {
-		if (fromCurrency == toCurrency) {
-			return 1m;
-		}
-
-		if (TryGetDirectRate(fromCurrency, toCurrency, rates, out var directRate)) {
-			return directRate;
-		}
-
-		foreach (var pivot in PivotCurrencies) {
-			if (TryGetDirectRate(fromCurrency, pivot, rates, out var fromRate) && TryGetDirectRate(pivot, toCurrency, rates, out var toRate)) {
-				return fromRate * toRate;
-			}
-		}
-
-		throw new InvalidOperationException($"Unable to calculate {fromCurrency}/{toCurrency}.");
-	}
-
-	private bool TryGetDirectRate(string fromCurrency, string toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
+	private bool TryGetDirectRate(ECurrency fromCurrency, ECurrency toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
 		var direct = rates.FirstOrDefault(x => x.BaseCurrency == fromCurrency && x.QuoteCurrency == toCurrency);
 
 		if (direct is not null) {
@@ -65,8 +54,38 @@ public class ExchangeRateService : IExchangeRateService {
 		return false;
 	}
 
-	private ICentralBankProvider? FindProvider(ECurrency from, ECurrency to) {
-		return _providerFactory.GetAll()
-			.FirstOrDefault(p => p.SupportedCurrencies.Contains(from) && p.SupportedCurrencies.Contains(to));
+
+	private ICentralBankProvider? FindDirectProvider(ECurrency from, ECurrency to) {
+		return _providerFactory.GetAll().FirstOrDefault(p => p.Supports(from) && p.Supports(to) &&
+																											(p.NativeCurrency == from || p.NativeCurrency == to));
+	}
+
+	private ICentralBankProvider? FindPivotProvider(ECurrency currency) {
+		return _providerFactory.GetAll().FirstOrDefault(p => p.Supports(currency) && p.Supports(Enum.Parse<ECurrency>(_pivotCurrency)));
+	}
+
+	private async Task<IReadOnlyList<ExchangeRate>> GetTriangulatedRatesAsync(ECurrency from, ECurrency to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var fromProvider = FindPivotProvider(from);
+		var toProvider = FindPivotProvider(to);
+
+		if (fromProvider is null || toProvider is null) {
+			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");
+		}
+
+		var fromRates = await fromProvider.GetRatesAsync(from, fromDate, toDate, ct);
+
+		var toRates = fromProvider == toProvider ? fromRates : await toProvider.GetRatesAsync(to, fromDate, toDate, ct);
+
+		if (!TryGetDirectRate(from, to, fromRates, out var fromRate)) {
+			throw new InvalidOperationException($"Unable to find {from}/{_pivotCurrency}.");
+		}
+
+		if (!TryGetDirectRate(from, to, toRates, out var toRate)) {
+			throw new InvalidOperationException($"Unable to find {_pivotCurrency}/{to}.");
+		}
+
+		var rate = fromRate * toRate;
+
+		return new ExchangeRate(date ?? DateOnly.FromDateTime(DateTime.UtcNow), from, to, rate, $"{fromProvider.Code}+{toProvider.Code}");
 	}
 }

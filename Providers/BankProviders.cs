@@ -1,8 +1,10 @@
-﻿using ExchangeRates.Server.Interfaces;
+﻿using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -14,11 +16,12 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 
 	public override string Code => "AMCM";
 	public override string Name => "Monetary Authority of Macao";
-	public override string NativeCurrency => "MOP";
+	public override ECurrency NativeCurrency => ECurrency.MOP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var from = date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-		var url = $"{Url}?QueryType=1&Begin={from}&End={from}";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
+		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
+
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 		var rates = new List<ExchangeRate>();
 
@@ -37,7 +40,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 			if (unit <= 0 || value <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(date, code!, "MOP", value / unit, Code));
+			rates.Add(new ExchangeRate(fromDate, fromCurrency!, NativeCurrency, value / unit, Code));
 		}
 		return rates;
 	}
@@ -51,15 +54,15 @@ public sealed class BAMProvider : CentralBankProviderBase {
 
 	public override string Code => "BAM";
 	public override string Name => "Bank Al-Maghrib";
-	public override string NativeCurrency => "MAD";
+	public override ECurrency NativeCurrency => ECurrency.MAD;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
 		}
 
-		var url = $"{Url.TrimEnd('/')}/cours/Version1/api/CoursVirement?date={date:yyyy-MM-dd}T12:30:00";
+		var url = $"{Url.TrimEnd('/')}/cours/Version1/api/CoursVirement?date={fromDate:yyyy-MM-dd}T12:30:00";
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.TryAddWithoutValidation("Ocp-Apim-Subscription-Key", apiKey);
 
@@ -90,7 +93,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, code!, "MAD", mid / unit, Code));
+			rates.Add(new ExchangeRate(from, NativeCurrency, Enum.Parse<ECurrency>(code), mid / unit, Code));
 		}
 		return rates;
 	}
@@ -104,17 +107,15 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 
 	public override string Code => "BANREP";
 	public override string Name => "Banco de la República";
-	public override string NativeCurrency => "COP";
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
-		var start = date.ToString("yyyy-MM-dd");
-		var end = date.AddDays(1).ToString("yyyy-MM-dd");
+	public override ECurrency NativeCurrency => ECurrency.COP;
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		var url = $"{Url}?$where=vigenciadesde >= '{start}T00:00:00.000' AND vigenciadesde < '{end}T00:00:00.000'";
+		var url = $"{Url}?$where=vigenciadesde >= '{fromDate}T00:00:00.000' AND vigenciadesde < '{toDate}T00:00:00.000'";
 
-		using var response = await Http.GetAsync(url, cancellationToken);
+		using var response = await Http.GetAsync(url, ct);
 		response.EnsureSuccessStatusCode();
 
-		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
 		if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0) {
 			return [];
@@ -126,7 +127,7 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 		if (rate <= 0) {
 			return [];
 		}
-		return [new ExchangeRate(date, "USD", "COP", rate, Code)];
+		return [new ExchangeRate(fromDate, "USD", NativeCurrency, rate, Code)];
 	}
 }
 
@@ -138,24 +139,24 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 
 	public override string Code => "BANXICO";
 	public override string Name => "Banco de México";
-	public override string NativeCurrency => "MXN";
+	public override ECurrency NativeCurrency => ECurrency.MXN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BANXICO:ApiKey.");
 		}
 
 		// Example: USD/MXN FIX exchange rate series.
 		const string seriesId = "SF43718";
-		var url = $"{Url.TrimEnd('/')}/{seriesId}/datos/{date:yyyy-MM-dd}/{date:yyyy-MM-dd}";
+		var url = $"{Url.TrimEnd('/')}/{seriesId}/datos/{fromDate:yyyy-MM-dd}/{toDate:yyyy-MM-dd}";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.Add("Bmx-Token", ApiKey);
 
-		using var response = await Http.SendAsync(request, cancellationToken);
+		using var response = await Http.SendAsync(request, ct);
 		response.EnsureSuccessStatusCode();
 
-		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
 		var series = doc.RootElement.GetProperty("bmx")
 																		.GetProperty("series")[0];
@@ -170,7 +171,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [   new ExchangeRate(date,  "USD","MXN",rate,Code)
+		return [   new ExchangeRate(fromDate,  "USD",NativeCurrency,rate,Code)
 		];
 	}
 }
@@ -183,7 +184,52 @@ public sealed class BBKProvider : CentralBankProviderBase {
 
 	public override string Code => "BBK";
 	public override string Name => "Deutsche Bundesbank";
-	public override string NativeCurrency => "DEM";
+	public override ECurrency NativeCurrency => ECurrency.DEM;
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+
+		var csv = await Http.GetStringAsync(url, ct);
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+		if (lines.Length < 2) {
+			return [];
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var rates = new List<ExchangeRate>();
+
+		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+		var valueIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
+		var currencyIndex = headers.FindIndex(x => x.Equals("CURRENCY", StringComparison.OrdinalIgnoreCase));
+		var currencyDenomIndex = headers.FindIndex(x => x.Equals("CURRENCY_DENOM", StringComparison.OrdinalIgnoreCase));
+
+		for (var i = 1; i < lines.Length; i++) {
+			var columns = TextUtils.SplitCsv(lines[i]);
+
+			if (dateIndex < 0 || valueIndex < 0 || dateIndex >= columns.Count || valueIndex >= columns.Count) {
+				continue;
+			}
+
+			if (!DateOnly.TryParse(columns[dateIndex], CultureInfo.InvariantCulture, out var date)) {
+				continue;
+			}
+
+			if (!decimal.TryParse(columns[valueIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+				continue;
+			}
+
+			var baseCurrency = currencyIndex >= 0 && currencyIndex < columns.Count ? columns[currencyIndex] : null;
+			var quoteCurrency = currencyDenomIndex >= 0 && currencyDenomIndex < columns.Count ? columns[currencyDenomIndex] : null;
+
+			if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(quoteCurrency)) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRate(date, baseCurrency, quoteCurrency, rate, Code));
+		}
+
+		return rates;
+	}
 
 }
 
@@ -195,30 +241,35 @@ public sealed class BCBProvider : CentralBankProviderBase {
 
 	public override string Code => "BCB";
 	public override string Name => "Banco Central do Brasil";
-	public override string NativeCurrency => "BRL";
+	public override ECurrency NativeCurrency => ECurrency.BRL;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var currencies = new[] { "AUD", "CAD", "CHF", "DKK", "EUR", "GBP", "JPY", "NOK", "SEK", "USD" };
 		var rates = new List<ExchangeRate>();
 
-		foreach (var currency in currencies) {
-			var url = $"{Url.TrimEnd('/')}/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)" +
-				$"?@moeda='{currency}'&@dataCotacao='{date:MM-dd-yyyy}'&$format=json";
+		var url = $"{Url.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
+				$"?@moeda='{fromCurrency}'&@dataInicial='{fromDate:MM-dd-yyyy}'&@dataFinalCotacao='{toDate:MM-dd-yyyy}'&$format=json";
 
-			using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
-			if (!doc.RootElement.TryGetProperty("value", out var value) || value.GetArrayLength() == 0) {
-				continue;
-			}
 
-			var rows = value.EnumerateArray().ToArray();
-			var row = rows[^1];
+		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
+		if (!doc.RootElement.TryGetProperty("value", out var values)) {
+			return [];
+		}
+
+		foreach (var row in values.EnumerateArray()) {
 			var buy = GetDecimal(row, "cotacaoCompra");
 			var sell = GetDecimal(row, "cotacaoVenda");
-			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
-
-			if (mid > 0) {
-				rates.Add(new ExchangeRate(date, currency, "BRL", mid, Code));
+			var rate = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
+			if (rate <= 0) {
+				continue;
 			}
+			var dateText = row.GetProperty("dataHoraCotacao").GetString();
+
+			if (!DateTime.TryParse(dateText, out var dateTime)) {
+				continue;
+			}
+			rates.Add(new ExchangeRate(DateOnly.FromDateTime(dateTime), fromCurrency, NativeCurrency, rate, Code));
+
 		}
 		return rates;
 	}
@@ -232,7 +283,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 	public override string Code => "BCBO";
 	public override string Name => "Banco Central de Bolivia";
-	public override string NativeCurrency => "BOB";
+	public override ECurrency NativeCurrency => ECurrency.BOB;
 
 }
 
@@ -244,7 +295,7 @@ public sealed class BCCProvider : CentralBankProviderBase {
 
 	public override string Code => "BCC";
 	public override string Name => "Banco Central de Cuba";
-	public override string NativeCurrency => "CUP";
+	public override ECurrency NativeCurrency => ECurrency.CUP;
 
 }
 
@@ -256,7 +307,7 @@ public sealed class BCCHProvider : CentralBankProviderBase {
 
 	public override string Code => "BCCH";
 	public override string Name => "Banco Central de Chile";
-	public override string NativeCurrency => "CLP";
+	public override ECurrency NativeCurrency => ECurrency.CLP;
 
 }
 
@@ -264,12 +315,52 @@ public sealed class BCCHProvider : CentralBankProviderBase {
 /// Banco Central de Costa Rica
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
-	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) {
+		Token = configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
+		NameParameter = configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
+		Email = configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
+	}
+	private string Token { get; }
+	private string NameParameter { get; }
+	private string Email { get; }
 
 	public override string Code => "BCCR";
 	public override string Name => "Banco Central de Costa Rica";
-	public override string NativeCurrency => "CRC";
+	public override ECurrency NativeCurrency => ECurrency.CRC;
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		const int indicator = 318; // USD reference selling rate
 
+		var url = $"{Url.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +
+			$"?Indicador={indicator}" +
+			$"&FechaInicio={fromDate:dd/MM/yyyy}" +
+			$"&FechaFinal={toDate:dd/MM/yyyy}" +
+			$"&Nombre={Uri.EscapeDataString(NameParameter)}" +
+			$"&SubNiveles=N" +
+			$"&CorreoElectronico={Uri.EscapeDataString(Email)}" +
+			$"&Token={Uri.EscapeDataString(Token)}";
+
+		var xml = await Http.GetStringAsync(url, ct);
+		var document = XDocument.Parse(xml);
+
+		var rates = new List<ExchangeRate>();
+
+		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "INGC011_CAT_INDICADORECONOMIC")) {
+			var dateText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "DES_FECHA")?.Value;
+			var valueText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "NUM_VALOR")?.Value;
+
+			if (!DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				continue;
+			}
+
+			if (!decimal.TryParse(valueText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRate(DateOnly.FromDateTime(date), fromCurrency, NativeCurrency, rate, Code));
+		}
+
+		return rates;
+	}
 }
 
 /// <summary>
@@ -280,7 +371,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 
 	public override string Code => "BCEAO";
 	public override string Name => "Banque Centrale des Etats de l'Afrique de l'Ouest";
-	public override string NativeCurrency => "XOF";
+	public override ECurrency NativeCurrency => ECurrency.XOF;
 
 }
 
@@ -292,7 +383,7 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 	public override string Code => "BCN";
 	public override string Name => "Banco Central de Nicaragua";
-	public override string NativeCurrency => "NIO";
+	public override ECurrency NativeCurrency => ECurrency.NIO;
 
 }
 
@@ -304,7 +395,7 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 	public override string Code => "BCP";
 	public override string Name => "Banco Central del Paraguay";
-	public override string NativeCurrency => "PYG";
+	public override ECurrency NativeCurrency => ECurrency.PYG;
 
 }
 
@@ -316,7 +407,7 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 
 	public override string Code => "BCRA";
 	public override string Name => "Banco Central de la República Argentina";
-	public override string NativeCurrency => "ARS";
+	public override ECurrency NativeCurrency => ECurrency.ARS;
 
 }
 
@@ -328,7 +419,7 @@ public sealed class BCTProvider : CentralBankProviderBase {
 
 	public override string Code => "BCT";
 	public override string Name => "Banque Centrale de Tunisie";
-	public override string NativeCurrency => "TND";
+	public override ECurrency NativeCurrency => ECurrency.TND;
 
 }
 
@@ -340,7 +431,7 @@ public sealed class BCUProvider : CentralBankProviderBase {
 
 	public override string Code => "BCU";
 	public override string Name => "Banco Central del Uruguay";
-	public override string NativeCurrency => "UYU";
+	public override ECurrency NativeCurrency => ECurrency.UYU;
 
 }
 
@@ -352,11 +443,11 @@ public sealed class BDIProvider : CentralBankProviderBase {
 
 	public override string Code => "BDI";
 	public override string Name => "Banca d'Italia";
-	public override string NativeCurrency => "EUR";
+	public override ECurrency NativeCurrency => ECurrency.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var url =
-			$"{Url}?referenceDate={date:yyyy-MM-dd}&currencyIsoCode=EUR&lang=en";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
+		var url = $"{Url}?referenceDate={date:yyyy-MM-dd}&currencyIsoCode=EUR&lang=en";
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
@@ -375,7 +466,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-				rates.Add(new ExchangeRate(date, "EUR", code.ToUpperInvariant(), rate, Code));
+				rates.Add(new ExchangeRate(fromDate, NativeCurrency, code, rate, Code));
 			}
 		}
 
@@ -392,7 +483,7 @@ public sealed class BDPProvider : CentralBankProviderBase {
 
 	public override string Code => "BDP";
 	public override string Name => "Banco de Portugal";
-	public override string NativeCurrency => "PTE";
+	public override ECurrency NativeCurrency => ECurrency.PTE;
 
 }
 
@@ -404,7 +495,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 	public override string Code => "BI";
 	public override string Name => "Bank Indonesia";
-	public override string NativeCurrency => "IDR";
+	public override ECurrency NativeCurrency => ECurrency.IDR;
 
 }
 
@@ -416,7 +507,7 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 	public override string Code => "BNA";
 	public override string Name => "Banco Nacional de Angola";
-	public override string NativeCurrency => "AOA";
+	public override ECurrency NativeCurrency => ECurrency.AOA;
 
 }
 
@@ -428,7 +519,7 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 	public override string Code => "BNM";
 	public override string Name => "Bank Negara Malaysia";
-	public override string NativeCurrency => "MYR";
+	public override ECurrency NativeCurrency => ECurrency.MYR;
 
 }
 
@@ -440,7 +531,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 	public override string Code => "BNR";
 	public override string Name => "Banca Națională a României";
-	public override string NativeCurrency => "RON";
+	public override ECurrency NativeCurrency => ECurrency.RON;
 
 }
 
@@ -452,7 +543,7 @@ public sealed class BNRRWProvider : CentralBankProviderBase {
 
 	public override string Code => "BNRRW";
 	public override string Name => "Banque Nationale du Rwanda";
-	public override string NativeCurrency => "RWF";
+	public override ECurrency NativeCurrency => ECurrency.RWF;
 
 }
 
@@ -464,7 +555,7 @@ public sealed class BOAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOA";
 	public override string Name => "Bank of Algeria";
-	public override string NativeCurrency => "DZD";
+	public override ECurrency NativeCurrency => ECurrency.DZD;
 
 }
 
@@ -476,7 +567,7 @@ public sealed class BOBProvider : CentralBankProviderBase {
 
 	public override string Code => "BOB";
 	public override string Name => "Bank of Botswana";
-	public override string NativeCurrency => "BWP";
+	public override ECurrency NativeCurrency => ECurrency.BWP;
 }
 
 /// <summary>
@@ -487,12 +578,12 @@ public sealed class BOCProvider : CentralBankProviderBase {
 
 	public override string Code => "BOC";
 	public override string Name => "Bank of Canada";
-	public override string NativeCurrency => "CAD";
+	public override ECurrency NativeCurrency => ECurrency.CAD;
 
 	/// <inheritdoc/>
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var start = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-		var url = $"{Url}?start_date={start}&end_date={start}";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
+		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 
 		if (!doc.RootElement.TryGetProperty("observations", out var observations) || observations.GetArrayLength() == 0) {
@@ -506,7 +597,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRate(date, "USD", "CAD", rate, Code)];
+		return [new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code)];
 	}
 }
 
@@ -569,15 +660,13 @@ public sealed class BOEProvider : CentralBankProviderBase {
 	};
 	public override string Code => "BOE";
 	public override string Name => "Bank of England";
-	public override string NativeCurrency => "GBP";
+	public override ECurrency NativeCurrency => ECurrency.GBP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var seriesCodes = string.Join(",", Series.Values);
-		var formattedDate = date.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture);
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?csv.x=yes" +
-			$"&Datefrom={Uri.EscapeDataString(formattedDate)}" +
-			$"&Dateto={Uri.EscapeDataString(formattedDate)}" +
+			$"&Datefrom={Uri.EscapeDataString($"{fromDate: dd/MMM / yyyy}")}" +
+			$"&Dateto={Uri.EscapeDataString($"{toDate: dd /MMM/yyyy)}")}" +
 			$"&SeriesCodes={seriesCodes}" +
 			"&UsingCodes=Y" +
 			"&CSVF=TN";
@@ -604,7 +693,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, currency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
 		}
 		return rates;
 	}
@@ -618,18 +707,18 @@ public sealed class BOIProvider : CentralBankProviderBase {
 
 	public override string Code => "BOI";
 	public override string Name => "Bank of Israel";
-	public override string NativeCurrency => "ILS";
+	public override ECurrency NativeCurrency => ECurrency.ILS;
 	/// 
 	/// <summary>
 	/// Bank of Israel.
 	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
 	/// </summary>
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
-								$"&startperiod={date:yyyy-MM-dd}" +
-								$"&endperiod={date:yyyy-MM-dd}" +
+								$"&startperiod={fromDate:yyyy-MM-dd}" +
+								$"&endperiod={toDate:yyyy-MM-dd}" +
 								$"&format=csv" +
 								$"&labels=id";
 
@@ -671,7 +760,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 			if (rate <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(date, currency, NativeCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
 		}
 		return rates;
 	}
@@ -685,7 +774,7 @@ public sealed class BOJProvider : CentralBankProviderBase {
 
 	public override string Code => "BOJ";
 	public override string Name => "Bank of Japan";
-	public override string NativeCurrency => "JPY";
+	public override ECurrency NativeCurrency => ECurrency.JPY;
 }
 
 /// <summary>
@@ -696,7 +785,7 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOJA";
 	public override string Name => "Bank of Jamaica";
-	public override string NativeCurrency => "JMD";
+	public override ECurrency NativeCurrency => ECurrency.JMD;
 }
 
 /// <summary>
@@ -707,7 +796,7 @@ public sealed class BOMProvider : CentralBankProviderBase {
 
 	public override string Code => "BOM";
 	public override string Name => "Bank of Mongolia";
-	public override string NativeCurrency => "MNT";
+	public override ECurrency NativeCurrency => ECurrency.MNT;
 }
 
 /// <summary>
@@ -718,7 +807,7 @@ public sealed class BOTProvider : CentralBankProviderBase {
 
 	public override string Code => "BOT";
 	public override string Name => "Bank of Thailand";
-	public override string NativeCurrency => "THB";
+	public override ECurrency NativeCurrency => ECurrency.THB;
 }
 
 /// <summary>
@@ -729,7 +818,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";
-	public override string NativeCurrency => "TZS";
+	public override ECurrency NativeCurrency => ECurrency.TZS;
 }
 
 /// <summary>
@@ -740,7 +829,7 @@ public sealed class BRBProvider : CentralBankProviderBase {
 
 	public override string Code => "BRB";
 	public override string Name => "Banque de la Republique du Burundi";
-	public override string NativeCurrency => "BIF";
+	public override ECurrency NativeCurrency => ECurrency.BIF;
 }
 
 /// <summary>
@@ -751,7 +840,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 
 	public override string Code => "BSP";
 	public override string Name => "Bangko Sentral ng Pilipinas";
-	public override string NativeCurrency => "PHP";
+	public override ECurrency NativeCurrency => ECurrency.PHP;
 }
 
 /// <summary>
@@ -762,7 +851,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 
 	public override string Code => "CBA";
 	public override string Name => "Central Bank of Armenia";
-	public override string NativeCurrency => "AMD";
+	public override ECurrency NativeCurrency => ECurrency.AMD;
 }
 
 /// <summary>
@@ -773,7 +862,7 @@ public sealed class CBCProvider : CentralBankProviderBase {
 
 	public override string Code => "CBC";
 	public override string Name => "Central Bank of the Republic of China (Taiwan)";
-	public override string NativeCurrency => "TWD";
+	public override ECurrency NativeCurrency => ECurrency.TWD;
 }
 
 /// <summary>
@@ -784,7 +873,7 @@ public sealed class CBEProvider : CentralBankProviderBase {
 
 	public override string Code => "CBE";
 	public override string Name => "Central Bank of Egypt";
-	public override string NativeCurrency => "EGP";
+	public override ECurrency NativeCurrency => ECurrency.EGP;
 }
 
 /// <summary>
@@ -795,7 +884,7 @@ public sealed class CBGProvider : CentralBankProviderBase {
 
 	public override string Code => "CBG";
 	public override string Name => "Central Bank of The Gambia";
-	public override string NativeCurrency => "GMD";
+	public override ECurrency NativeCurrency => ECurrency.GMD;
 }
 
 /// <summary>
@@ -806,7 +895,7 @@ public sealed class CBIProvider : CentralBankProviderBase {
 
 	public override string Code => "CBI";
 	public override string Name => "Central Bank of Iraq";
-	public override string NativeCurrency => "IQD";
+	public override ECurrency NativeCurrency => ECurrency.IQD;
 }
 
 /// <summary>
@@ -817,7 +906,7 @@ public sealed class CBKProvider : CentralBankProviderBase {
 
 	public override string Code => "CBK";
 	public override string Name => "Central Bank of Kenya";
-	public override string NativeCurrency => "KES";
+	public override ECurrency NativeCurrency => ECurrency.KES;
 }
 
 /// <summary>
@@ -828,7 +917,7 @@ public sealed class CBLLRProvider : CentralBankProviderBase {
 
 	public override string Code => "CBLLR";
 	public override string Name => "Central Bank of Liberia";
-	public override string NativeCurrency => "LRD";
+	public override ECurrency NativeCurrency => ECurrency.LRD;
 }
 
 /// <summary>
@@ -839,7 +928,7 @@ public sealed class CBMProvider : CentralBankProviderBase {
 
 	public override string Code => "CBM";
 	public override string Name => "Central Bank of Myanmar";
-	public override string NativeCurrency => "MMK";
+	public override ECurrency NativeCurrency => ECurrency.MMK;
 }
 
 /// <summary>
@@ -850,7 +939,7 @@ public sealed class CBNProvider : CentralBankProviderBase {
 
 	public override string Code => "CBN";
 	public override string Name => "Central Bank of Nigeria";
-	public override string NativeCurrency => "NGN";
+	public override ECurrency NativeCurrency => ECurrency.NGN;
 }
 
 /// <summary>
@@ -861,7 +950,7 @@ public sealed class CBRProvider : CentralBankProviderBase {
 
 	public override string Code => "CBR";
 	public override string Name => "Central Bank of Russia";
-	public override string NativeCurrency => "RUB";
+	public override ECurrency NativeCurrency => ECurrency.RUB;
 }
 
 /// <summary>
@@ -872,7 +961,7 @@ public sealed class CBSProvider : CentralBankProviderBase {
 
 	public override string Code => "CBS";
 	public override string Name => "Central Bank of Samoa";
-	public override string NativeCurrency => "WST";
+	public override ECurrency NativeCurrency => ECurrency.WST;
 }
 
 /// <summary>
@@ -883,7 +972,7 @@ public sealed class CBSLProvider : CentralBankProviderBase {
 
 	public override string Code => "CBSL";
 	public override string Name => "Central Bank of Sri Lanka";
-	public override string NativeCurrency => "LKR";
+	public override ECurrency NativeCurrency => ECurrency.LKR;
 }
 
 /// <summary>
@@ -894,7 +983,7 @@ public sealed class CBUProvider : CentralBankProviderBase {
 
 	public override string Code => "CBU";
 	public override string Name => "Central Bank of Uzbekistan";
-	public override string NativeCurrency => "UZS";
+	public override ECurrency NativeCurrency => ECurrency.UZS;
 }
 
 /// <summary>
@@ -905,7 +994,7 @@ public sealed class CNBProvider : CentralBankProviderBase {
 
 	public override string Code => "CNB";
 	public override string Name => "Czech National Bank";
-	public override string NativeCurrency => "CZK";
+	public override ECurrency NativeCurrency => ECurrency.CZK;
 }
 
 /// <summary>
@@ -916,7 +1005,7 @@ public sealed class DABProvider : CentralBankProviderBase {
 
 	public override string Code => "DAB";
 	public override string Name => "Da Afghanistan Bank";
-	public override string NativeCurrency => "AFN";
+	public override ECurrency NativeCurrency => ECurrency.AFN;
 }
 
 /// <summary>
@@ -927,7 +1016,7 @@ public sealed class DNBProvider : CentralBankProviderBase {
 
 	public override string Code => "DNB";
 	public override string Name => "Danmarks Nationalbank";
-	public override string NativeCurrency => "DKK";
+	public override ECurrency NativeCurrency => ECurrency.DKK;
 }
 
 /// <summary>
@@ -938,11 +1027,10 @@ public sealed class ECBProvider : CentralBankProviderBase {
 
 	public override string Code => "ECB";
 	public override string Name => "European Central Bank";
-	public override string NativeCurrency => "EUR";
+	public override ECurrency NativeCurrency => ECurrency.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var url =
-			$"{Url}?startPeriod={date:yyyy-MM-dd}&endPeriod={date:yyyy-MM-dd}&format=csvdata";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
@@ -961,7 +1049,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(numeric, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-				rates.Add(new ExchangeRate(date, "EUR", currency.ToUpperInvariant(), rate, Code));
+				rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
 			}
 		}
 		return rates;
@@ -976,7 +1064,7 @@ public sealed class FBILProvider : CentralBankProviderBase {
 
 	public override string Code => "FBIL";
 	public override string Name => "Financial Benchmarks India";
-	public override string NativeCurrency => "INR";
+	public override ECurrency NativeCurrency => ECurrency.INR;
 }
 
 /// <summary>
@@ -987,7 +1075,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 
 	public override string Code => "FRED";
 	public override string Name => "Federal Reserve Bank of St. Louis";
-	public override string NativeCurrency => "USD";
+	public override ECurrency NativeCurrency => ECurrency.USD;
 }
 
 /// <summary>
@@ -998,7 +1086,7 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 
 	public override string Code => "HKMA";
 	public override string Name => "Hong Kong Monetary Authority";
-	public override string NativeCurrency => "HKD";
+	public override ECurrency NativeCurrency => ECurrency.HKD;
 }
 
 /// <summary>
@@ -1009,7 +1097,7 @@ public sealed class HNBProvider : CentralBankProviderBase {
 
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";
-	public override string NativeCurrency => "EUR";
+	public override ECurrency NativeCurrency => ECurrency.EUR;
 }
 
 /// <summary>
@@ -1020,7 +1108,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 
 	public override string Code => "IMF";
 	public override string Name => "International Monetary Fund";
-	public override string NativeCurrency => "XDR";
+	public override ECurrency NativeCurrency => ECurrency.XDR;
 }
 
 /// <summary>
@@ -1031,7 +1119,7 @@ public sealed class LBProvider : CentralBankProviderBase {
 
 	public override string Code => "LB";
 	public override string Name => "Lietuvos Bankas";
-	public override string NativeCurrency => "EUR";
+	public override ECurrency NativeCurrency => ECurrency.EUR;
 }
 
 /// <summary>
@@ -1042,7 +1130,7 @@ public sealed class MASProvider : CentralBankProviderBase {
 
 	public override string Code => "MAS";
 	public override string Name => "Monetary Authority of Singapore";
-	public override string NativeCurrency => "SGD";
+	public override ECurrency NativeCurrency => ECurrency.SGD;
 }
 
 /// <summary>
@@ -1053,7 +1141,7 @@ public sealed class MMAProvider : CentralBankProviderBase {
 
 	public override string Code => "MMA";
 	public override string Name => "Maldives Monetary Authority";
-	public override string NativeCurrency => "MVR";
+	public override ECurrency NativeCurrency => ECurrency.MVR;
 }
 
 /// <summary>
@@ -1064,7 +1152,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 
 	public override string Code => "MNB";
 	public override string Name => "Magyar Nemzeti Bank";
-	public override string NativeCurrency => "HUF";
+	public override ECurrency NativeCurrency => ECurrency.HUF;
 }
 
 /// <summary>
@@ -1075,7 +1163,7 @@ public sealed class NBProvider : CentralBankProviderBase {
 
 	public override string Code => "NB";
 	public override string Name => "Norges Bank";
-	public override string NativeCurrency => "NOK";
+	public override ECurrency NativeCurrency => ECurrency.NOK;
 }
 
 /// <summary>
@@ -1086,7 +1174,7 @@ public sealed class NBCProvider : CentralBankProviderBase {
 
 	public override string Code => "NBC";
 	public override string Name => "National Bank of Cambodia";
-	public override string NativeCurrency => "KHR";
+	public override ECurrency NativeCurrency => ECurrency.KHR;
 }
 
 /// <summary>
@@ -1097,7 +1185,7 @@ public sealed class NBEProvider : CentralBankProviderBase {
 
 	public override string Code => "NBE";
 	public override string Name => "National Bank of Ethiopia";
-	public override string NativeCurrency => "ETB";
+	public override ECurrency NativeCurrency => ECurrency.ETB;
 }
 
 /// <summary>
@@ -1108,7 +1196,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 
 	public override string Code => "NBG";
 	public override string Name => "National Bank of Georgia";
-	public override string NativeCurrency => "GEL";
+	public override ECurrency NativeCurrency => ECurrency.GEL;
 }
 
 /// <summary>
@@ -1119,7 +1207,7 @@ public sealed class NBKProvider : CentralBankProviderBase {
 
 	public override string Code => "NBK";
 	public override string Name => "National Bank of Kazakhstan";
-	public override string NativeCurrency => "KZT";
+	public override ECurrency NativeCurrency => ECurrency.KZT;
 }
 
 /// <summary>
@@ -1130,7 +1218,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 
 	public override string Code => "NBKR";
 	public override string Name => "National Bank of the Kyrgyz Republic";
-	public override string NativeCurrency => "KGS";
+	public override ECurrency NativeCurrency => ECurrency.KGS;
 
 }
 
@@ -1142,7 +1230,7 @@ public sealed class NBMProvider : CentralBankProviderBase {
 
 	public override string Code => "NBM";
 	public override string Name => "National Bank of Moldova";
-	public override string NativeCurrency => "MDL";
+	public override ECurrency NativeCurrency => ECurrency.MDL;
 }
 
 /// <summary>
@@ -1153,10 +1241,10 @@ public sealed class NBPProvider : CentralBankProviderBase {
 
 	public override string Code => "NBP";
 	public override string Name => "Narodowy Bank Polski";
-	public override string NativeCurrency => "PLN";
+	public override ECurrency NativeCurrency => ECurrency.PLN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var url = $"{Url.TrimEnd('/')}/tables/A/{date:yyyy-MM-dd}?format=json";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
 		using var response = await Http.GetAsync(url, ct);
 
 		if (response.StatusCode == System.Net.HttpStatusCode.NotFound) {
@@ -1174,7 +1262,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "mid");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
-				rates.Add(new ExchangeRate(date, code!, "PLN", rate, Code));
+				rates.Add(new ExchangeRate(fromDate, NativeCurrency, code!, rate, Code));
 			}
 		}
 		return rates;
@@ -1189,7 +1277,7 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 
 	public override string Code => "NBRB";
 	public override string Name => "Natsyyanalny Bank Respubliki Belarus";
-	public override string NativeCurrency => "BYN";
+	public override ECurrency NativeCurrency => ECurrency.BYN;
 }
 
 /// <summary>
@@ -1200,7 +1288,7 @@ public sealed class NBRMProvider : CentralBankProviderBase {
 
 	public override string Code => "NBRM";
 	public override string Name => "Narodna Banka na Republika Severna Makedonija";
-	public override string NativeCurrency => "MKD";
+	public override ECurrency NativeCurrency => ECurrency.MKD;
 }
 
 /// <summary>
@@ -1211,7 +1299,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";
-	public override string NativeCurrency => "TJS";
+	public override ECurrency NativeCurrency => ECurrency.TJS;
 }
 
 /// <summary>
@@ -1222,11 +1310,11 @@ public sealed class NBUProvider : CentralBankProviderBase {
 
 	public override string Code => "NBU";
 	public override string Name => "Natsionalnyi Bank Ukrainy";
-	public override string NativeCurrency => "UAH";
+	public override ECurrency NativeCurrency => ECurrency.UAH;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url =
-			$"{Url}?date={date:yyyyMMdd}&json";
+			$"{Url}?date={fromDate:yyyyMMdd}&json";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 		var rates = new List<ExchangeRate>();
@@ -1236,7 +1324,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "rate");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
-				rates.Add(new ExchangeRate(date, code!, NativeCurrency, rate, Code));
+				rates.Add(new ExchangeRate(fromDate, code!, NativeCurrency, rate, Code));
 			}
 		}
 		return rates;
@@ -1251,7 +1339,7 @@ public sealed class NRBProvider : CentralBankProviderBase {
 
 	public override string Code => "NRB";
 	public override string Name => "Nepal Rastra Bank";
-	public override string NativeCurrency => "NPR";
+	public override ECurrency NativeCurrency => ECurrency.NPR;
 }
 
 /// <summary>
@@ -1262,7 +1350,7 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 
 	public override string Code => "NRBT";
 	public override string Name => "National Reserve Bank of Tonga";
-	public override string NativeCurrency => "TOP";
+	public override ECurrency NativeCurrency => ECurrency.TOP;
 }
 
 /// <summary>
@@ -1273,7 +1361,7 @@ public sealed class RBProvider : CentralBankProviderBase {
 
 	public override string Code => "RB";
 	public override string Name => "Sveriges Riksbank";
-	public override string NativeCurrency => "SEK";
+	public override ECurrency NativeCurrency => ECurrency.SEK;
 }
 
 /// <summary>
@@ -1284,7 +1372,7 @@ public sealed class RBAProvider : CentralBankProviderBase {
 
 	public override string Code => "RBA";
 	public override string Name => "Reserve Bank of Australia";
-	public override string NativeCurrency => "AUD";
+	public override ECurrency NativeCurrency => ECurrency.AUD;
 
 }
 
@@ -1296,7 +1384,7 @@ public sealed class RBFProvider : CentralBankProviderBase {
 
 	public override string Code => "RBF";
 	public override string Name => "Reserve Bank of Fiji";
-	public override string NativeCurrency => "FJD";
+	public override ECurrency NativeCurrency => ECurrency.FJD;
 }
 
 /// <summary>
@@ -1307,7 +1395,7 @@ public sealed class RBMProvider : CentralBankProviderBase {
 
 	public override string Code => "RBM";
 	public override string Name => "Reserve Bank of Malawi";
-	public override string NativeCurrency => "MWK";
+	public override ECurrency NativeCurrency => ECurrency.MWK;
 }
 
 /// <summary>
@@ -1318,7 +1406,7 @@ public sealed class RBVProvider : CentralBankProviderBase {
 
 	public override string Code => "RBV";
 	public override string Name => "Reserve Bank of Vanuatu";
-	public override string NativeCurrency => "VUV";
+	public override ECurrency NativeCurrency => ECurrency.VUV;
 }
 
 /// <summary>
@@ -1329,7 +1417,7 @@ public sealed class SARBProvider : CentralBankProviderBase {
 
 	public override string Code => "SARB";
 	public override string Name => "South African Reserve Bank";
-	public override string NativeCurrency => "ZAR";
+	public override ECurrency NativeCurrency => ECurrency.ZAR;
 }
 
 /// <summary>
@@ -1340,7 +1428,7 @@ public sealed class SBIProvider : CentralBankProviderBase {
 
 	public override string Code => "SBI";
 	public override string Name => "Seðlabanki Íslands";
-	public override string NativeCurrency => "ISK";
+	public override ECurrency NativeCurrency => ECurrency.ISK;
 }
 
 /// <summary>
@@ -1351,7 +1439,7 @@ public sealed class SBPProvider : CentralBankProviderBase {
 
 	public override string Code => "SBP";
 	public override string Name => "State Bank of Pakistan";
-	public override string NativeCurrency => "PKR";
+	public override ECurrency NativeCurrency => ECurrency.PKR;
 }
 
 /// <summary>
@@ -1362,10 +1450,10 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 	public override string Code => "TCMB";
 	public override string Name => "Türkiye Cumhuriyet Merkez Bankası";
-	public override string NativeCurrency => "TRY";
+	public override ECurrency NativeCurrency => ECurrency.TRY;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		var url = $"{Url.TrimEnd('/')}/{date:yyyyMM}/{date:ddMMyyyy}.xml";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
 		var xml = await Http.GetStringAsync(url, ct);
 
 		var doc = System.Xml.Linq.XDocument.Parse(xml);
@@ -1388,7 +1476,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
 			if (mid > 0) {
-				rates.Add(new ExchangeRate(date, code, NativeCurrency, mid / unit, Code));
+				rates.Add(new ExchangeRate(fromDate, code, NativeCurrency, mid / unit, Code));
 			}
 		}
 		return rates;

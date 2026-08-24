@@ -195,6 +195,195 @@ public enum ECurrency {
 
 	ZAR = 710, // Rand
 	ZMW = 967, // Zambian Kwacha
-	ZWG = 924  // Zimbabwe Gold
+	ZWG = 924,  // Zimbabwe Gold
+
+	//------------------ Historic codes ---------------//
+	// Historical ISO 4217 currencies
+	ADP = 20,  // Andorran Peseta
+	AFA = 4,   // Afghan Afghani
+	ALK = 8,   // Old Albanian Lek
+	ANG = 532, // Netherlands Antillean Guilder
+
+	AOK = 24,  // Angolan Kwanza
+	AON = 24,  // Angolan Novo Kwanza
+	AOR = 982, // Angolan Kwanza Reajustado
+
+	ARA = 32,  // Argentine Austral
+	ARP = 32,  // Argentine Peso Argentino
+	ARY = 32,  // Argentine Peso Ley
+
+	ATS = 40,  // Austrian Schilling
+	AYM = 945, // Azerbaijani Manat
+	AZM = 31,  // Azerbaijani Manat
+
+	BAD = 70,  // Bosnia and Herzegovina Dinar
+	BEC = 993, // Belgian Convertible Franc
+	BEF = 56,  // Belgian Franc
+	BEL = 992, // Belgian Financial Franc
+
+	BGJ = 100, // Bulgarian Lev (First)
+	BGK = 100, // Bulgarian Lev (Second)
+	BGL = 100, // Bulgarian Lev (Third)
+			   // BGN = 975 already exists in your current enum
+
+	BOP = 68,  // Bolivian Peso
+
+	BRB = 76,  // Brazilian Cruzeiro
+	BRC = 76,  // Brazilian Cruzado
+	BRE = 76,  // Brazilian Cruzeiro
+	BRN = 76,  // Brazilian Cruzado Novo
+	BRR = 987, // Brazilian Cruzeiro Real
+
+	BUK = 104, // Burmese Kyat
+
+	BYB = 112, // Belarusian Ruble
+	BYR = 974, // Belarusian Ruble
+
+	CHC = 948, // WIR Franc (electronic currency)
+
+	CSD = 891, // Serbian Dinar
+	CSJ = 203, // Czechoslovak Koruna (Second)
+	CSK = 200, // Czechoslovak Koruna
+
+	CUC = 931, // Cuban Convertible Peso
+	CYP = 196, // Cypriot Pound
+
+	DDM = 278, // East German Mark
+	DEM = 276, // German Mark
+
+	ECS = 218, // Ecuadorian Sucre
+	ECV = 983, // Ecuador Unidad de Valor Constante
+	EEK = 233, // Estonian Kroon
+
+	ESA = 996, // Spanish Peseta Account A
+	ESB = 995, // Spanish Peseta Account B
+	ESP = 724, // Spanish Peseta
+
+	FIM = 246, // Finnish Markka
+	FRF = 250, // French Franc
+
+	GEK = 268, // Georgian Kuponi
+
+	GHC = 288, // Ghanaian Cedi
+	GHP = 939, // Ghanaian Cedi
+
+	GNE = 324, // Guinean Syli
+	GNS = 324, // Guinean Syli
+	GQE = 226, // Equatorial Guinean Ekwele
+	GRD = 300, // Greek Drachma
+
+	GWE = 624, // Guinean Escudo
+	GWP = 624, // Guinea-Bissau Peso
+
+	HRD = 191, // Croatian Dinar
+	HRK = 191, // Croatian Kuna
+
+	IEP = 372, // Irish Pound
+
+	ILP = 376, // Israeli Pound
+	ILR = 376, // Israeli Shekel
+
+	ISJ = 352, // Icelandic Krona
+	ITL = 380, // Italian Lira
+
+	LAJ = 418, // Lao Kip
+	LSM = 426, // Lesotho Loti
+
+	LTL = 440, // Lithuanian Litas
+	LTT = 440, // Lithuanian Talonas
+
+	LUC = 989, // Luxembourg Convertible Franc
+	LUF = 442, // Luxembourg Franc
+	LUL = 988, // Luxembourg Financial Franc
+
+	LVL = 428, // Latvian Lats
+	LVR = 428, // Latvian Rublis
+
+	MGF = 450, // Malagasy Franc
+	MLF = 466, // Malian Franc
+
+	MRO = 478, // Mauritanian Ouguiya
+
+	MTL = 470, // Maltese Lira
+	MTP = 470, // Maltese Pound
+
+	MVQ = 462, // Maldivian Rupee
+
+	MXP = 484, // Mexican Peso
+
+	MZE = 508, // Mozambican Escudo
+	MZM = 508, // Mozambican Metical
+
+	NIC = 558, // Nicaraguan Cordoba
+
+	NLG = 528, // Dutch Guilder
+
+	PEH = 604, // Peruvian Old Sol
+	PEI = 604, // Peruvian Inti
+	PES = 604, // Peruvian Sol
+
+	PLZ = 616, // Polish Zloty
+	PTE = 620, // Portuguese Escudo
+
+	RHD = 716, // Rhodesian Dollar
+
+	ROK = 642, // Romanian Leu (Second)
+	ROL = 642, // Romanian Leu (Third)
+
+	RUR = 810, // Russian Ruble
+
+	SDD = 736, // Sudanese Dinar
+	SDP = 736, // Sudanese Old Pound
+
+	SIT = 705, // Slovenian Tolar
+	SKK = 703, // Slovak Koruna
+
+	SLL = 694, // Sierra Leonean Leone
+
+	SRG = 740, // Surinamese Guilder
+	STD = 678, // Sao Tome and Principe Dobra
+
+	SUR = 810, // Soviet Union Ruble
+
+	TJR = 762, // Tajikistani Ruble
+	TMM = 795, // Turkmenistani Manat
+	TPE = 626, // Portuguese Timorese Escudo
+	TRL = 792, // Turkish Lira
+
+	UAK = 804, // Ukrainian Karbovanets
+
+	UGS = 800, // Ugandan Shilling
+	UGW = 800, // Old Ugandan Shilling
+
+	USS = 998, // US Dollar (Same Day)
+
+	UYN = 858, // Uruguay Peso
+	UYP = 858, // Uruguay New Peso
+
+	VEB = 862, // Venezuelan Bolivar
+	VEF = 937, // Venezuelan Bolivar Fuerte
+
+	VNC = 704, // Old Vietnamese Dong
+
+	XEU = 954, // European Currency Unit
+
+	YDD = 720, // South Yemeni Dinar
+
+	YUD = 890, // Yugoslav Dinar
+	YUM = 891, // Yugoslav Dinar
+	YUN = 890, // Yugoslav Dinar
+
+	ZAL = 991, // South African Financial Rand
+
+	ZMK = 894, // Zambian Kwacha
+
+	ZRN = 180, // Zairean New Zaire
+	ZRZ = 180, // Zairean Zaire
+
+	ZWC = 716, // Rhodesian Dollar
+	ZWD = 716, // Zimbabwean Dollar (First)
+	ZWL = 932, // Zimbabwean Dollar (Fourth/Fifth)
+	ZWN = 942, // Zimbabwean Dollar (Second)
+	ZWR = 935  // Zimbabwean Dollar (Third)
 }
 

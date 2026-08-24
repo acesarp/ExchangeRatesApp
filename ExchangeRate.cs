@@ -1,6 +1,8 @@
-﻿namespace ExchangeRates.Server;
+﻿using ExchangeRates.Server.Enums;
 
-public sealed record ExchangeRate(DateOnly Date, string BaseCurrency, string QuoteCurrency, decimal Rate, string Provider);
+namespace ExchangeRates.Server;
+
+public sealed record ExchangeRate(DateOnly date, ECurrency BaseCurrency, ECurrency QuoteCurrency, decimal Rate, string Provider);
 
 
 
