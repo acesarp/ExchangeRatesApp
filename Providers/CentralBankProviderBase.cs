@@ -1,4 +1,5 @@
-﻿using ExchangeRates.Server.Interfaces;
+﻿using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Interfaces;
 
 using System.Globalization;
 using System.Text.Json;
@@ -19,8 +20,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected HttpClient Http { get; }
 	protected IConfiguration Configuration { get; }
 
-	protected string Url => Configuration[$"CentralBanks:{Code}:Url"]
-		?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:Url configuration.");
+	protected string Url => Configuration[$"CentralBanks:{Code}:Url"] ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:Url configuration.");
 
 	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Code}:HistoricalUrl"];
 
@@ -29,13 +29,32 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public abstract string Code { get; }
 	public abstract string Name { get; }
 	public abstract string NativeCurrency { get; }
+	public IReadOnlySet<ECurrency> SupportedCurrencies {
+		get {
+			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? [];
 
+			return currencies.Select(Enum.Parse<ECurrency>).ToHashSet();
+		}
+	}
+
+	public bool Supports(ECurrency currency) => SupportedCurrencies.Contains(currency);
+
+	/// <inheritdoc/>
 	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(DateOnly? date, CancellationToken ct) {
 		return FetchAsync(date ?? DateOnly.FromDateTime(DateTime.UtcNow), ct);
 	}
+
+	/// <summary>
+	/// Retrieves and parses exchange rate data directly from the central bank source.
+	/// Provider-specific implementations should override this method.
+	/// </summary>
+	/// <param name="date"></param>
+	/// <param name="ct"></param>
+	/// <returns>IReadOnlyList&lt;ExchangeRate&gt;</returns>
 	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
-		throw new NotSupportedException($"{Code} ({Name}) is registered, but its direct-source adapter still needs a bank-specific parser/endpoint implementation.");
+		throw new NotSupportedException($"{Code} ({Name}) is registered, needs a bank-specific parser/endpoint implementation.");
 	}
+
 	protected static decimal GetDecimal(JsonElement element, string propertyName) {
 		if (!element.TryGetProperty(propertyName, out var property)) {
 			return 0m;

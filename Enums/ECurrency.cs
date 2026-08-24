@@ -1,4 +1,4 @@
-﻿namespace ExchangeRates.Server;
+﻿namespace ExchangeRates.Server.Enums;
 
 /// <summary>
 /// ISO 4217
@@ -196,12 +196,5 @@ public enum ECurrency {
 	ZAR = 710, // Rand
 	ZMW = 967, // Zambian Kwacha
 	ZWG = 924  // Zimbabwe Gold
-}
-enum IMétodo {
-	Moedas,                     // Lista moedas suportadas    
-	CotacaoDolarDia,         // USD em uma data
-	CotacaoDolarPeriodo,  // USD em um período
-	CotacaoMoedaDia,        // EUR, CAD etc.em uma data
-	CotacaoMoedaPeriodo, // EUR, CAD etc. em um período
 }
 

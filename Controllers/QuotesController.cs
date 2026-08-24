@@ -1,3 +1,4 @@
+using ExchangeRates.Server.Enums;
 using ExchangeRates.Server.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +14,8 @@ public class QuotesController : ControllerBase {
 		_service = service;
 	}
 	[HttpGet(Name = "GetExchangeRate")]
-	public async Task<ActionResult<Models.ExchangeRate>> GetRate([FromQuery] DateOnly date, string provider) {
-		var result = await _service.GetRatesAsync(provider, date);
+	public async Task<ActionResult<Server.ExchangeRate>> GetRate(ECurrency fromCurrency, ECurrency toCurrency, DateOnly? date) {
+		var result = await _service.GetRatesAsync(fromCurrency, toCurrency, date);
 		return Ok(result);
 	}
 }

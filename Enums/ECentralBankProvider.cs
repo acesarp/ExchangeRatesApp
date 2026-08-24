@@ -1,4 +1,4 @@
-﻿namespace ExchangeRates.Server;
+﻿namespace ExchangeRates.Server.Enums;
 
 /// <summary>
 /// Central bank and monetary authority provider codes.

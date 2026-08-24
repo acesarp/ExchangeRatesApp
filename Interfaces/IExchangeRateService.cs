@@ -1,5 +1,7 @@
-﻿namespace ExchangeRates.Server.Interfaces;
+﻿using ExchangeRates.Server.Enums;
+
+namespace ExchangeRates.Server.Interfaces;
 
 public interface IExchangeRateService {
-	Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(string provider, DateOnly? date = null, CancellationToken ct = default);
+	Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrency fromCurrency, ECurrency toCurrency, DateOnly? date = null, CancellationToken ct = default);
 }

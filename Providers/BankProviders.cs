@@ -37,7 +37,6 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 			if (unit <= 0 || value <= 0) {
 				continue;
 			}
-
 			rates.Add(new ExchangeRate(date, code!, "MOP", value / unit, Code));
 		}
 		return rates;
@@ -67,9 +66,10 @@ public sealed class BAMProvider : CentralBankProviderBase {
 		using var response = await Http.SendAsync(request, ct);
 		response.EnsureSuccessStatusCode();
 
-		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+		var rawJson = await response.Content.ReadAsStringAsync(ct);
+		using var doc = JsonDocument.Parse(rawJson);
 		var rates = new List<ExchangeRate>();
-
+		Console.WriteLine(rawJson);
 		foreach (var row in doc.RootElement.EnumerateArray()) {
 			var code = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
 			if (string.IsNullOrWhiteSpace(code)) {
@@ -92,10 +92,8 @@ public sealed class BAMProvider : CentralBankProviderBase {
 
 			rates.Add(new ExchangeRate(date, code!, "MAD", mid / unit, Code));
 		}
-
 		return rates;
 	}
-
 }
 
 /// <summary>
@@ -107,7 +105,29 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 	public override string Code => "BANREP";
 	public override string Name => "Banco de la República";
 	public override string NativeCurrency => "COP";
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken cancellationToken) {
+		var start = date.ToString("yyyy-MM-dd");
+		var end = date.AddDays(1).ToString("yyyy-MM-dd");
 
+		var url = $"{Url}?$where=vigenciadesde >= '{start}T00:00:00.000' AND vigenciadesde < '{end}T00:00:00.000'";
+
+		using var response = await Http.GetAsync(url, cancellationToken);
+		response.EnsureSuccessStatusCode();
+
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+
+		if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0) {
+			return [];
+		}
+
+		var row = doc.RootElement[0];
+		var rate = GetDecimal(row, "valor");
+
+		if (rate <= 0) {
+			return [];
+		}
+		return [new ExchangeRate(date, "USD", "COP", rate, Code)];
+	}
 }
 
 /// <summary>
@@ -144,8 +164,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var value = data[0].GetProperty("dato")
-															.GetString();
+		var value = data[0].GetProperty("dato").GetString();
 
 		if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
 			return [];
@@ -470,6 +489,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 	public override string Name => "Bank of Canada";
 	public override string NativeCurrency => "CAD";
 
+	/// <inheritdoc/>
 	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
 		var start = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 		var url = $"{Url}?start_date={start}&end_date={start}";
@@ -491,14 +511,103 @@ public sealed class BOCProvider : CentralBankProviderBase {
 }
 
 /// <summary>
-/// Bank of England
+/// Bank of England.
+/// Retrieves daily spot exchange rates against Pound Sterling (GBP).
 /// </summary>
 public sealed class BOEProvider : CentralBankProviderBase {
 	public BOEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private static readonly Dictionary<string, string> Series = new() {
+		// Current / recent currencies
+		["AUD"] = "XUDLADS",   // Australian Dollar
+		["BGN"] = "XUDLZOS3",  // Bulgarian Lev
+		["CAD"] = "XUDLCDS",   // Canadian Dollar
+		["CNY"] = "XUDLBK89",  // Chinese Yuan
+		["CYP"] = "XUDLBK22",  // Cyprus Pound
+		["CZK"] = "XUDLBK25",  // Czech Koruna
+		["DKK"] = "XUDLDKS",   // Danish Krone
+		["EEK"] = "XUDLBK28",  // Estonian Kroon
+		["EUR"] = "XUDLERS",   // Euro
+		["HKD"] = "XUDLHDS",   // Hong Kong Dollar
+		["JPY"] = "XUDLJYS",   // Japanese Yen
+		["HUF"] = "XUDLBK33",  // Hungarian Forint
+		["INR"] = "XUDLBK97",  // Indian Rupee
+		["LVL"] = "XUDLBK39",  // Latvian Lats
+		["ILS"] = "XUDLBK78",  // Israeli Shekel
+		["LTL"] = "XUDLBK36",  // Lithuanian Litas
+		["MYR"] = "XUDLBK83",  // Malaysian Ringgit
+		["MTL"] = "XUDLBK44",  // Maltese Lira
+		["NZD"] = "XUDLNDS",   // New Zealand Dollar
+		["NOK"] = "XUDLNKS",   // Norwegian Krone
+		["PLN"] = "XUDLBK47",  // Polish Zloty
+		["RON"] = "XUDLZOS4",  // Romanian Leu
+		["RUB"] = "XUDLBK68",  // Russian Ruble
+		["SAR"] = "XUDLSRS",   // Saudi Riyal
+		["SGD"] = "XUDLSGS",   // Singapore Dollar
+		["SKK"] = "XUDLBK55",  // Slovak Koruna
+		["SEK"] = "XUDLSKS",   // Swedish Krona
+		["CHF"] = "XUDLSFS",   // Swiss Franc
+		["SIT"] = "XUDLBK52",  // Slovenian Tolar
+		["ZAR"] = "XUDLZRS",   // South African Rand
+		["KRW"] = "XUDLBK93",  // South Korean Won
+		["TWD"] = "XUDLTWS",   // Taiwan Dollar
+		["THB"] = "XUDLBK87",  // Thai Baht
+		["TRY"] = "XUDLBK95",  // Turkish Lira
+		["USD"] = "XUDLUSS",   // US Dollar
 
+		// Legacy pre-Euro currencies
+		["ATS"] = "XUDLASS",   // Austrian Schilling
+		["BEF"] = "XUDLBFS",   // Belgian Franc
+		["DEM"] = "XUDLDMS",   // Deutschemark
+		["GRD"] = "XUDLGDS",   // Greek Drachma
+		["FIM"] = "XUDLFMS",   // Finnish Markka
+		["FRF"] = "XUDLFFS",   // French Franc
+		["IEP"] = "XUDLIPS",   // Irish Punt
+		["ITL"] = "XUDLILS",   // Italian Lira
+		["NLG"] = "XUDLNGS",   // Netherlands Guilder
+		["PTE"] = "XUDLPES",   // Portuguese Escudo
+		["ESP"] = "XUDLSPS"    // Spanish Peseta
+	};
 	public override string Code => "BOE";
 	public override string Name => "Bank of England";
 	public override string NativeCurrency => "GBP";
+
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+		var seriesCodes = string.Join(",", Series.Values);
+		var formattedDate = date.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture);
+
+		var url = $"{Url}?csv.x=yes" +
+			$"&Datefrom={Uri.EscapeDataString(formattedDate)}" +
+			$"&Dateto={Uri.EscapeDataString(formattedDate)}" +
+			$"&SeriesCodes={seriesCodes}" +
+			"&UsingCodes=Y" +
+			"&CSVF=TN";
+
+		var csv = await Http.GetStringAsync(url, ct);
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+		if (lines.Length < 2) {
+			return [];
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var values = TextUtils.SplitCsv(lines[1]);
+
+		var rates = new List<ExchangeRate>();
+
+		foreach (var (currency, seriesCode) in Series) {
+			var index = headers.FindIndex(x => x.Equals(seriesCode, StringComparison.OrdinalIgnoreCase));
+			if (index < 0 || index >= values.Count) {
+				continue;
+			}
+
+			if (!decimal.TryParse(values[index], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRate(date, NativeCurrency, currency, rate, Code));
+		}
+		return rates;
+	}
 }
 
 /// <summary>
@@ -510,6 +619,62 @@ public sealed class BOIProvider : CentralBankProviderBase {
 	public override string Code => "BOI";
 	public override string Name => "Bank of Israel";
 	public override string NativeCurrency => "ILS";
+	/// 
+	/// <summary>
+	/// Bank of Israel.
+	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
+	/// </summary>
+
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(DateOnly date, CancellationToken ct) {
+		var url = $"{Url.TrimEnd('/')}/" +
+								$"?c%5BDATA_TYPE%5D=OF00" +
+								$"&startperiod={date:yyyy-MM-dd}" +
+								$"&endperiod={date:yyyy-MM-dd}" +
+								$"&format=csv" +
+								$"&labels=id";
+
+		var csv = await Http.GetStringAsync(url, ct);
+		var rates = new List<ExchangeRate>();
+
+		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
+			var columns = TextUtils.SplitCsv(line);
+
+			if (columns.Count < 2) {
+				continue;
+			}
+
+			var seriesCode = columns.FirstOrDefault(x => x.StartsWith("RER_", StringComparison.OrdinalIgnoreCase));
+
+			if (seriesCode is null) {
+				continue;
+			}
+
+			// Example:
+			// RER_USD_ILS
+			var parts = seriesCode.Split('_');
+
+			if (parts.Length < 3) {
+				continue;
+			}
+
+			var currency = parts[1];
+			var rateText = columns.LastOrDefault(x => decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
+
+			if (rateText is null) {
+				continue;
+			}
+
+			if (!decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
+				continue;
+			}
+
+			if (rate <= 0) {
+				continue;
+			}
+			rates.Add(new ExchangeRate(date, currency, NativeCurrency, rate, Code));
+		}
+		return rates;
+	}
 }
 
 /// <summary>
@@ -1071,7 +1236,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "rate");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
-				rates.Add(new ExchangeRate(date, code!, "UAH", rate, Code));
+				rates.Add(new ExchangeRate(date, code!, NativeCurrency, rate, Code));
 			}
 		}
 		return rates;
@@ -1223,7 +1388,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
 			if (mid > 0) {
-				rates.Add(new ExchangeRate(date, code, "TRY", mid / unit, Code));
+				rates.Add(new ExchangeRate(date, code, NativeCurrency, mid / unit, Code));
 			}
 		}
 		return rates;
