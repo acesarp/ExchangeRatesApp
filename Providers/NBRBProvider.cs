@@ -1,0 +1,21 @@
+using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Utilities;
+
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
+using System.Xml.Linq;
+
+namespace ExchangeRates.Server.Providers;
+
+/// <summary>
+/// Natsyyanalny Bank Respubliki Belarus
+/// </summary>
+public sealed class NBRBProvider : CentralBankProviderBase {
+	public NBRBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+
+	public override string Code => "NBRB";
+	public override string Name => "Natsyyanalny Bank Respubliki Belarus";
+	public override ECurrency NativeCurrency => ECurrency.BYN;
+}

@@ -54,7 +54,6 @@ public class ExchangeRateService : IExchangeRateService {
 		return false;
 	}
 
-
 	private ICentralBankProvider? FindDirectProvider(ECurrency from, ECurrency to) {
 		return _providerFactory.GetAll().FirstOrDefault(p => p.Supports(from) && p.Supports(to) &&
 																											(p.NativeCurrency == from || p.NativeCurrency == to));
@@ -67,25 +66,28 @@ public class ExchangeRateService : IExchangeRateService {
 	private async Task<IReadOnlyList<ExchangeRate>> GetTriangulatedRatesAsync(ECurrency from, ECurrency to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var fromProvider = FindPivotProvider(from);
 		var toProvider = FindPivotProvider(to);
+		var pivot = Enum.Parse<ECurrency>(_pivotCurrency);
 
 		if (fromProvider is null || toProvider is null) {
 			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");
 		}
 
 		var fromRates = await fromProvider.GetRatesAsync(from, fromDate, toDate, ct);
-
 		var toRates = fromProvider == toProvider ? fromRates : await toProvider.GetRatesAsync(to, fromDate, toDate, ct);
+		var rates = new List<ExchangeRate>();
 
-		if (!TryGetDirectRate(from, to, fromRates, out var fromRate)) {
-			throw new InvalidOperationException($"Unable to find {from}/{_pivotCurrency}.");
+		foreach (var date in fromRates.Select(x => x.date).Intersect(toRates.Select(x => x.date)).Order()) {
+			var fromRatesForDate = fromRates.Where(x => x.date == date).ToList();
+			var toRatesForDate = toRates.Where(x => x.date == date).ToList();
+
+			if (!TryGetDirectRate(from, pivot, fromRatesForDate, out var fromRate) ||
+				!TryGetDirectRate(pivot, to, toRatesForDate, out var toRate)) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRate(date, from, to, fromRate * toRate, $"{fromProvider.Code}+{toProvider.Code}"));
 		}
 
-		if (!TryGetDirectRate(from, to, toRates, out var toRate)) {
-			throw new InvalidOperationException($"Unable to find {_pivotCurrency}/{to}.");
-		}
-
-		var rate = fromRate * toRate;
-
-		return new ExchangeRate(date ?? DateOnly.FromDateTime(DateTime.UtcNow), from, to, rate, $"{fromProvider.Code}+{toProvider.Code}");
+		return rates;
 	}
 }

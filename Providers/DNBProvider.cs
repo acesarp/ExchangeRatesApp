@@ -1,0 +1,21 @@
+using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Utilities;
+
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
+using System.Xml.Linq;
+
+namespace ExchangeRates.Server.Providers;
+
+/// <summary>
+/// Danmarks Nationalbank
+/// </summary>
+public sealed class DNBProvider : CentralBankProviderBase {
+	public DNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+
+	public override string Code => "DNB";
+	public override string Name => "Danmarks Nationalbank";
+	public override ECurrency NativeCurrency => ECurrency.DKK;
+}
