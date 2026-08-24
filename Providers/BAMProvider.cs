@@ -1,11 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,9 +12,9 @@ public sealed class BAMProvider : CentralBankProviderBase {
 
 	public override string Code => "BAM";
 	public override string Name => "Bank Al-Maghrib";
-	public override ECurrency NativeCurrency => ECurrency.MAD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MAD;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
@@ -36,6 +31,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 		using var doc = JsonDocument.Parse(rawJson);
 		var rates = new List<ExchangeRate>();
 		Console.WriteLine(rawJson);
+
 		foreach (var row in doc.RootElement.EnumerateArray()) {
 			var code = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
 			if (string.IsNullOrWhiteSpace(code)) {
@@ -56,7 +52,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(from, NativeCurrency, Enum.Parse<ECurrency>(code), mid / unit, Code));
+			rates.Add(new ExchangeRate(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 		}
 		return rates;
 	}

@@ -1,11 +1,4 @@
-using ExchangeRates.Server.Enums;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -16,7 +9,8 @@ public sealed class CentralBankProviderFactory {
 		_services = services;
 	}
 	public IEnumerable<ICentralBankProvider> GetAll() {
-		return _services.GetServices<ICentralBankProvider>();
+		var services = _services.GetServices<ICentralBankProvider>();
+		return services;
 	}
 
 	public ICentralBankProvider Get(string providerCode)

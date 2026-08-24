@@ -17,5 +17,5 @@ public sealed class BOJProvider : CentralBankProviderBase {
 
 	public override string Code => "BOJ";
 	public override string Name => "Bank of Japan";
-	public override ECurrency NativeCurrency => ECurrency.JPY;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.JPY;
 }

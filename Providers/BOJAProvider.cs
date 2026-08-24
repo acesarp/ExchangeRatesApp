@@ -17,5 +17,5 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOJA";
 	public override string Name => "Bank of Jamaica";
-	public override ECurrency NativeCurrency => ECurrency.JMD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.JMD;
 }

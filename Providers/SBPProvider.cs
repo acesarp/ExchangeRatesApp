@@ -17,5 +17,5 @@ public sealed class SBPProvider : CentralBankProviderBase {
 
 	public override string Code => "SBP";
 	public override string Name => "State Bank of Pakistan";
-	public override ECurrency NativeCurrency => ECurrency.PKR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.PKR;
 }

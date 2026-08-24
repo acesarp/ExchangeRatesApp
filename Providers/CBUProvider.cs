@@ -17,5 +17,5 @@ public sealed class CBUProvider : CentralBankProviderBase {
 
 	public override string Code => "CBU";
 	public override string Name => "Central Bank of Uzbekistan";
-	public override ECurrency NativeCurrency => ECurrency.UZS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.UZS;
 }

@@ -17,5 +17,5 @@ public sealed class CBCProvider : CentralBankProviderBase {
 
 	public override string Code => "CBC";
 	public override string Name => "Central Bank of the Republic of China (Taiwan)";
-	public override ECurrency NativeCurrency => ECurrency.TWD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.TWD;
 }

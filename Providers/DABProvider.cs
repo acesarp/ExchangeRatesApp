@@ -17,5 +17,5 @@ public sealed class DABProvider : CentralBankProviderBase {
 
 	public override string Code => "DAB";
 	public override string Name => "Da Afghanistan Bank";
-	public override ECurrency NativeCurrency => ECurrency.AFN;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.AFN;
 }

@@ -17,5 +17,5 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 
 	public override string Code => "HKMA";
 	public override string Name => "Hong Kong Monetary Authority";
-	public override ECurrency NativeCurrency => ECurrency.HKD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.HKD;
 }

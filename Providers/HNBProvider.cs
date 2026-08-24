@@ -17,5 +17,5 @@ public sealed class HNBProvider : CentralBankProviderBase {
 
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";
-	public override ECurrency NativeCurrency => ECurrency.EUR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 }

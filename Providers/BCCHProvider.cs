@@ -17,6 +17,6 @@ public sealed class BCCHProvider : CentralBankProviderBase {
 
 	public override string Code => "BCCH";
 	public override string Name => "Banco Central de Chile";
-	public override ECurrency NativeCurrency => ECurrency.CLP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.CLP;
 
 }

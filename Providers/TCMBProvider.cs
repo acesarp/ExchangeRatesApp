@@ -1,11 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,9 +12,9 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 	public override string Code => "TCMB";
 	public override string Name => "Türkiye Cumhuriyet Merkez Bankası";
-	public override ECurrency NativeCurrency => ECurrency.TRY;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.TRY;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
 		var xml = await Http.GetStringAsync(url, ct);
 
@@ -43,7 +38,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
 			if (mid > 0) {
-				rates.Add(new ExchangeRate(fromDate, code, NativeCurrency, mid / unit, Code));
+				rates.Add(new ExchangeRate(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 			}
 		}
 		return rates;

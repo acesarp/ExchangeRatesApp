@@ -17,6 +17,6 @@ public sealed class BNRRWProvider : CentralBankProviderBase {
 
 	public override string Code => "BNRRW";
 	public override string Name => "Banque Nationale du Rwanda";
-	public override ECurrency NativeCurrency => ECurrency.RWF;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.RWF;
 
 }

@@ -64,14 +64,17 @@ public sealed class BOEProvider : CentralBankProviderBase {
 	};
 	public override string Code => "BOE";
 	public override string Name => "Bank of England";
-	public override ECurrency NativeCurrency => ECurrency.GBP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.GBP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (!Series.TryGetValue(fromCurrency.ToString(), out var seriesCode)) {
+			return [];
+		}
 
 		var url = $"{Url}?csv.x=yes" +
-			$"&Datefrom={Uri.EscapeDataString($"{fromDate: dd/MMM / yyyy}")}" +
-			$"&Dateto={Uri.EscapeDataString($"{toDate: dd /MMM/yyyy)}")}" +
-			$"&SeriesCodes={Series}" +
+			$"&Datefrom={Uri.EscapeDataString($"{fromDate:dd/MMM/yyyy}")}" +
+			$"&Dateto={Uri.EscapeDataString($"{toDate:dd/MMM/yyyy}")}" +
+			$"&SeriesCodes={seriesCode}" +
 			"&UsingCodes=Y" +
 			"&CSVF=TN";
 
@@ -83,17 +86,19 @@ public sealed class BOEProvider : CentralBankProviderBase {
 		}
 
 		var headers = TextUtils.SplitCsv(lines[0]);
-		var values = TextUtils.SplitCsv(lines[1]);
-
 		var rates = new List<ExchangeRate>();
+		var dateIndex = headers.FindIndex(x => x.Equals("DATE", StringComparison.OrdinalIgnoreCase));
+		var valueIndex = headers.FindIndex(x => x.Equals(seriesCode, StringComparison.OrdinalIgnoreCase));
 
-		foreach (var (currency, seriesCode) in Series) {
-			var index = headers.FindIndex(x => x.Equals(seriesCode, StringComparison.OrdinalIgnoreCase));
-			if (index < 0 || index >= values.Count) {
+		foreach (var line in lines.Skip(1)) {
+			var values = TextUtils.SplitCsv(line);
+			if (dateIndex < 0 || valueIndex < 0 || dateIndex >= values.Count || valueIndex >= values.Count) {
 				continue;
 			}
 
-			if (!decimal.TryParse(values[index], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
+			if (!DateOnly.TryParse(values[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
+				!decimal.TryParse(values[valueIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) ||
+				rate <= 0) {
 				continue;
 			}
 

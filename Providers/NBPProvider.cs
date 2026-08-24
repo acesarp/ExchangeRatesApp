@@ -1,11 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,9 +12,9 @@ public sealed class NBPProvider : CentralBankProviderBase {
 
 	public override string Code => "NBP";
 	public override string Name => "Narodowy Bank Polski";
-	public override ECurrency NativeCurrency => ECurrency.PLN;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.PLN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
 		using var response = await Http.GetAsync(url, ct);
 
@@ -38,7 +33,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "mid");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
-				rates.Add(new ExchangeRate(fromDate, NativeCurrency, code!, rate, Code));
+				rates.Add(new ExchangeRate(fromDate, NativeCurrency, Enum.Parse<ECurrencyISO>(code!), rate, Code));
 			}
 		}
 		return rates;

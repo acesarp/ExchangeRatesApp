@@ -17,5 +17,5 @@ public sealed class SARBProvider : CentralBankProviderBase {
 
 	public override string Code => "SARB";
 	public override string Name => "South African Reserve Bank";
-	public override ECurrency NativeCurrency => ECurrency.ZAR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.ZAR;
 }

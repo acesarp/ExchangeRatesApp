@@ -17,5 +17,5 @@ public sealed class NBGProvider : CentralBankProviderBase {
 
 	public override string Code => "NBG";
 	public override string Name => "National Bank of Georgia";
-	public override ECurrency NativeCurrency => ECurrency.GEL;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.GEL;
 }

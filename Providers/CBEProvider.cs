@@ -17,5 +17,5 @@ public sealed class CBEProvider : CentralBankProviderBase {
 
 	public override string Code => "CBE";
 	public override string Name => "Central Bank of Egypt";
-	public override ECurrency NativeCurrency => ECurrency.EGP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.EGP;
 }

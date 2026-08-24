@@ -17,5 +17,5 @@ public sealed class CBGProvider : CentralBankProviderBase {
 
 	public override string Code => "CBG";
 	public override string Name => "Central Bank of The Gambia";
-	public override ECurrency NativeCurrency => ECurrency.GMD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.GMD;
 }

@@ -17,5 +17,5 @@ public sealed class RBMProvider : CentralBankProviderBase {
 
 	public override string Code => "RBM";
 	public override string Name => "Reserve Bank of Malawi";
-	public override ECurrency NativeCurrency => ECurrency.MWK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MWK;
 }

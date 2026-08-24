@@ -11,6 +11,6 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 
 	public override string Code => "BCRA";
 	public override string Name => "Banco Central de la República Argentina";
-	public override ECurrency NativeCurrency => ECurrency.ARS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.ARS;
 
 }

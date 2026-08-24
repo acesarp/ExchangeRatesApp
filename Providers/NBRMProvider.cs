@@ -17,5 +17,5 @@ public sealed class NBRMProvider : CentralBankProviderBase {
 
 	public override string Code => "NBRM";
 	public override string Name => "Narodna Banka na Republika Severna Makedonija";
-	public override ECurrency NativeCurrency => ECurrency.MKD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MKD;
 }

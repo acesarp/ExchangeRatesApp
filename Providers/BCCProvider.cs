@@ -17,6 +17,6 @@ public sealed class BCCProvider : CentralBankProviderBase {
 
 	public override string Code => "BCC";
 	public override string Name => "Banco Central de Cuba";
-	public override ECurrency NativeCurrency => ECurrency.CUP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.CUP;
 
 }

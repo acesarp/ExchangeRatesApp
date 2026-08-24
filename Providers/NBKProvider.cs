@@ -17,5 +17,5 @@ public sealed class NBKProvider : CentralBankProviderBase {
 
 	public override string Code => "NBK";
 	public override string Name => "National Bank of Kazakhstan";
-	public override ECurrency NativeCurrency => ECurrency.KZT;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.KZT;
 }

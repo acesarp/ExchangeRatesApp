@@ -17,6 +17,6 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 	public override string Code => "BI";
 	public override string Name => "Bank Indonesia";
-	public override ECurrency NativeCurrency => ECurrency.IDR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.IDR;
 
 }

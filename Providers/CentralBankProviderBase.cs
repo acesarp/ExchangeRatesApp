@@ -28,18 +28,18 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 
 	public abstract string Code { get; }
 	public abstract string Name { get; }
-	public abstract ECurrency NativeCurrency { get; }
-	public IReadOnlySet<ECurrency> SupportedCurrencies {
+	public abstract ECurrencyISO NativeCurrency { get; }
+	public IReadOnlySet<ECurrencyISO> SupportedCurrencies {
 		get {
 			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? [];
-			return currencies.Select(Enum.Parse<ECurrency>).ToHashSet();
+			return currencies.Select(Enum.Parse<ECurrencyISO>).ToHashSet();
 		}
 	}
 
-	public bool Supports(ECurrency currency) => SupportedCurrencies.Contains(currency);
+	public bool Supports(ECurrencyISO currency) => SupportedCurrencies.Contains(currency);
 
 	/// <inheritdoc/>
-	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrency currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		return FetchAsync(currency, fromDate, toDate, ct);
 	}
@@ -51,7 +51,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	/// <param name="fromDate"></param>
 	/// <param name="ct"></param>
 	/// <returns>IReadOnlyList&lt;ExchangeRate&gt;</returns>
-	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		throw new NotSupportedException($"{Code} ({Name}) is registered, needs a bank-specific parser/endpoint implementation.");
 	}
 

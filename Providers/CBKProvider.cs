@@ -17,5 +17,5 @@ public sealed class CBKProvider : CentralBankProviderBase {
 
 	public override string Code => "CBK";
 	public override string Name => "Central Bank of Kenya";
-	public override ECurrency NativeCurrency => ECurrency.KES;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.KES;
 }

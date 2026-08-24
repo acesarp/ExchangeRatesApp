@@ -17,5 +17,5 @@ public sealed class CBIProvider : CentralBankProviderBase {
 
 	public override string Code => "CBI";
 	public override string Name => "Central Bank of Iraq";
-	public override ECurrency NativeCurrency => ECurrency.IQD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.IQD;
 }

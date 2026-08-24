@@ -17,5 +17,5 @@ public sealed class NBProvider : CentralBankProviderBase {
 
 	public override string Code => "NB";
 	public override string Name => "Norges Bank";
-	public override ECurrency NativeCurrency => ECurrency.NOK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.NOK;
 }

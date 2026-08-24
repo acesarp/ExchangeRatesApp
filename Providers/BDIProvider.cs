@@ -17,30 +17,32 @@ public sealed class BDIProvider : CentralBankProviderBase {
 
 	public override string Code => "BDI";
 	public override string Name => "Banca d'Italia";
-	public override ECurrency NativeCurrency => ECurrency.EUR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		var url = $"{Url}?referenceDate={date:yyyy-MM-dd}&currencyIsoCode=EUR&lang=en";
-
-		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
 
-		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
-			var cols = TextUtils.SplitCsv(line);
-			if (cols.Count < 3) {
+		for (var requestedDate = fromDate; requestedDate <= toDate; requestedDate = requestedDate.AddDays(1)) {
+			var url = $"{Url}?referenceDate={requestedDate:yyyy-MM-dd}&currencyIsoCode={fromCurrency}&lang=en";
+			using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
+
+			if (!doc.RootElement.TryGetProperty("rates", out var observations)) {
 				continue;
 			}
 
-			var code = cols.FirstOrDefault(x => x.Length == 3 && x.All(char.IsLetter));
-			var rateText = cols.FirstOrDefault(x => decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
+			foreach (var observation in observations.EnumerateArray()) {
+				var code = observation.TryGetProperty("isoCode", out var isoCode) ? isoCode.GetString() : null;
+				var dateText = observation.TryGetProperty("referenceDate", out var referenceDate) ? referenceDate.GetString() : null;
+				var rate = GetDecimal(observation, "avgRate");
 
-			if (code is null || rateText is null) {
-				continue;
-			}
+				if (!Enum.TryParse<ECurrencyISO>(code, out var currency) ||
+					!DateOnly.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
+					rate <= 0) {
+					continue;
+				}
 
-			if (decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-				rates.Add(new ExchangeRate(fromDate, NativeCurrency, code, rate, Code));
+				rates.Add(new ExchangeRate(date, NativeCurrency, currency, rate, Code));
 			}
 		}
 

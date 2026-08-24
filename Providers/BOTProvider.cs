@@ -17,5 +17,5 @@ public sealed class BOTProvider : CentralBankProviderBase {
 
 	public override string Code => "BOT";
 	public override string Name => "Bank of Thailand";
-	public override ECurrency NativeCurrency => ECurrency.THB;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.THB;
 }

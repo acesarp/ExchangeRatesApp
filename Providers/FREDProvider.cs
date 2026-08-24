@@ -17,5 +17,5 @@ public sealed class FREDProvider : CentralBankProviderBase {
 
 	public override string Code => "FRED";
 	public override string Name => "Federal Reserve Bank of St. Louis";
-	public override ECurrency NativeCurrency => ECurrency.USD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.USD;
 }

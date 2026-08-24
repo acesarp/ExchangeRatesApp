@@ -17,5 +17,5 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";
-	public override ECurrency NativeCurrency => ECurrency.TZS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.TZS;
 }

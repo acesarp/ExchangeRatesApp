@@ -1,6 +1,7 @@
 
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
 
 namespace ExchangeRates.Server;
@@ -19,11 +20,13 @@ public class Program {
 		// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 		builder.Services.AddOpenApi();
 		builder.Services.AddHttpClient();
+
 		builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
+		builder.Services.AddSingleton<FixedExchangeRateProvider>();
+		builder.Services.AddCentralBankProviders();
+
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen();
-
-		builder.Services.AddCentralBankProviders();
 
 		var app = builder.Build();
 

@@ -17,6 +17,6 @@ public sealed class RBAProvider : CentralBankProviderBase {
 
 	public override string Code => "RBA";
 	public override string Name => "Reserve Bank of Australia";
-	public override ECurrency NativeCurrency => ECurrency.AUD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.AUD;
 
 }

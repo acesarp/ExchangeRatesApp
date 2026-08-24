@@ -17,9 +17,9 @@ public sealed class BCBProvider : CentralBankProviderBase {
 
 	public override string Code => "BCB";
 	public override string Name => "Banco Central do Brasil";
-	public override ECurrency NativeCurrency => ECurrency.BRL;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.BRL;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var currencies = new[] { "AUD", "CAD", "CHF", "DKK", "EUR", "GBP", "JPY", "NOK", "SEK", "USD" };
 		var rates = new List<ExchangeRate>();
 

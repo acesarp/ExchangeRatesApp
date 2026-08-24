@@ -17,6 +17,6 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 	public override string Code => "BNM";
 	public override string Name => "Bank Negara Malaysia";
-	public override ECurrency NativeCurrency => ECurrency.MYR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MYR;
 
 }

@@ -17,5 +17,5 @@ public sealed class FBILProvider : CentralBankProviderBase {
 
 	public override string Code => "FBIL";
 	public override string Name => "Financial Benchmarks India";
-	public override ECurrency NativeCurrency => ECurrency.INR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.INR;
 }

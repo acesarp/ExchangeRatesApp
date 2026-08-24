@@ -17,5 +17,5 @@ public sealed class BOBProvider : CentralBankProviderBase {
 
 	public override string Code => "BOB";
 	public override string Name => "Bank of Botswana";
-	public override ECurrency NativeCurrency => ECurrency.BWP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.BWP;
 }

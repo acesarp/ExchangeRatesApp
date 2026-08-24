@@ -17,10 +17,10 @@ public sealed class BOCProvider : CentralBankProviderBase {
 
 	public override string Code => "BOC";
 	public override string Name => "Bank of Canada";
-	public override ECurrency NativeCurrency => ECurrency.CAD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.CAD;
 
 	/// <inheritdoc/>
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));

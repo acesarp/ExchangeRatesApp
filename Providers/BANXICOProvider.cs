@@ -1,11 +1,7 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,9 +13,9 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 
 	public override string Code => "BANXICO";
 	public override string Name => "Banco de México";
-	public override ECurrency NativeCurrency => ECurrency.MXN;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MXN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BANXICO:ApiKey.");
 		}
@@ -49,7 +45,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [   new ExchangeRate(fromDate,  "USD",NativeCurrency,rate,Code)
+		return [   new ExchangeRate(fromDate,  NativeCurrency,quoteCurrency,rate,Code)
 		];
 	}
 }

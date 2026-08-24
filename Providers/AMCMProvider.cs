@@ -17,9 +17,9 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 
 	public override string Code => "AMCM";
 	public override string Name => "Monetary Authority of Macao";
-	public override ECurrency NativeCurrency => ECurrency.MOP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MOP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
 

@@ -17,6 +17,6 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 	public override string Code => "BCP";
 	public override string Name => "Banco Central del Paraguay";
-	public override ECurrency NativeCurrency => ECurrency.PYG;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.PYG;
 
 }

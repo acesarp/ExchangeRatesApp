@@ -17,5 +17,5 @@ public sealed class NBTProvider : CentralBankProviderBase {
 
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";
-	public override ECurrency NativeCurrency => ECurrency.TJS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.TJS;
 }

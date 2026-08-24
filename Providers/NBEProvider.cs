@@ -17,5 +17,5 @@ public sealed class NBEProvider : CentralBankProviderBase {
 
 	public override string Code => "NBE";
 	public override string Name => "National Bank of Ethiopia";
-	public override ECurrency NativeCurrency => ECurrency.ETB;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.ETB;
 }

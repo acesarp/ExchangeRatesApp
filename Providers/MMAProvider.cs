@@ -17,5 +17,5 @@ public sealed class MMAProvider : CentralBankProviderBase {
 
 	public override string Code => "MMA";
 	public override string Name => "Maldives Monetary Authority";
-	public override ECurrency NativeCurrency => ECurrency.MVR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MVR;
 }

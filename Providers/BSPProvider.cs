@@ -17,5 +17,5 @@ public sealed class BSPProvider : CentralBankProviderBase {
 
 	public override string Code => "BSP";
 	public override string Name => "Bangko Sentral ng Pilipinas";
-	public override ECurrency NativeCurrency => ECurrency.PHP;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.PHP;
 }

@@ -17,5 +17,5 @@ public sealed class CBNProvider : CentralBankProviderBase {
 
 	public override string Code => "CBN";
 	public override string Name => "Central Bank of Nigeria";
-	public override ECurrency NativeCurrency => ECurrency.NGN;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.NGN;
 }

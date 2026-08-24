@@ -17,5 +17,5 @@ public sealed class SBIProvider : CentralBankProviderBase {
 
 	public override string Code => "SBI";
 	public override string Name => "Seðlabanki Íslands";
-	public override ECurrency NativeCurrency => ECurrency.ISK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.ISK;
 }

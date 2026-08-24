@@ -17,6 +17,6 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 	public override string Code => "BCN";
 	public override string Name => "Banco Central de Nicaragua";
-	public override ECurrency NativeCurrency => ECurrency.NIO;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.NIO;
 
 }

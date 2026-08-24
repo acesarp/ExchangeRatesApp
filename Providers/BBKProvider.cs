@@ -1,11 +1,7 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,8 +13,8 @@ public sealed class BBKProvider : CentralBankProviderBase {
 
 	public override string Code => "BBK";
 	public override string Name => "Deutsche Bundesbank";
-	public override ECurrency NativeCurrency => ECurrency.DEM;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.DEM;
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
@@ -58,7 +54,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, baseCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, Enum.Parse<ECurrencyISO>(baseCurrency), Enum.Parse<ECurrencyISO>(quoteCurrency), rate, Code));
 		}
 
 		return rates;

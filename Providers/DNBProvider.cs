@@ -17,5 +17,5 @@ public sealed class DNBProvider : CentralBankProviderBase {
 
 	public override string Code => "DNB";
 	public override string Name => "Danmarks Nationalbank";
-	public override ECurrency NativeCurrency => ECurrency.DKK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.DKK;
 }

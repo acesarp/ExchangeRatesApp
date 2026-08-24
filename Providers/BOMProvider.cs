@@ -17,5 +17,5 @@ public sealed class BOMProvider : CentralBankProviderBase {
 
 	public override string Code => "BOM";
 	public override string Name => "Bank of Mongolia";
-	public override ECurrency NativeCurrency => ECurrency.MNT;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MNT;
 }

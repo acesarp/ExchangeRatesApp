@@ -1,22 +1,24 @@
 ﻿namespace ExchangeRates.Server.Services;
 
-using ExchangeRates.Server;
-using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
+using global::ExchangeRates.Server.Enums;
+using global::ExchangeRates.Server.Extensions;
+using global::ExchangeRates.Server.Interfaces;
+using global::ExchangeRates.Server.Providers;
 
 public class ExchangeRateService : IExchangeRateService {
 	private readonly IConfiguration _configuration;
 	private readonly CentralBankProviderFactory _providerFactory;
+	private readonly FixedExchangeRateProvider _fixedExchangeRateProvider;
 	private readonly string _pivotCurrency;
 
-	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory) {
+	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory, FixedExchangeRateProvider fixedExchangeRateProvider) {
 		_configuration = configuration;
 		_providerFactory = providerFactory;
+		_fixedExchangeRateProvider = fixedExchangeRateProvider;
 		_pivotCurrency = configuration["PivotCurrency"] ?? throw new Exception("Invalid PivotCurrency configuration");
 	}
 
-	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrency from, ECurrency to, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct = default) {
+	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO from, ECurrencyISO to, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct = default) {
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 		var _toDate = toDate ?? _fromDate;
 
@@ -35,7 +37,7 @@ public class ExchangeRateService : IExchangeRateService {
 		return await GetTriangulatedRatesAsync(from, to, _fromDate, _toDate, ct);
 	}
 
-	private bool TryGetDirectRate(ECurrency fromCurrency, ECurrency toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
+	private bool TryGetDirectRate(ECurrencyISO fromCurrency, ECurrencyISO toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
 		var direct = rates.FirstOrDefault(x => x.BaseCurrency == fromCurrency && x.QuoteCurrency == toCurrency);
 
 		if (direct is not null) {
@@ -54,19 +56,36 @@ public class ExchangeRateService : IExchangeRateService {
 		return false;
 	}
 
-	private ICentralBankProvider? FindDirectProvider(ECurrency from, ECurrency to) {
+	private ICentralBankProvider? FindDirectProvider(ECurrencyISO from, ECurrencyISO to) {
 		return _providerFactory.GetAll().FirstOrDefault(p => p.Supports(from) && p.Supports(to) &&
 																											(p.NativeCurrency == from || p.NativeCurrency == to));
 	}
 
-	private ICentralBankProvider? FindPivotProvider(ECurrency currency) {
-		return _providerFactory.GetAll().FirstOrDefault(p => p.Supports(currency) && p.Supports(Enum.Parse<ECurrency>(_pivotCurrency)));
+	private ICentralBankProvider? FindPivotProvider(ECurrencyISO currency) {
+		var rst = _providerFactory.GetAll();
+		var rst1 = rst.FirstOrDefault(p => p.Supports(currency)
+																																	&& p.Supports(Enum.Parse<ECurrencyISO>(_pivotCurrency)));
+		return rst1;
 	}
 
-	private async Task<IReadOnlyList<ExchangeRate>> GetTriangulatedRatesAsync(ECurrency from, ECurrency to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var fromProvider = FindPivotProvider(from);
-		var toProvider = FindPivotProvider(to);
-		var pivot = Enum.Parse<ECurrency>(_pivotCurrency);
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="from"></param>
+	/// <param name="to"></param>
+	/// <param name="fromDate"></param>
+	/// <param name="toDate"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	/// <exception cref="InvalidOperationException"></exception>
+	private async Task<IReadOnlyList<ExchangeRate>> GetTriangulatedRatesAsync(ECurrencyISO from, ECurrencyISO to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var fromIsFixed = _fixedExchangeRateProvider.TryGetRate(from, out var fromFixedRate);
+		var toIsFixed = _fixedExchangeRateProvider.TryGetRate(to, out var toFixedRate);
+
+		var fromProvider = fromIsFixed ? null : FindPivotProvider(from);
+		var toProvider = toIsFixed ? null : FindPivotProvider(to);
+
+		var pivot = _pivotCurrency.ToEnum<ECurrencyISO>();
 
 		if (fromProvider is null || toProvider is null) {
 			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");

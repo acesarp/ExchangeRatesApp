@@ -17,6 +17,6 @@ public sealed class BCUProvider : CentralBankProviderBase {
 
 	public override string Code => "BCU";
 	public override string Name => "Banco Central del Uruguay";
-	public override ECurrency NativeCurrency => ECurrency.UYU;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.UYU;
 
 }

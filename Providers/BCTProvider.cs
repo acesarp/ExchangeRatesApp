@@ -10,6 +10,6 @@ public sealed class BCTProvider : CentralBankProviderBase {
 
 	public override string Code => "BCT";
 	public override string Name => "Banque Centrale de Tunisie";
-	public override ECurrency NativeCurrency => ECurrency.TND;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.TND;
 
 }

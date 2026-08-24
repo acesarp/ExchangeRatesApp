@@ -17,5 +17,5 @@ public sealed class CBSLProvider : CentralBankProviderBase {
 
 	public override string Code => "CBSL";
 	public override string Name => "Central Bank of Sri Lanka";
-	public override ECurrency NativeCurrency => ECurrency.LKR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.LKR;
 }

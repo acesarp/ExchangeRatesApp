@@ -17,6 +17,6 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 
 	public override string Code => "NBKR";
 	public override string Name => "National Bank of the Kyrgyz Republic";
-	public override ECurrency NativeCurrency => ECurrency.KGS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.KGS;
 
 }

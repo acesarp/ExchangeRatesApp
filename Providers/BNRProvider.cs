@@ -17,6 +17,6 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 	public override string Code => "BNR";
 	public override string Name => "Banca Națională a României";
-	public override ECurrency NativeCurrency => ECurrency.RON;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.RON;
 
 }

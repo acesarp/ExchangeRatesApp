@@ -17,5 +17,5 @@ public sealed class CBMProvider : CentralBankProviderBase {
 
 	public override string Code => "CBM";
 	public override string Name => "Central Bank of Myanmar";
-	public override ECurrency NativeCurrency => ECurrency.MMK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MMK;
 }

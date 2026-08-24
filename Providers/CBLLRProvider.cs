@@ -17,5 +17,5 @@ public sealed class CBLLRProvider : CentralBankProviderBase {
 
 	public override string Code => "CBLLR";
 	public override string Name => "Central Bank of Liberia";
-	public override ECurrency NativeCurrency => ECurrency.LRD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.LRD;
 }

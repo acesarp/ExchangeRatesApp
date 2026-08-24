@@ -17,5 +17,5 @@ public sealed class IMFProvider : CentralBankProviderBase {
 
 	public override string Code => "IMF";
 	public override string Name => "International Monetary Fund";
-	public override ECurrency NativeCurrency => ECurrency.XDR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.XDR;
 }

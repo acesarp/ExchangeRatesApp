@@ -17,17 +17,26 @@ public sealed class ECBProvider : CentralBankProviderBase {
 
 	public override string Code => "ECB";
 	public override string Name => "European Central Bank";
-	public override ECurrency NativeCurrency => ECurrency.EUR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
+		if (lines.Length < 2) {
+			return rates;
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+
+		foreach (var line in lines.Skip(1)) {
 			var cols = TextUtils.SplitCsv(line);
-			if (cols.Count < 2) {
+			if (dateIndex < 0 || dateIndex >= cols.Count ||
+				!DateOnly.TryParse(cols[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
 			}
 

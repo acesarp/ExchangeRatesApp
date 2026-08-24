@@ -17,5 +17,5 @@ public sealed class NBCProvider : CentralBankProviderBase {
 
 	public override string Code => "NBC";
 	public override string Name => "National Bank of Cambodia";
-	public override ECurrency NativeCurrency => ECurrency.KHR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.KHR;
 }

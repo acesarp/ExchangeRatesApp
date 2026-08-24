@@ -17,14 +17,14 @@ public sealed class BOIProvider : CentralBankProviderBase {
 
 	public override string Code => "BOI";
 	public override string Name => "Bank of Israel";
-	public override ECurrency NativeCurrency => ECurrency.ILS;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.ILS;
 	/// 
 	/// <summary>
 	/// Bank of Israel.
 	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
 	/// </summary>
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
 								$"&startperiod={fromDate:yyyy-MM-dd}" +
@@ -34,11 +34,20 @@ public sealed class BOIProvider : CentralBankProviderBase {
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRate>();
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Skip(1)) {
+		if (lines.Length < 2) {
+			return rates;
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+
+		foreach (var line in lines.Skip(1)) {
 			var columns = TextUtils.SplitCsv(line);
 
-			if (columns.Count < 2) {
+			if (dateIndex < 0 || dateIndex >= columns.Count ||
+				!DateOnly.TryParse(columns[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
 			}
 

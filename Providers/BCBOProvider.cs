@@ -17,6 +17,6 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 	public override string Code => "BCBO";
 	public override string Name => "Banco Central de Bolivia";
-	public override ECurrency NativeCurrency => ECurrency.BOB;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.BOB;
 
 }

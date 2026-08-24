@@ -17,5 +17,5 @@ public sealed class RBProvider : CentralBankProviderBase {
 
 	public override string Code => "RB";
 	public override string Name => "Sveriges Riksbank";
-	public override ECurrency NativeCurrency => ECurrency.SEK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.SEK;
 }

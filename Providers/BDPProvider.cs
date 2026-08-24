@@ -17,6 +17,6 @@ public sealed class BDPProvider : CentralBankProviderBase {
 
 	public override string Code => "BDP";
 	public override string Name => "Banco de Portugal";
-	public override ECurrency NativeCurrency => ECurrency.PTE;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.PTE;
 
 }

@@ -17,5 +17,5 @@ public sealed class CBSProvider : CentralBankProviderBase {
 
 	public override string Code => "CBS";
 	public override string Name => "Central Bank of Samoa";
-	public override ECurrency NativeCurrency => ECurrency.WST;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.WST;
 }

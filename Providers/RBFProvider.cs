@@ -17,5 +17,5 @@ public sealed class RBFProvider : CentralBankProviderBase {
 
 	public override string Code => "RBF";
 	public override string Name => "Reserve Bank of Fiji";
-	public override ECurrency NativeCurrency => ECurrency.FJD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.FJD;
 }

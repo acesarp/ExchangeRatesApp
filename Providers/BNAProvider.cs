@@ -17,6 +17,6 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 	public override string Code => "BNA";
 	public override string Name => "Banco Nacional de Angola";
-	public override ECurrency NativeCurrency => ECurrency.AOA;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.AOA;
 
 }

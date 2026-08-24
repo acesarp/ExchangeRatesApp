@@ -17,5 +17,5 @@ public sealed class NBMProvider : CentralBankProviderBase {
 
 	public override string Code => "NBM";
 	public override string Name => "National Bank of Moldova";
-	public override ECurrency NativeCurrency => ECurrency.MDL;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.MDL;
 }

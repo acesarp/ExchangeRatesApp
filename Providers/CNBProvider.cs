@@ -17,5 +17,5 @@ public sealed class CNBProvider : CentralBankProviderBase {
 
 	public override string Code => "CNB";
 	public override string Name => "Czech National Bank";
-	public override ECurrency NativeCurrency => ECurrency.CZK;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.CZK;
 }

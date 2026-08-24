@@ -3,7 +3,7 @@
 /// <summary>
 /// ISO 4217
 /// </summary>
-public enum ECurrency {
+public enum ECurrencyISO {
 	AED = 784, // UAE Dirham
 	AFN = 971, // Afghani
 	ALL = 8,   // Lek
@@ -181,6 +181,12 @@ public enum ECurrency {
 	VUV = 548, // Vatu
 
 	WST = 882, // Tala
+
+	// Metals
+	XAG = 961, // Silver
+	XAU = 959, // Gold
+	XPD = 964, // Palladium
+	XPT = 962, // Platinum
 
 	XAF = 950, // CFA Franc BEAC
 	XCD = 951, // East Caribbean Dollar

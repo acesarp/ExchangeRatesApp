@@ -17,5 +17,5 @@ public sealed class CBRProvider : CentralBankProviderBase {
 
 	public override string Code => "CBR";
 	public override string Name => "Central Bank of Russia";
-	public override ECurrency NativeCurrency => ECurrency.RUB;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.RUB;
 }

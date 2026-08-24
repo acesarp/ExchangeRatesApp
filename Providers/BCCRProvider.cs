@@ -1,10 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
 using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
@@ -13,19 +9,23 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central de Costa Rica
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
+	private readonly HttpClient _http;
+	IConfiguration _configuration;
 	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) {
-		Token = configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
-		NameParameter = configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
-		Email = configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
+		_http = http;
+		_configuration = configuration;
 	}
-	private string Token { get; }
-	private string NameParameter { get; }
-	private string Email { get; }
+	private string Token { get; set; }
+	private string NameParameter { get; set; }
+	private string Email { get; set; }
 
 	public override string Code => "BCCR";
 	public override string Name => "Banco Central de Costa Rica";
-	public override ECurrency NativeCurrency => ECurrency.CRC;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrency fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.CRC;
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		Token = _configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
+		NameParameter = _configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
+		Email = _configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
 		const int indicator = 318; // USD reference selling rate
 
 		var url = $"{Url.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +

@@ -17,5 +17,5 @@ public sealed class NRBProvider : CentralBankProviderBase {
 
 	public override string Code => "NRB";
 	public override string Name => "Nepal Rastra Bank";
-	public override ECurrency NativeCurrency => ECurrency.NPR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.NPR;
 }

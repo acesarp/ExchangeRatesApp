@@ -17,5 +17,5 @@ public sealed class MASProvider : CentralBankProviderBase {
 
 	public override string Code => "MAS";
 	public override string Name => "Monetary Authority of Singapore";
-	public override ECurrency NativeCurrency => ECurrency.SGD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.SGD;
 }

@@ -17,6 +17,6 @@ public sealed class BOAProvider : CentralBankProviderBase {
 
 	public override string Code => "BOA";
 	public override string Name => "Bank of Algeria";
-	public override ECurrency NativeCurrency => ECurrency.DZD;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.DZD;
 
 }

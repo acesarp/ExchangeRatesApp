@@ -17,5 +17,5 @@ public sealed class MNBProvider : CentralBankProviderBase {
 
 	public override string Code => "MNB";
 	public override string Name => "Magyar Nemzeti Bank";
-	public override ECurrency NativeCurrency => ECurrency.HUF;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.HUF;
 }

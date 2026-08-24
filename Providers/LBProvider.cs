@@ -17,5 +17,5 @@ public sealed class LBProvider : CentralBankProviderBase {
 
 	public override string Code => "LB";
 	public override string Name => "Lietuvos Bankas";
-	public override ECurrency NativeCurrency => ECurrency.EUR;
+	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 }
