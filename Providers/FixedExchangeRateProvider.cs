@@ -15,7 +15,7 @@ public sealed class FixedExchangeRateProvider {
 																x => decimal.Parse(x.Value!, CultureInfo.InvariantCulture));
 	}
 
-	public bool TryGetRate(ECurrencyISO currency, out decimal rate) {
+	public bool TryGetFixedRate(ECurrencyISO currency, out decimal rate) {
 		return _rates.TryGetValue(currency, out rate);
 	}
 }

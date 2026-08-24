@@ -1,16 +1,20 @@
 using ExchangeRates.Server.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ExchangeRates.Server.Providers;
 
 public sealed class CentralBankProviderFactory {
 	private readonly IServiceProvider _services;
+	private readonly ILogger<CentralBankProviderFactory> _logger;
 
-	public CentralBankProviderFactory(IServiceProvider services) {
+	public CentralBankProviderFactory(IServiceProvider services, ILogger<CentralBankProviderFactory> logger) {
 		_services = services;
+		_logger = logger;
 	}
 	public IEnumerable<ICentralBankProvider> GetAll() {
-		var services = _services.GetServices<ICentralBankProvider>();
-		return services;
+		var providers = _services.GetServices<ICentralBankProvider>().ToList();
+		_logger.LogDebug("Resolved {Count} central bank providers", providers.Count);
+		return providers;
 	}
 
 	public ICentralBankProvider Get(string providerCode)
