@@ -1401,6 +1401,9 @@ public sealed class CentralBankProviderFactory {
 	public CentralBankProviderFactory(IServiceProvider services) {
 		_services = services;
 	}
+	public IEnumerable<ICentralBankProvider> GetAll() {
+		return _services.GetServices<ICentralBankProvider>();
+	}
 
 	public ICentralBankProvider Get(string providerCode)
 		=> providerCode.ToUpperInvariant() switch {
