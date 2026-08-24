@@ -1,4 +1,5 @@
 ﻿using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 
 using System.Globalization;
@@ -32,11 +33,13 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public IReadOnlySet<ECurrencyISO> SupportedCurrencies {
 		get {
 			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? [];
-			return currencies.Select(Enum.Parse<ECurrencyISO>).ToHashSet();
+			return currencies.Select(x => x.ToECurrency()).ToHashSet();
 		}
 	}
 
-	public bool Supports(ECurrencyISO currency) => SupportedCurrencies.Contains(currency);
+	public bool Supports(ECurrencyISO currency) {
+		return currency == NativeCurrency || SupportedCurrencies.Contains(currency);
+	}
 
 	/// <inheritdoc/>
 	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

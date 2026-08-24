@@ -45,12 +45,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
-				rates.Add(new ExchangeRate(
-					date,
-					code.ToEnum<ECurrencyISO>(),
-					NativeCurrency,
-					rate,
-					Code));
+				rates.Add(new ExchangeRate(date, NativeCurrency, code.ToECurrency(), rate, Code));
 			}
 		}
 

@@ -11,7 +11,7 @@ public sealed class FixedExchangeRateProvider {
 	public FixedExchangeRateProvider(IConfiguration configuration) {
 		_rates = configuration.GetSection("FixedExchangeRates:Rates")
 											.GetChildren()
-											.ToDictionary(x => x.Key.ToEnum<ECurrencyISO>(),
+											.ToDictionary(x => x.Key.ToECurrency(),
 																x => decimal.Parse(x.Value!, CultureInfo.InvariantCulture));
 	}
 

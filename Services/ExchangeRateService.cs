@@ -85,7 +85,7 @@ public class ExchangeRateService : IExchangeRateService {
 		var fromProvider = fromIsFixed ? null : FindPivotProvider(from);
 		var toProvider = toIsFixed ? null : FindPivotProvider(to);
 
-		var pivot = _pivotCurrency.ToEnum<ECurrencyISO>();
+		var pivot = _pivotCurrency.ToECurrency();
 
 		if (fromProvider is null || toProvider is null) {
 			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");
