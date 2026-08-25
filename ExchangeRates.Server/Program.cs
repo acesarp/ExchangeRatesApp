@@ -2,6 +2,7 @@ using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
+
 using Serilog;
 
 namespace ExchangeRates.Server;
@@ -12,7 +13,7 @@ public class Program {
 			.MinimumLevel.Information()
 			.Enrich.FromLogContext()
 			.WriteTo.Console()
-			.WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+			.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day)
 			.CreateLogger();
 
 		try {

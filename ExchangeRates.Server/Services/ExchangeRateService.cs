@@ -110,15 +110,27 @@ public class ExchangeRateService : IExchangeRateService {
 
 		var pivot = _pivotCurrency.ToECurrency();
 
-		if (fromProvider is null || toProvider is null) {
-			_logger.LogError("Triangulation failed: provider missing. From={From} To={To} Pivot={Pivot}", from, to, _pivotCurrency);
+		// Only throw if both sides exist but providers are missing
+		if ((!fromIsFixed && fromProvider is null) && (!toIsFixed && toProvider is null)) {
+			_logger.LogError("Triangulation failed: no providers for either side. From={From} To={To} Pivot={Pivot}", from, to, _pivotCurrency);
 			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");
 		}
 
-		_logger.LogInformation("Triangulation providers selected. FromProvider={FromProvider} ToProvider={ToProvider} Pivot={Pivot}", fromProvider.Code, toProvider.Code, pivot);
+		// If one side has no provider and is not fixed, return empty list (no data available)
+		if ((!fromIsFixed && fromProvider is null) || (!toIsFixed && toProvider is null)) {
+			_logger.LogWarning("Triangulation incomplete: provider missing on one side. From={From} To={To} Pivot={Pivot}", from, to, _pivotCurrency);
+			return new List<ExchangeRate>();
+		}
 
-		var fromRates = await fromProvider.GetRatesAsync(from, fromDate, toDate, ct);
-		var toRates = await toProvider.GetRatesAsync(to, fromDate, toDate, ct);
+		_logger.LogInformation("Triangulation providers selected. FromProvider={FromProvider} ToProvider={ToProvider} Pivot={Pivot}", fromProvider?.Code, toProvider?.Code, pivot);
+
+		var fromRates = fromIsFixed
+			? BuildFixedRates(from, pivot, fromFixedRate, fromDate, toDate)
+			: await fromProvider!.GetRatesAsync(from, fromDate, toDate, ct);
+
+		var toRates = toIsFixed
+			? BuildFixedRates(pivot, to, 1m / toFixedRate, fromDate, toDate)
+			: await toProvider!.GetRatesAsync(to, fromDate, toDate, ct);
 
 		_logger.LogDebug("Triangulation source rates: fromRates={FromCount}, toRates={ToCount}", fromRates.Count, toRates.Count);
 
@@ -134,11 +146,19 @@ public class ExchangeRateService : IExchangeRateService {
 					continue;
 				}
 
-				rates.Add(new ExchangeRate(date, from, to, fromRate * toRate, $"{fromProvider.Code}+{toProvider.Code}"));
+				rates.Add(new ExchangeRate(date, from, to, fromRate * toRate, $"{fromProvider?.Code}+{toProvider?.Code}"));
 			}
 		}
 
 		_logger.LogInformation("Triangulation completed with {Count} records for {From}->{To}", rates.Count, from, to);
+		return rates;
+	}
+
+	private static IReadOnlyList<ExchangeRate> BuildFixedRates(ECurrencyISO from, ECurrencyISO to, decimal rate, DateOnly fromDate, DateOnly toDate) {
+		var rates = new List<ExchangeRate>();
+		for (var d = fromDate; d <= toDate; d = d.AddDays(1)) {
+			rates.Add(new ExchangeRate(d, from, to, rate, "FIXED"));
+		}
 		return rates;
 	}
 }

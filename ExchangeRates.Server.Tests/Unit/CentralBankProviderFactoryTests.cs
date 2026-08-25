@@ -1,0 +1,96 @@
+using ExchangeRates.Server.Enums;
+using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Providers;
+using ExchangeRates.Server.Tests.Fixtures;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Xunit;
+
+namespace ExchangeRates.Server.Tests.Unit;
+
+public class CentralBankProviderFactoryTests {
+	[Fact]
+	public void GetAll_WithRegisteredProviders_ReturnsAll() {
+		// Arrange
+		var services = new ServiceCollection()
+			.AddLogging(builder => builder.AddConsole());
+
+		var provider1 = MockDataBuilder.CreateTestProvider("ECB", ECurrencyISO.EUR);
+		var provider2 = MockDataBuilder.CreateTestProvider("FED", ECurrencyISO.USD);
+
+		services.AddSingleton<ICentralBankProvider>(provider1);
+		services.AddSingleton<ICentralBankProvider>(provider2);
+
+		var serviceProvider = services.BuildServiceProvider();
+		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+
+		// Act
+		var result = factory.GetAll();
+
+		// Assert
+		result.Should().HaveCountGreaterThanOrEqualTo(2);
+	}
+
+	[Fact]
+	public void GetAll_NoProviders_ReturnsEmpty() {
+		// Arrange
+		var services = new ServiceCollection()
+			.AddLogging(builder => builder.AddConsole());
+
+		var serviceProvider = services.BuildServiceProvider();
+		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+
+		// Act
+		var result = factory.GetAll();
+
+		// Assert
+		result.Should().BeEmpty();
+	}
+
+	[Fact]
+	public void Get_WithNonExistentCode_Throws() {
+		// Arrange
+		var services = new ServiceCollection()
+			.AddLogging(builder => builder.AddConsole());
+
+		var serviceProvider = services.BuildServiceProvider();
+		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+
+		// Act & Assert
+		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("NONEXISTENT"));
+	}
+
+	[Fact]
+	public void Get_WithInvalidCode_ThrowsArgumentOutOfRangeException() {
+		// Arrange
+		var services = new ServiceCollection()
+			.AddLogging(builder => builder.AddConsole());
+
+		var serviceProvider = services.BuildServiceProvider();
+		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+
+		// Act & Assert
+		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("INVALID"));
+	}
+
+	[Fact]
+	public void GetAll_WithRegisteredTesting() {
+		// Arrange
+		var services = new ServiceCollection()
+			.AddLogging(builder => builder.AddConsole());
+
+		var serviceProvider = services.BuildServiceProvider();
+		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+
+		// Act & Assert
+		var provider = MockDataBuilder.CreateTestProvider("TEST", ECurrencyISO.USD);
+		provider.Supports(ECurrencyISO.USD).Should().BeTrue();
+		provider.Supports(ECurrencyISO.EUR).Should().BeTrue();
+	}
+}
