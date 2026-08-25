@@ -10,7 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// Retrieves daily spot exchange rates against Pound Sterling (GBP).
 /// </summary>
 public sealed class BOEProvider : CentralBankProviderBase {
-	public BOEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOEProvider> _logger;
+	public BOEProvider(HttpClient http, IConfiguration configuration, ILogger<BOEProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 	private static readonly Dictionary<string, string> Series = new() {
 		// Current / recent currencies
 		["AUD"] = "XUDLADS",   // Australian Dollar
@@ -68,6 +71,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (!Series.TryGetValue(quoteCurrency.ToString(), out var seriesCode)) {
+			_logger.LogWarning("Series code not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
 

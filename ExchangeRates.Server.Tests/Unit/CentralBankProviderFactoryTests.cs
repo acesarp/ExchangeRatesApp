@@ -24,7 +24,7 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+		var factory = new CentralBankProviderFactory(serviceProvider.GetServices<ICentralBankProvider>(), logger);
 
 		// Act
 		var result = factory.GetAll();
@@ -41,7 +41,7 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act
 		var result = factory.GetAll();
@@ -58,7 +58,7 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act & Assert
 		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("NONEXISTENT"));
@@ -72,7 +72,7 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act & Assert
 		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("INVALID"));
@@ -86,11 +86,27 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
-
 		// Act & Assert
 		var provider = MockDataBuilder.CreateTestProvider("TEST", ECurrencyISO.USD);
 		provider.Supports(ECurrencyISO.USD).Should().BeTrue();
 		provider.Supports(ECurrencyISO.EUR).Should().BeTrue();
+	}
+
+	[Fact]
+	public void Get_WithRegisteredProvider_ReturnsProviderWithoutConcreteRegistration() {
+		// Arrange
+		var provider = MockDataBuilder.CreateTestProvider("ECB", ECurrencyISO.EUR);
+		var services = new ServiceCollection()
+			.AddLogging()
+			.AddSingleton<ICentralBankProvider>(provider)
+			.AddTransient<CentralBankProviderFactory>();
+		var serviceProvider = services.BuildServiceProvider();
+		var factory = serviceProvider.GetRequiredService<CentralBankProviderFactory>();
+
+		// Act
+		var result = factory.Get("ecb");
+
+		// Assert
+		result.Should().BeSameAs(provider);
 	}
 }

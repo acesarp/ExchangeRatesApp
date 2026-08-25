@@ -41,12 +41,9 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 		var currentDate = fromDate;
 
 		while (currentDate <= toDate) {
-			// Try to find rates for all quote currencies on this date
-			foreach (var quoteCurrency in _supported.Where(c => c != currency)) {
-				var key = (currency, quoteCurrency, currentDate);
-				if (_rates.TryGetValue(key, out var rate)) {
-					result.Add(new ExchangeRate(currentDate, currency, quoteCurrency, rate, Code));
-				}
+			var key = (NativeCurrency, currency, currentDate);
+			if (_rates.TryGetValue(key, out var rate)) {
+				result.Add(new ExchangeRate(currentDate, NativeCurrency, currency, rate, Code));
 			}
 			currentDate = currentDate.AddDays(1);
 		}

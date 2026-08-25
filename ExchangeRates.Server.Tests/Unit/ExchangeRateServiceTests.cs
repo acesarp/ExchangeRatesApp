@@ -38,7 +38,7 @@ public class ExchangeRateServiceTests {
 		var serviceProvider = serviceCollection.BuildServiceProvider();
 
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider, logger);
+		var factory = new CentralBankProviderFactory(_providers, logger);
 		var fixedProvider = new FixedExchangeRateProvider(_config);
 		var serviceLogger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
 		_service = new ExchangeRateService(_config, factory, fixedProvider, serviceLogger);
