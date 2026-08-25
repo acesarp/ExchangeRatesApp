@@ -10,7 +10,7 @@ namespace ExchangeRates.Server;
 public class Program {
 	public static void Main(string[] args) {
 		Log.Logger = new LoggerConfiguration()
-			.MinimumLevel.Information()
+			.MinimumLevel.Debug()
 			.Enrich.FromLogContext()
 			.WriteTo.Console()
 			.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day)

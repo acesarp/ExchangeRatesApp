@@ -1,10 +1,7 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
@@ -19,9 +16,9 @@ public sealed class CBAProvider : CentralBankProviderBase {
 	public override string Name => "Central Bank of Armenia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.AMD;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		if (fromCurrency == NativeCurrency) {
+		if (quoteCurrency == NativeCurrency) {
 			return [];
 		}
 

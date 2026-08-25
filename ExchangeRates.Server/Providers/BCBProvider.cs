@@ -1,11 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -19,12 +14,12 @@ public sealed class BCBProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central do Brasil";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.BRL;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var currencies = new[] { "AUD", "CAD", "CHF", "DKK", "EUR", "GBP", "JPY", "NOK", "SEK", "USD" };
 		var rates = new List<ExchangeRate>();
 
 		var url = $"{Url.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
-				$"?@moeda='{fromCurrency}'&@dataInicial='{fromDate:MM-dd-yyyy}'&@dataFinalCotacao='{toDate:MM-dd-yyyy}'&$format=json";
+				$"?@moeda='{quoteCurrency}'&@dataInicial='{fromDate:MM-dd-yyyy}'&@dataFinalCotacao='{toDate:MM-dd-yyyy}'&$format=json";
 
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
@@ -44,7 +39,7 @@ public sealed class BCBProvider : CentralBankProviderBase {
 			if (!DateTime.TryParse(dateText, out var dateTime)) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(DateOnly.FromDateTime(dateTime), fromCurrency, NativeCurrency, rate, Code));
+			rates.Add(new ExchangeRate(DateOnly.FromDateTime(dateTime), quoteCurrency, NativeCurrency, rate, Code));
 
 		}
 		return rates;

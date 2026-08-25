@@ -54,7 +54,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	/// <param name="fromDate"></param>
 	/// <param name="ct"></param>
 	/// <returns>IReadOnlyList&lt;ExchangeRate&gt;</returns>
-	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected virtual Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		throw new NotSupportedException($"{Code} ({Name}) is registered, needs a bank-specific parser/endpoint implementation.");
 	}
 

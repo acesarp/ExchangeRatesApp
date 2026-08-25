@@ -6,33 +6,41 @@ using System.Globalization;
 using System.Text.Json;
 
 public sealed class BDIProvider : CentralBankProviderBase {
-	public BDIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BDIProvider> _logger;
+
+	public BDIProvider(HttpClient http, IConfiguration configuration, ILogger<BDIProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BDI";
 	public override string Name => "Banca d'Italia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(
-		ECurrencyISO fromCurrency,
-		DateOnly fromDate,
-		DateOnly toDate,
-		CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (fromDate > toDate) {
+			throw new ArgumentException("fromDate cannot be greater than toDate.");
+		}
 
-		var url =
-			$"{Url.TrimEnd('/')}/dailyTimeSeries" +
+		if (quoteCurrency == NativeCurrency) {
+			return [];
+		}
+
+		var url = $"{Url.TrimEnd('/')}/dailyTimeSeries" +
 			$"?startDate={fromDate:yyyy-MM-dd}" +
 			$"&endDate={toDate:yyyy-MM-dd}" +
-			$"&baseCurrencyIsoCode={NativeCurrency}" +
-			$"&currencyIsoCode={fromCurrency}" +
+			$"&baseCurrencyIsoCode={quoteCurrency}" +
+			$"&currencyIsoCode={NativeCurrency}" +
 			$"&lang=en";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.Accept.ParseAdd("application/json");
 
 		using var response = await Http.SendAsync(request, ct);
-		response.EnsureSuccessStatusCode();
 
-		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+		var responseStr = await response.Content.ReadAsStringAsync(ct);
+		_logger.LogInformation("Response from BDI: {Response}", responseStr);
+
+		using var doc = JsonDocument.Parse(responseStr);
 
 		if (!doc.RootElement.TryGetProperty("rates", out var observations)) {
 			return [];
@@ -48,12 +56,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(
-				date,
-				NativeCurrency,
-				fromCurrency,
-				rate,
-				Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

@@ -14,7 +14,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 	public override string Code => "BBK";
 	public override string Name => "Deutsche Bundesbank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.DEM;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
@@ -48,13 +48,13 @@ public sealed class BBKProvider : CentralBankProviderBase {
 			}
 
 			var baseCurrency = currencyIndex >= 0 && currencyIndex < columns.Count ? columns[currencyIndex] : null;
-			var quoteCurrency = currencyDenomIndex >= 0 && currencyDenomIndex < columns.Count ? columns[currencyDenomIndex] : null;
+			var _quoteCurrency = currencyDenomIndex >= 0 && currencyDenomIndex < columns.Count ? columns[currencyDenomIndex] : null;
 
-			if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(quoteCurrency)) {
+			if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(_quoteCurrency)) {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, Enum.Parse<ECurrencyISO>(baseCurrency), Enum.Parse<ECurrencyISO>(quoteCurrency), rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

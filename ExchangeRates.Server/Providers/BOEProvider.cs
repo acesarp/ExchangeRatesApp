@@ -66,8 +66,8 @@ public sealed class BOEProvider : CentralBankProviderBase {
 	public override string Name => "Bank of England";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.GBP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (!Series.TryGetValue(fromCurrency.ToString(), out var seriesCode)) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (!Series.TryGetValue(quoteCurrency.ToString(), out var seriesCode)) {
 			return [];
 		}
 
@@ -102,7 +102,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 		return rates;
 	}

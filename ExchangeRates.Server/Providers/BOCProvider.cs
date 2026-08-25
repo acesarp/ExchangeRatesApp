@@ -1,11 +1,7 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -20,7 +16,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.CAD;
 
 	/// <inheritdoc/>
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
@@ -41,7 +37,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

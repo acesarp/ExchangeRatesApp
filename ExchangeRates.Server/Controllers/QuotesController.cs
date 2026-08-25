@@ -1,5 +1,6 @@
 using ExchangeRates.Server.Enums;
 using ExchangeRates.Server.Interfaces;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExchangeRates.Server.Controllers;
@@ -16,15 +17,15 @@ public class QuotesController : ControllerBase {
 	}
 
 	[HttpGet(Name = "GetExchangeRate")]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRate>>> GetRate(ECurrencyISO fromCurrency, ECurrencyISO toCurrency, DateOnly? fromDate, DateOnly? toDate) {
-		_logger.LogInformation("GetRate request: {From}->{To}, fromDate={FromDate}, toDate={ToDate}", fromCurrency, toCurrency, fromDate, toDate);
+	public async Task<ActionResult<IReadOnlyList<ExchangeRate>>> GetRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, DateOnly? fromDate, DateOnly? toDate) {
+		_logger.LogInformation("GetRate request: {From}->{To}, fromDate={FromDate}, toDate={ToDate}", quoteCurrency, toCurrency, fromDate, toDate);
 		try {
-			var result = await _service.GetRatesAsync(fromCurrency, toCurrency, fromDate, toDate);
-			_logger.LogInformation("GetRate response count: {Count} for {From}->{To}", result.Count, fromCurrency, toCurrency);
+			var result = await _service.GetRatesAsync(quoteCurrency, toCurrency, fromDate, toDate);
+			_logger.LogInformation("GetRate response count: {Count} for {From}->{To}", result.Count, quoteCurrency, toCurrency);
 			return Ok(result);
 		}
 		catch (InvalidOperationException ex) {
-			_logger.LogWarning(ex, "Unable to retrieve rates for {From}->{To}", fromCurrency, toCurrency);
+			_logger.LogWarning(ex, "Unable to retrieve rates for {From}->{To}", quoteCurrency, toCurrency);
 			return BadRequest(new { error = ex.Message });
 		}
 	}

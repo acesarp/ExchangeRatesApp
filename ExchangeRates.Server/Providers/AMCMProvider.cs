@@ -1,11 +1,6 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -19,7 +14,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 	public override string Name => "Monetary Authority of Macao";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MOP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
 
@@ -41,7 +36,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 			if (unit <= 0 || value <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(fromDate, fromCurrency!, NativeCurrency, value / unit, Code));
+			rates.Add(new ExchangeRate(fromDate, quoteCurrency!, NativeCurrency, value / unit, Code));
 		}
 		return rates;
 	}

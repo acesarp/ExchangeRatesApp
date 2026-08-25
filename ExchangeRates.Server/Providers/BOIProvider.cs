@@ -1,11 +1,7 @@
 using ExchangeRates.Server.Enums;
-using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -24,7 +20,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
 	/// </summary>
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO fromCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
 								$"&startperiod={fromDate:yyyy-MM-dd}" +
@@ -79,7 +75,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 			if (rate <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(date, NativeCurrency, fromCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 		return rates;
 	}

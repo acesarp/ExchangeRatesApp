@@ -50,15 +50,15 @@ public class ExchangeRateService : IExchangeRateService {
 		return triangulatedRates;
 	}
 
-	private bool TryGetDirectRate(ECurrencyISO fromCurrency, ECurrencyISO toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
-		var direct = rates.FirstOrDefault(x => x.BaseCurrency == fromCurrency && x.QuoteCurrency == toCurrency);
+	private bool TryGetDirectRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
+		var direct = rates.FirstOrDefault(x => x.BaseCurrency == quoteCurrency && x.QuoteCurrency == toCurrency);
 
 		if (direct is not null) {
 			rate = direct.Rate;
 			return true;
 		}
 
-		var inverse = rates.FirstOrDefault(x => x.BaseCurrency == toCurrency && x.QuoteCurrency == fromCurrency);
+		var inverse = rates.FirstOrDefault(x => x.BaseCurrency == toCurrency && x.QuoteCurrency == quoteCurrency);
 
 		if (inverse is not null && inverse.Rate != 0) {
 			rate = 1m / inverse.Rate;
