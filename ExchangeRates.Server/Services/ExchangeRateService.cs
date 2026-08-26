@@ -137,9 +137,9 @@ public class ExchangeRateService : IExchangeRateService {
 		var rates = new List<ExchangeRate>();
 
 		if (toRates != null && fromRates != null) {
-			foreach (var date in fromRates.Select(x => x.date).Intersect(toRates.Select(x => x.date)).Order()) {
-				var fromRatesForDate = fromRates.Where(x => x.date == date).ToList();
-				var toRatesForDate = toRates.Where(x => x.date == date).ToList();
+			foreach (var date in fromRates.Select(x => x.Date).Intersect(toRates.Select(x => x.Date)).Order()) {
+				var fromRatesForDate = fromRates.Where(x => x.Date == date).ToList();
+				var toRatesForDate = toRates.Where(x => x.Date == date).ToList();
 
 				if (!TryGetDirectRate(from, pivot, fromRatesForDate, out var fromRate) ||
 					!TryGetDirectRate(pivot, to, toRatesForDate, out var toRate)) {

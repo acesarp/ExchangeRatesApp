@@ -3,11 +3,13 @@ using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
 using ExchangeRates.Server.Tests.Fixtures;
+
 using FluentAssertions;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
+
 using Xunit;
 
 namespace ExchangeRates.Server.Tests.Unit;
@@ -118,7 +120,7 @@ public class ExchangeRateServiceTests {
 		// Assert
 		result.Should().NotBeEmpty();
 		result.Should().AllSatisfy(r => {
-			r.date.Should().Be(r.date); // Sanity check
+			r.Date.Should().Be(r.Date); // Sanity check
 		});
 	}
 	#endregion

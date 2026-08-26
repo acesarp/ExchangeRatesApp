@@ -2,7 +2,7 @@
 
 namespace ExchangeRates.Server;
 
-public sealed record ExchangeRate(DateOnly date, ECurrencyISO BaseCurrency, ECurrencyISO QuoteCurrency, decimal Rate, string Provider);
+public sealed record ExchangeRate(DateOnly Date, ECurrencyISO BaseCurrency, ECurrencyISO QuoteCurrency, decimal Rate, string Provider);
 
 
 

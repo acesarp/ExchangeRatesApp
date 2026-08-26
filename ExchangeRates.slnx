@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="ExchangeRates.Data/ExchangeRates.Infrastructure.csproj" Id="840de499-a4d9-4ab3-b144-46be81fddd7d" />
   <Project Path="ExchangeRates.Server.Tests/ExchangeRates.Server.Tests.csproj" />
   <Project Path="ExchangeRates.Server/ExchangeRates.Server.csproj" />
 </Solution>

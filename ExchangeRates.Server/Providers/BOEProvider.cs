@@ -11,78 +11,35 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BOEProvider : CentralBankProviderBase {
 	private readonly ILogger<BOEProvider> _logger;
+	private readonly Dictionary<string, string> _series;
 	public BOEProvider(HttpClient http, IConfiguration configuration, ILogger<BOEProvider> logger) : base(http, configuration) {
 		_logger = logger;
+		_series = configuration.GetSection($"CentralBanks:{Code}:Series")
+											.GetChildren()
+											.ToDictionary(x => x.Key, x => x.Value!, StringComparer.OrdinalIgnoreCase);
 	}
-	private static readonly Dictionary<string, string> Series = new() {
-		// Current / recent currencies
-		["AUD"] = "XUDLADS",   // Australian Dollar
-		["BGN"] = "XUDLZOS3",  // Bulgarian Lev
-		["CAD"] = "XUDLCDS",   // Canadian Dollar
-		["CNY"] = "XUDLBK89",  // Chinese Yuan
-		["CYP"] = "XUDLBK22",  // Cyprus Pound
-		["CZK"] = "XUDLBK25",  // Czech Koruna
-		["DKK"] = "XUDLDKS",   // Danish Krone
-		["EEK"] = "XUDLBK28",  // Estonian Kroon
-		["EUR"] = "XUDLERS",   // Euro
-		["HKD"] = "XUDLHDS",   // Hong Kong Dollar
-		["JPY"] = "XUDLJYS",   // Japanese Yen
-		["HUF"] = "XUDLBK33",  // Hungarian Forint
-		["INR"] = "XUDLBK97",  // Indian Rupee
-		["LVL"] = "XUDLBK39",  // Latvian Lats
-		["ILS"] = "XUDLBK78",  // Israeli Shekel
-		["LTL"] = "XUDLBK36",  // Lithuanian Litas
-		["MYR"] = "XUDLBK83",  // Malaysian Ringgit
-		["MTL"] = "XUDLBK44",  // Maltese Lira
-		["NZD"] = "XUDLNDS",   // New Zealand Dollar
-		["NOK"] = "XUDLNKS",   // Norwegian Krone
-		["PLN"] = "XUDLBK47",  // Polish Zloty
-		["RON"] = "XUDLZOS4",  // Romanian Leu
-		["RUB"] = "XUDLBK68",  // Russian Ruble
-		["SAR"] = "XUDLSRS",   // Saudi Riyal
-		["SGD"] = "XUDLSGS",   // Singapore Dollar
-		["SKK"] = "XUDLBK55",  // Slovak Koruna
-		["SEK"] = "XUDLSKS",   // Swedish Krona
-		["CHF"] = "XUDLSFS",   // Swiss Franc
-		["SIT"] = "XUDLBK52",  // Slovenian Tolar
-		["ZAR"] = "XUDLZRS",   // South African Rand
-		["KRW"] = "XUDLBK93",  // South Korean Won
-		["TWD"] = "XUDLTWS",   // Taiwan Dollar
-		["THB"] = "XUDLBK87",  // Thai Baht
-		["TRY"] = "XUDLBK95",  // Turkish Lira
-		["USD"] = "XUDLUSS",   // US Dollar
 
-		// Legacy pre-Euro currencies
-		["ATS"] = "XUDLASS",   // Austrian Schilling
-		["BEF"] = "XUDLBFS",   // Belgian Franc
-		["DEM"] = "XUDLDMS",   // Deutschemark
-		["GRD"] = "XUDLGDS",   // Greek Drachma
-		["FIM"] = "XUDLFMS",   // Finnish Markka
-		["FRF"] = "XUDLFFS",   // French Franc
-		["IEP"] = "XUDLIPS",   // Irish Punt
-		["ITL"] = "XUDLILS",   // Italian Lira
-		["NLG"] = "XUDLNGS",   // Netherlands Guilder
-		["PTE"] = "XUDLPES",   // Portuguese Escudo
-		["ESP"] = "XUDLSPS"    // Spanish Peseta
-	};
 	public override string Code => "BOE";
 	public override string Name => "Bank of England";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.GBP;
 
 	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (!Series.TryGetValue(quoteCurrency.ToString(), out var seriesCode)) {
+		if (!_series.TryGetValue(quoteCurrency.ToString(), out var quoteCode)) {
 			_logger.LogWarning("Series code not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
 
-		var url = $"{Url}?csv.x=yes" +
-			$"&Datefrom={Uri.EscapeDataString($"{fromDate:dd/MMM/yyyy}")}" +
-			$"&Dateto={Uri.EscapeDataString($"{toDate:dd/MMM/yyyy}")}" +
-			$"&SeriesCodes={seriesCode}" +
-			"&UsingCodes=Y" +
-			"&CSVF=TN";
+		var url = $"{Url}?CodeVer=new&xml.x=yes" +
+	$"&Datefrom={Uri.EscapeDataString(fromDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
+	$"&Dateto={Uri.EscapeDataString(toDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
+	$"&SeriesCodes={quoteCode}" +
+	"&VPD=Y";
 
 		var csv = await Http.GetStringAsync(url, ct);
+
+		Console.WriteLine(url);
+		Console.WriteLine(csv);
+
 		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
 		if (lines.Length < 2) {
@@ -92,7 +49,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 		var headers = TextUtils.SplitCsv(lines[0]);
 		var rates = new List<ExchangeRate>();
 		var dateIndex = headers.FindIndex(x => x.Equals("DATE", StringComparison.OrdinalIgnoreCase));
-		var valueIndex = headers.FindIndex(x => x.Equals(seriesCode, StringComparison.OrdinalIgnoreCase));
+		var valueIndex = headers.FindIndex(x => x.Equals(quoteCode, StringComparison.OrdinalIgnoreCase));
 
 		foreach (var line in lines.Skip(1)) {
 			var values = TextUtils.SplitCsv(line);
@@ -106,7 +63,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, 1m / rate, Code));
 		}
 		return rates;
 	}
