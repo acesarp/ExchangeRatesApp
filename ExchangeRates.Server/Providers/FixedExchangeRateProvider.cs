@@ -18,7 +18,5 @@ public sealed class FixedExchangeRateProvider {
 	public bool TryGetFixedRate(ECurrencyISO currency, out decimal rate) {
 		return _rates.TryGetValue(currency, out rate);
 	}
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
-	}
+
 }
