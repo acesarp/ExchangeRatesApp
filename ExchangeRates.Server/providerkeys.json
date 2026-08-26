@@ -1,6 +1,7 @@
 ﻿{
 	"ProviderKeys": {
 		"BANXICO": "c8cc556fe56197296974d3df210484177c325a55e958a8638be7257f6a596fbf",
-		"BAM": "5ecafbf3b4e8431d83f37bf14bc37f6d"
+		"BAM": "5ecafbf3b4e8431d83f37bf14bc37f6d",
+		"FRED": "161f1a9ac071aac4ddc8cabf49e162e1"
 	}
 }

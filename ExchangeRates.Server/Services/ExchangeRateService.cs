@@ -5,7 +5,9 @@ using global::ExchangeRates.Domain.Enums;
 using global::ExchangeRates.Domain.Interfaces;
 using global::ExchangeRates.Server.Extensions;
 using global::ExchangeRates.Server.Interfaces;
+using global::ExchangeRates.Server.Mappers;
 using global::ExchangeRates.Server.Providers;
+using global::ExchangeRates.Server.Utilities;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -40,7 +42,7 @@ public class ExchangeRateService : IExchangeRateService {
 
 		if (bankProvider != null) {
 			_logger.LogInformation("Direct provider selected: {ProviderCode} for {From}->{To}", bankProvider.Code, baseCurrency, quoteCurrency);
-			var directRates = await bankProvider.GetRatesAsync(quoteCurrency, fromDate, toDate, ct);
+			var directRates = await GetProviderRatesAsync(bankProvider, quoteCurrency, fromDate, toDate, ct);
 			_logger.LogInformation("Direct provider {ProviderCode} returned {Count} records", bankProvider.Code, directRates.Count);
 			return directRates;
 		}
@@ -53,6 +55,31 @@ public class ExchangeRateService : IExchangeRateService {
 	}
 
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetProviderRatesAsync(ICentralBankProvider provider, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
+		var fetches = await _repository.GetFetchesAsync(provider.Code, provider.NativeCurrency, quoteCurrency, fromDate, toDate, ct);
+		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, fetches);
+
+		foreach (var range in missingRanges) {
+			IReadOnlyList<ExchangeRateResult> rates = await provider.GetRatesAsync(quoteCurrency, range.From, range.To, ct);
+
+			if (rates.Count > 0) {
+				await _repository.AddRangeAsync(rates.Select(r => r.ToEntity()), ct);
+			}
+
+			await _repository.AddFetchAsync(new ExchangeRateFetch {
+				Provider = provider.Code,
+				BaseCurrency = provider.NativeCurrency,
+				QuoteCurrency = quoteCurrency,
+				FromDate = range.From,
+				ToDate = range.To,
+				FetchedAtUtc = DateTime.UtcNow
+			}, ct);
+		}
+		var result = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, ct);
+		return result.Select(s => s.ToResult()).ToList();
+	}
+
+	private bool TryGetDirectRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, IReadOnlyList<ExchangeRateResult> rates, out decimal rate) {
 		var direct = rates.FirstOrDefault(x => x.BaseCurrency == quoteCurrency && x.QuoteCurrency == toCurrency);
 
 		if (direct is not null) {
@@ -128,11 +155,11 @@ public class ExchangeRateService : IExchangeRateService {
 
 		var fromRates = fromIsFixed
 			? BuildFixedRates(from, pivot, fromFixedRate, fromDate, toDate)
-			: await fromProvider!.GetRatesAsync(from, fromDate, toDate, ct);
+			: await GetProviderRatesAsync(fromProvider!, from, fromDate, toDate, ct);
 
 		var toRates = toIsFixed
 			? BuildFixedRates(pivot, to, 1m / toFixedRate, fromDate, toDate)
-			: await toProvider!.GetRatesAsync(to, fromDate, toDate, ct);
+			: await GetProviderRatesAsync(toProvider!, to, fromDate, toDate, ct);
 
 		_logger.LogDebug("Triangulation source rates: fromRates={FromCount}, toRates={ToCount}", fromRates.Count, toRates.Count);
 
