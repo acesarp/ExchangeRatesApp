@@ -1,7 +1,10 @@
+using ExchangeRates.Infrastructure;
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
+
+using Microsoft.EntityFrameworkCore;
 
 using Serilog;
 
@@ -15,10 +18,11 @@ public class Program {
 			.WriteTo.Console()
 			.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day)
 			.CreateLogger();
-
 		try {
 			var builder = WebApplication.CreateBuilder(args);
 			builder.Host.UseSerilog();
+
+			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
 
 			builder.Configuration.AddJsonFile("providerkeys.json", optional: false, reloadOnChange: false);
 			builder.Services.Configure<Dictionary<string, string>>(builder.Configuration.GetSection("ProviderKeys"));
