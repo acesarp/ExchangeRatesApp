@@ -290,4 +290,34 @@ public sealed class ProviderIntegrationTests {
 			Assert.True(rate.Rate > 0);
 		});
 	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRBA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<RBAProvider>();
+
+		var provider = new RBAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.AUD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("RBA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
 }
