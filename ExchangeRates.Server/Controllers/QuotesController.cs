@@ -17,7 +17,7 @@ public class QuotesController : ControllerBase {
 	}
 
 	[HttpGet(Name = "GetExchangeRate")]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRate>>> GetRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, DateOnly? fromDate, DateOnly? toDate) {
+	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, DateOnly? fromDate, DateOnly? toDate) {
 		_logger.LogInformation("GetRate request: {From}->{To}, fromDate={FromDate}, toDate={ToDate}", quoteCurrency, toCurrency, fromDate, toDate);
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);

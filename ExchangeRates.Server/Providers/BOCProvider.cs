@@ -16,7 +16,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.CAD;
 
 	/// <inheritdoc/>
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
@@ -25,7 +25,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var observation in observations.EnumerateArray()) {
 			if (!observation.TryGetProperty("d", out var dateValue) ||
@@ -37,7 +37,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

@@ -16,7 +16,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 	public override string Name => "Natsionalnyi Bank Ukrainy";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.UAH;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url =
 			$"{Url}?start={fromDate:yyyyMMdd}" +
 			$"&end={toDate:yyyyMMdd}" +
@@ -26,7 +26,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			"&json";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
 			var code = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
@@ -45,7 +45,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
-				rates.Add(new ExchangeRate(date, NativeCurrency, code.ToECurrency(), rate, Code));
+				rates.Add(new ExchangeRateResult(date, NativeCurrency, code.ToECurrency(), rate, Code));
 			}
 		}
 

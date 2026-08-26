@@ -31,20 +31,20 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 
 	public bool Supports(ECurrencyISO currency) => _supported.Contains(currency);
 
-	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
+	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
 
-		var result = new List<ExchangeRate>();
+		var result = new List<ExchangeRateResult>();
 		var currentDate = fromDate;
 
 		while (currentDate <= toDate) {
 			var key = (NativeCurrency, currency, currentDate);
 			if (_rates.TryGetValue(key, out var rate)) {
-				result.Add(new ExchangeRate(currentDate, NativeCurrency, currency, rate, Code));
+				result.Add(new ExchangeRateResult(currentDate, NativeCurrency, currency, rate, Code));
 			}
 			currentDate = currentDate.AddDays(1);
 		}
 
-		return Task.FromResult<IReadOnlyList<ExchangeRate>>(result);
+		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>(result);
 	}
 }
 
@@ -52,13 +52,13 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 /// Builder for test data
 /// </summary>
 public static class MockDataBuilder {
-	public static ExchangeRate CreateRate(
+	public static ExchangeRateResult CreateRate(
 		ECurrencyISO from = ECurrencyISO.USD,
 		ECurrencyISO to = ECurrencyISO.EUR,
 		decimal rate = 0.92m,
 		string? providerCode = null,
 		DateOnly? date = null) {
-		return new ExchangeRate(
+		return new ExchangeRateResult(
 			date ?? DateOnly.FromDateTime(DateTime.UtcNow),
 			from,
 			to,
@@ -66,19 +66,19 @@ public static class MockDataBuilder {
 			providerCode ?? "TEST");
 	}
 
-	public static List<ExchangeRate> CreateRateRange(
+	public static List<ExchangeRateResult> CreateRateRange(
 		ECurrencyISO from,
 		ECurrencyISO to,
 		decimal startRate,
 		int dayCount,
 		DateOnly? startDate = null,
 		string? providerCode = null) {
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 		var date = startDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 		var step = 0.01m / dayCount;
 
 		for (int i = 0; i < dayCount; i++) {
-			rates.Add(new ExchangeRate(
+			rates.Add(new ExchangeRateResult(
 				date,
 				from,
 				to,

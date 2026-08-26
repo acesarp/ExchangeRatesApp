@@ -15,7 +15,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 	public override string Name => "Banco de México";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MXN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BANXICO:ApiKey.");
 		}
@@ -45,7 +45,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [   new ExchangeRate(fromDate,  NativeCurrency,quoteCurrency,rate,Code)
+		return [   new ExchangeRateResult(fromDate,  NativeCurrency,quoteCurrency,rate,Code)
 		];
 	}
 }

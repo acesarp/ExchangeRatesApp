@@ -16,7 +16,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 	public override string Name => "Banca d'Italia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
 			throw new ArgumentException("fromDate cannot be greater than toDate.");
 		}
@@ -46,7 +46,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var observation in observations.EnumerateArray()) {
 			var dateText = observation.TryGetProperty("referenceDate", out var d) ? d.GetString() : null;
@@ -56,7 +56,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

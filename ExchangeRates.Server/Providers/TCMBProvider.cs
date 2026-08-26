@@ -14,12 +14,12 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 	public override string Name => "Türkiye Cumhuriyet Merkez Bankası";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TRY;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
 		var xml = await Http.GetStringAsync(url, ct);
 
 		var doc = System.Xml.Linq.XDocument.Parse(xml);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var node in doc.Descendants("Currency")) {
 			var code = node.Attribute("CurrencyCode")?.Value;
@@ -38,7 +38,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
 			if (mid > 0) {
-				rates.Add(new ExchangeRate(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
+				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 			}
 		}
 		return rates;

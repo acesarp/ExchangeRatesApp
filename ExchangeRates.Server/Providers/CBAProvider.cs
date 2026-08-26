@@ -16,7 +16,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 	public override string Name => "Central Bank of Armenia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.AMD;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (quoteCurrency == NativeCurrency) {
 			return [];
@@ -49,7 +49,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 
 		var xml = await response.Content.ReadAsStringAsync(ct);
 		var document = XDocument.Parse(xml);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "ExchangeRate")) {
 			var iso = row.Elements().FirstOrDefault(x => x.Name.LocalName == "ISO")?.Value;
@@ -69,7 +69,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), NativeCurrency, rate / amount, Code));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), NativeCurrency, rate / amount, Code));
 		}
 
 		return rates;

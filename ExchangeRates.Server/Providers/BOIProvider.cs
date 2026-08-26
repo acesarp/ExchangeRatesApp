@@ -20,7 +20,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
 	/// </summary>
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
 								$"&startperiod={fromDate:yyyy-MM-dd}" +
@@ -29,7 +29,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 								$"&labels=id";
 
 		var csv = await Http.GetStringAsync(url, ct);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
 		if (lines.Length < 2) {
@@ -75,7 +75,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 			if (rate <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 		return rates;
 	}

@@ -1,11 +1,13 @@
 ﻿namespace ExchangeRates.Server.Services;
 
+using global::ExchangeRates.Domain.Entities;
 using global::ExchangeRates.Domain.Enums;
 using global::ExchangeRates.Domain.Interfaces;
 using global::ExchangeRates.Server.Extensions;
 using global::ExchangeRates.Server.Interfaces;
 using global::ExchangeRates.Server.Providers;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 public class ExchangeRateService : IExchangeRateService {
@@ -25,18 +27,12 @@ public class ExchangeRateService : IExchangeRateService {
 		_logger = logger;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
-		var cachedRates = await _repository.GetAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-
-		if (cachedRates.Count > 0) {
-			// determine if the requested interval is fully covered
-		}
-
+	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
 		_logger.LogInformation("GetRates requested: {From}->{To} baseCurrency {FromDate} quoteCurrency {ToDate}", baseCurrency, quoteCurrency, fromDate, toDate);
 
 		if (baseCurrency == quoteCurrency) {
 			_logger.LogInformation("Identity rate path selected for {Currency}", baseCurrency);
-			return new List<ExchangeRate> { new ExchangeRate(fromDate, baseCurrency, quoteCurrency, 1m, "IDENTITY") };
+			return new List<ExchangeRateResult> { new ExchangeRateResult(fromDate, baseCurrency, quoteCurrency, 1m, "IDENTITY") };
 		}
 
 		// 1. Try direct provider
@@ -56,7 +52,7 @@ public class ExchangeRateService : IExchangeRateService {
 		return triangulatedRates;
 	}
 
-	private bool TryGetDirectRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, IReadOnlyList<ExchangeRate> rates, out decimal rate) {
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetProviderRatesAsync(ICentralBankProvider provider, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var direct = rates.FirstOrDefault(x => x.BaseCurrency == quoteCurrency && x.QuoteCurrency == toCurrency);
 
 		if (direct is not null) {
@@ -107,7 +103,7 @@ public class ExchangeRateService : IExchangeRateService {
 	/// <param name="ct"></param>
 	/// <returns></returns>
 	/// <exception cref="InvalidOperationException"></exception>
-	private async Task<IReadOnlyList<ExchangeRate>> GetTriangulatedRatesAsync(ECurrencyISO from, ECurrencyISO to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO from, ECurrencyISO to, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var fromIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(from, out var fromFixedRate);
 		var toIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(to, out var toFixedRate);
 
@@ -125,7 +121,7 @@ public class ExchangeRateService : IExchangeRateService {
 		// If one side has no provider and is not fixed, return empty list (no data available)
 		if ((!fromIsFixed && fromProvider is null) || (!toIsFixed && toProvider is null)) {
 			_logger.LogWarning("Triangulation incomplete: provider missing on one side. From={From} To={To} Pivot={Pivot}", from, to, _pivotCurrency);
-			return new List<ExchangeRate>();
+			return new List<ExchangeRateResult>();
 		}
 
 		_logger.LogInformation("Triangulation providers selected. FromProvider={FromProvider} ToProvider={ToProvider} Pivot={Pivot}", fromProvider?.Code, toProvider?.Code, pivot);
@@ -140,7 +136,7 @@ public class ExchangeRateService : IExchangeRateService {
 
 		_logger.LogDebug("Triangulation source rates: fromRates={FromCount}, toRates={ToCount}", fromRates.Count, toRates.Count);
 
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		if (toRates != null && fromRates != null) {
 			foreach (var date in fromRates.Select(x => x.Date).Intersect(toRates.Select(x => x.Date)).Order()) {
@@ -152,7 +148,7 @@ public class ExchangeRateService : IExchangeRateService {
 					continue;
 				}
 
-				rates.Add(new ExchangeRate(date, from, to, fromRate * toRate, $"{fromProvider?.Code}+{toProvider?.Code}"));
+				rates.Add(new ExchangeRateResult(date, from, to, fromRate * toRate, $"{fromProvider?.Code}+{toProvider?.Code}"));
 			}
 		}
 
@@ -160,10 +156,10 @@ public class ExchangeRateService : IExchangeRateService {
 		return rates;
 	}
 
-	private static IReadOnlyList<ExchangeRate> BuildFixedRates(ECurrencyISO from, ECurrencyISO to, decimal rate, DateOnly fromDate, DateOnly toDate) {
-		var rates = new List<ExchangeRate>();
+	private static IReadOnlyList<ExchangeRateResult> BuildFixedRates(ECurrencyISO from, ECurrencyISO to, decimal rate, DateOnly fromDate, DateOnly toDate) {
+		var rates = new List<ExchangeRateResult>();
 		for (var d = fromDate; d <= toDate; d = d.AddDays(1)) {
-			rates.Add(new ExchangeRate(d, from, to, rate, "FIXED"));
+			rates.Add(new ExchangeRateResult(d, from, to, rate, "FIXED"));
 		}
 		return rates;
 	}

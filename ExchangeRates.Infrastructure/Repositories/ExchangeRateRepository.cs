@@ -13,7 +13,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context = context;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRate>> GetAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public async Task<IReadOnlyList<ExchangeRateEntity>> GetAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		return await _context.ExchangeRates.AsNoTracking()
 																	.Where(x =>
@@ -25,7 +25,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																	.ToListAsync(ct);
 	}
 
-	public async Task AddRangeAsync(IEnumerable<ExchangeRate> rates, CancellationToken ct) {
+	public async Task AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
 
 		_context.ExchangeRates.AddRange(rates);
 		await _context.SaveChangesAsync(ct);

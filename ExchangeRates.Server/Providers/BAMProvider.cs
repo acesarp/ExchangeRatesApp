@@ -14,7 +14,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 	public override string Name => "Bank Al-Maghrib";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MAD;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
@@ -29,7 +29,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 
 		var rawJson = await response.Content.ReadAsStringAsync(ct);
 		using var doc = JsonDocument.Parse(rawJson);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 		Console.WriteLine(rawJson);
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
@@ -52,7 +52,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
+			rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 		}
 		return rates;
 	}

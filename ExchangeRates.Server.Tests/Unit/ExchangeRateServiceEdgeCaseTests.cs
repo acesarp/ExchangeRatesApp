@@ -57,7 +57,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var result = await _service.GetRatesAsync(from, to, new DateOnly(2024, 1, 1), new DateOnly(2024, 1, 5));
 
 		// Assert
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 
 	[Fact]
@@ -81,7 +81,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var result = await _service.GetRatesAsync(from, to, fromDate, toDate);
 
 		// Assert
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 	#endregion
 
@@ -129,7 +129,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var result = await _service.GetRatesAsync(from, to, date, date);
 
 		// Assert - May be empty if no inverse provider
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 	#endregion
 
@@ -145,7 +145,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var result = await _service.GetRatesAsync(from, to, pastDate, pastDate);
 
 		// Assert - Historical data may or may not exist
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 	#endregion
 
@@ -179,7 +179,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var result = await _service.GetRatesAsync(fromCurrency, toCurrency, date, date);
 
 		// Assert
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 	#endregion
 }

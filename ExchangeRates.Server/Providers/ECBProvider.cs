@@ -15,11 +15,11 @@ public sealed class ECBProvider : CentralBankProviderBase {
 	public override string Name => "European Central Bank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
 		if (lines.Length < 2) {
@@ -44,7 +44,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(numeric, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-				rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 		}
 		return rates;

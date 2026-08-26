@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ExchangeRates.Infrastructure.Configurations;
 
-public sealed class ExchangeRateConfiguration : IEntityTypeConfiguration<ExchangeRate> {
-	public void Configure(EntityTypeBuilder<ExchangeRate> builder) {
+public sealed class ExchangeRateConfiguration : IEntityTypeConfiguration<ExchangeRateEntity> {
+	public void Configure(EntityTypeBuilder<ExchangeRateEntity> builder) {
 		builder.HasKey(x => x.Id);
 
 		builder.HasIndex(x => new {

@@ -14,7 +14,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 	public override string Code => "BBK";
 	public override string Name => "Deutsche Bundesbank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.DEM;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
@@ -25,7 +25,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 		}
 
 		var headers = TextUtils.SplitCsv(lines[0]);
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
 		var valueIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
@@ -54,7 +54,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;

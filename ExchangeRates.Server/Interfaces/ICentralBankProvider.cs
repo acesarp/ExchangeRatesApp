@@ -11,7 +11,7 @@ public interface ICentralBankProvider {
 	/// Retrieves exchange rates for the specified date.
 	/// Uses the current UTC date when no date is provided.
 	/// </summary>
-	Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
+	Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
 	IReadOnlySet<ECurrencyISO> SupportedCurrencies { get; }
 	bool Supports(ECurrencyISO currency);
 }

@@ -22,7 +22,7 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 	public override string Code => "BCCR";
 	public override string Name => "Banco Central de Costa Rica";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.CRC;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		Token = _configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
 		NameParameter = _configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
 		Email = _configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
@@ -40,7 +40,7 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 		var xml = await Http.GetStringAsync(url, ct);
 		var document = XDocument.Parse(xml);
 
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "INGC011_CAT_INDICADORECONOMIC")) {
 			var dateText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "DES_FECHA")?.Value;
@@ -54,7 +54,7 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRate(DateOnly.FromDateTime(date), quoteCurrency, NativeCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, NativeCurrency, rate, Code));
 		}
 
 		return rates;

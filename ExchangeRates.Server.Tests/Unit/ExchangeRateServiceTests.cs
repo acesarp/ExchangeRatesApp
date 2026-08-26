@@ -103,7 +103,7 @@ public class ExchangeRateServiceTests {
 		var result = await _service.GetRatesAsync(from, to, date, date);
 
 		// Assert - It may return fixed rate or be empty depending on service logic
-		result.Should().BeOfType<List<ExchangeRate>>();
+		result.Should().BeOfType<List<ExchangeRateResult>>();
 	}
 	#endregion
 

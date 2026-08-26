@@ -13,7 +13,7 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 	public override string Code => "BANREP";
 	public override string Name => "Banco de la República";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.COP;
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?$where=vigenciadesde >= '{fromDate}T00:00:00.000' AND vigenciadesde < '{toDate}T00:00:00.000'";
 
@@ -32,6 +32,6 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 		if (rate <= 0) {
 			return [];
 		}
-		return [new ExchangeRate(fromDate, NativeCurrency, quoteCurrency, rate, Code)];
+		return [new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, rate, Code)];
 	}
 }

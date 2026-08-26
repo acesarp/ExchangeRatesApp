@@ -3,7 +3,7 @@ using ExchangeRates.Domain.Enums;
 
 namespace ExchangeRates.Domain.Entities;
 
-public sealed class ExchangeRate {
+public sealed class ExchangeRateEntity {
 	public int Id { get; set; }
 	public DateOnly Date { get; set; }
 	public ECurrencyISO BaseCurrency { get; set; }

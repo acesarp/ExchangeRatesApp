@@ -14,7 +14,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 	public override string Name => "Narodowy Bank Polski";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.PLN;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
 		using var response = await Http.GetAsync(url, ct);
 
@@ -25,7 +25,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 		response.EnsureSuccessStatusCode();
 		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 		var table = doc.RootElement[0];
 
 		foreach (var row in table.GetProperty("rates").EnumerateArray()) {
@@ -33,7 +33,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "mid");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
-				rates.Add(new ExchangeRate(fromDate, NativeCurrency, Enum.Parse<ECurrencyISO>(code!), rate, Code));
+				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, Enum.Parse<ECurrencyISO>(code!), rate, Code));
 			}
 		}
 		return rates;

@@ -14,12 +14,12 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 	public override string Name => "Monetary Authority of Macao";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MOP;
 
-	protected override async Task<IReadOnlyList<ExchangeRate>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
-		var rates = new List<ExchangeRate>();
+		var rates = new List<ExchangeRateResult>();
 
 		if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) {
 			return rates;
@@ -36,7 +36,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 			if (unit <= 0 || value <= 0) {
 				continue;
 			}
-			rates.Add(new ExchangeRate(fromDate, quoteCurrency!, NativeCurrency, value / unit, Code));
+			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, NativeCurrency, value / unit, Code));
 		}
 		return rates;
 	}
