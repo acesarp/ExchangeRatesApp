@@ -18,4 +18,7 @@ public sealed class NBRMProvider : CentralBankProviderBase {
 	public override string Code => "NBRM";
 	public override string Name => "Narodna Banka na Republika Severna Makedonija";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MKD;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

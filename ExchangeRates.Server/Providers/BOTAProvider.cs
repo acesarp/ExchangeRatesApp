@@ -18,4 +18,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TZS;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

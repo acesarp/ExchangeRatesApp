@@ -18,4 +18,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 	public override string Code => "MNB";
 	public override string Name => "Magyar Nemzeti Bank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.HUF;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

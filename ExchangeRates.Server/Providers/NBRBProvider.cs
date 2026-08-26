@@ -18,4 +18,7 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 	public override string Code => "NBRB";
 	public override string Name => "Natsyyanalny Bank Respubliki Belarus";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.BYN;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

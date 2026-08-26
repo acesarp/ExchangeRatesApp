@@ -13,4 +13,7 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central de la República Argentina";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.ARS;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

@@ -18,4 +18,7 @@ public sealed class BRBProvider : CentralBankProviderBase {
 	public override string Code => "BRB";
 	public override string Name => "Banque de la Republique du Burundi";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.BIF;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

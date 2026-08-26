@@ -18,4 +18,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	public override string Code => "IMF";
 	public override string Name => "International Monetary Fund";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.XDR;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

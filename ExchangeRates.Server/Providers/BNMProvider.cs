@@ -19,4 +19,7 @@ public sealed class BNMProvider : CentralBankProviderBase {
 	public override string Name => "Bank Negara Malaysia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MYR;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

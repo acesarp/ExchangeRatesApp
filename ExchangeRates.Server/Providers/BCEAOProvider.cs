@@ -12,4 +12,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 	public override string Name => "Banque Centrale des Etats de l'Afrique de l'Ouest";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.XOF;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

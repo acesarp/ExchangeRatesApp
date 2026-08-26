@@ -18,4 +18,7 @@ public sealed class BOMProvider : CentralBankProviderBase {
 	public override string Code => "BOM";
 	public override string Name => "Bank of Mongolia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.MNT;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

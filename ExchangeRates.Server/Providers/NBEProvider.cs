@@ -18,4 +18,7 @@ public sealed class NBEProvider : CentralBankProviderBase {
 	public override string Code => "NBE";
 	public override string Name => "National Bank of Ethiopia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.ETB;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

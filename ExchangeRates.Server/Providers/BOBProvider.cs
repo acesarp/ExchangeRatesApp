@@ -18,4 +18,7 @@ public sealed class BOBProvider : CentralBankProviderBase {
 	public override string Code => "BOB";
 	public override string Name => "Bank of Botswana";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.BWP;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

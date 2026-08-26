@@ -18,4 +18,7 @@ public sealed class BOJProvider : CentralBankProviderBase {
 	public override string Code => "BOJ";
 	public override string Name => "Bank of Japan";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.JPY;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

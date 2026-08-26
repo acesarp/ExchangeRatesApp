@@ -18,4 +18,7 @@ public sealed class CBCProvider : CentralBankProviderBase {
 	public override string Code => "CBC";
 	public override string Name => "Central Bank of the Republic of China (Taiwan)";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TWD;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

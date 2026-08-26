@@ -18,4 +18,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 	public override string Code => "NBG";
 	public override string Name => "National Bank of Georgia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.GEL;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

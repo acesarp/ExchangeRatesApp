@@ -18,4 +18,7 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 	public override string Code => "NRBT";
 	public override string Name => "National Reserve Bank of Tonga";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TOP;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

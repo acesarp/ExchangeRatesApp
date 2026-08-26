@@ -12,4 +12,7 @@ public sealed class BCTProvider : CentralBankProviderBase {
 	public override string Name => "Banque Centrale de Tunisie";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TND;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

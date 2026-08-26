@@ -18,4 +18,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TJS;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

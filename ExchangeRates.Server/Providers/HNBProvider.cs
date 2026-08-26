@@ -18,4 +18,7 @@ public sealed class HNBProvider : CentralBankProviderBase {
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

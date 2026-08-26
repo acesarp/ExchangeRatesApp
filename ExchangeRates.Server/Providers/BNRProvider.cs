@@ -19,4 +19,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 	public override string Name => "Banca Națională a României";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.RON;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }
