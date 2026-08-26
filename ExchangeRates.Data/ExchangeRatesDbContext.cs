@@ -13,7 +13,6 @@ public sealed class ExchangeRatesDbContext : DbContext {
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);
 
-		modelBuilder.ApplyConfigurationsFromAssembly(
-			typeof(ExchangeRatesDbContext).Assembly);
+		modelBuilder.ApplyConfigurationsFromAssembly(typeof(ExchangeRatesDbContext).Assembly);
 	}
 }

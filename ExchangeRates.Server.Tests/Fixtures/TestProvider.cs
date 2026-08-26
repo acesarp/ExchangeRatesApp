@@ -31,11 +31,7 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 
 	public bool Supports(ECurrencyISO currency) => _supported.Contains(currency);
 
-	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(
-		ECurrencyISO currency,
-		DateOnly fromDate,
-		DateOnly toDate,
-		CancellationToken cancellationToken = default) {
+	public Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
 
 		var result = new List<ExchangeRate>();
 		var currentDate = fromDate;
