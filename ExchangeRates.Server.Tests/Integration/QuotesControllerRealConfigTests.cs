@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using ExchangeRates.Server.Enums;
+using ExchangeRates.Domain.Enums;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;

@@ -1,4 +1,4 @@
-﻿namespace ExchangeRates.Server.Enums;
+namespace ExchangeRates.Domain.Enums;
 
 /// <summary>
 /// ISO 4217
@@ -392,4 +392,3 @@ public enum ECurrencyISO {
 	ZWN = 942, // Zimbabwean Dollar (Second)
 	ZWR = 935  // Zimbabwean Dollar (Third)
 }
-

@@ -1,10 +1,13 @@
-using ExchangeRates.Server.Enums;
+using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Tests.Fixtures;
+
 using FluentAssertions;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using Xunit;
 
 namespace ExchangeRates.Server.Tests.Unit;

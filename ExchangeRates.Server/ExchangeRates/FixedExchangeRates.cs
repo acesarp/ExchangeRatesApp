@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Server.Enums;
+﻿using ExchangeRates.Domain.Enums;
 
 namespace ExchangeRates.Server.ExchangeRates;
 

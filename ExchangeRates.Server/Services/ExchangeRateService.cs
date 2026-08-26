@@ -1,6 +1,6 @@
 ﻿namespace ExchangeRates.Server.Services;
 
-using global::ExchangeRates.Server.Enums;
+using global::ExchangeRates.Domain.Enums;
 using global::ExchangeRates.Server.Extensions;
 using global::ExchangeRates.Server.Interfaces;
 using global::ExchangeRates.Server.Providers;

@@ -1,4 +1,4 @@
-using ExchangeRates.Server.Enums;
+using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
