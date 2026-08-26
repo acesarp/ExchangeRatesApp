@@ -12,4 +12,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 	public override string Name => "Bank Indonesia";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.IDR;
 
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }

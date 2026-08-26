@@ -54,9 +54,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	/// <param name="fromDate"></param>
 	/// <param name="ct"></param>
 	/// <returns>IReadOnlyList&lt;ExchangeRate&gt;</returns>
-	protected virtual Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotSupportedException($"{Code} ({Name}) is registered, needs a bank-specific parser/endpoint implementation.");
-	}
+	protected abstract Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
 
 	protected static decimal GetDecimal(JsonElement element, string propertyName) {
 		if (!element.TryGetProperty(propertyName, out var property)) {

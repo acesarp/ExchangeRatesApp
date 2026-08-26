@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// European Central Bank
 /// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
-	public ECBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<ECBProvider> _logger;
+	public ECBProvider(HttpClient http, IConfiguration configuration, ILogger<ECBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "ECB";
 	public override string Name => "European Central Bank";

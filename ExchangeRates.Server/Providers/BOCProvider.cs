@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Canada
 /// </summary>
 public sealed class BOCProvider : CentralBankProviderBase {
-	public BOCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOCProvider> _logger;
+	public BOCProvider(HttpClient http, IConfiguration configuration, ILogger<BOCProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOC";
 	public override string Name => "Bank of Canada";
