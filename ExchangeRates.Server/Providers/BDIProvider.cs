@@ -1,5 +1,5 @@
 using ExchangeRates.Server;
-using ExchangeRates.Server.Enums;
+using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Providers;
 
 using System.Globalization;

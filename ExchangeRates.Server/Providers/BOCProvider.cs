@@ -1,4 +1,4 @@
-using ExchangeRates.Server.Enums;
+using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text.Json;
