@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Israel
 /// </summary>
 public sealed class BOIProvider : CentralBankProviderBase {
-	public BOIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOIProvider> _logger;
+	public BOIProvider(HttpClient http, IConfiguration configuration, ILogger<BOIProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOI";
 	public override string Name => "Bank of Israel";

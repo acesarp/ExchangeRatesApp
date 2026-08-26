@@ -9,11 +9,7 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central de Costa Rica
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
-	private readonly HttpClient _http;
-	IConfiguration _configuration;
 	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) {
-		_http = http;
-		_configuration = configuration;
 	}
 	private string Token { get; set; }
 	private string NameParameter { get; set; }
@@ -23,9 +19,9 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central de Costa Rica";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.CRC;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		Token = _configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
-		NameParameter = _configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
-		Email = _configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
+		Token = Configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
+		NameParameter = Configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
+		Email = Configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
 		const int indicator = 318; // USD reference selling rate
 
 		var url = $"{Url.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +
