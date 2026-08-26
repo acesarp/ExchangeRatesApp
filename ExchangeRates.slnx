@@ -1,5 +1,4 @@
 <Solution>
-  <Project Path="ExchangeRates.Data/ExchangeRates.InfrastructureOLD.csproj" Id="840de499-a4d9-4ab3-b144-46be81fddd7d" />
   <Project Path="ExchangeRates.Domain/ExchangeRates.Domain.csproj" Id="1f579496-b703-4e55-a37f-2d6532bdd3a7" />
   <Project Path="ExchangeRates.Infrastructure/ExchangeRates.Infrastructure.csproj" />
   <Project Path="ExchangeRates.Server.Tests/ExchangeRates.Server.Tests.csproj" />
