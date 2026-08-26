@@ -1,4 +1,6 @@
+using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
+using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
@@ -38,6 +40,8 @@ public class Program {
 
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
+			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
+
 			builder.Services.AddCentralBankProviders();
 
 			builder.Services.AddEndpointsApiExplorer();
