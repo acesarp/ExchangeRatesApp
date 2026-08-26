@@ -30,4 +30,21 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context.ExchangeRates.AddRange(rates);
 		await _context.SaveChangesAsync(ct);
 	}
+
+	public async Task<IReadOnlyList<ExchangeRateFetch>> GetFetchesAsync(string provider, ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		return await _context.ExchangeRateFetches.AsNoTracking()
+																	.Where(x =>
+																		x.Provider == provider &&
+																		x.BaseCurrency == baseCurrency &&
+																		x.QuoteCurrency == quoteCurrency &&
+																		x.FromDate >= fromDate &&
+																		x.ToDate <= toDate)
+																	.OrderBy(x => x.FromDate)
+																	.ToListAsync(ct);
+	}
+
+	public async Task AddFetchAsync(ExchangeRateFetch fetch, CancellationToken ct) {
+		_context.ExchangeRateFetches.Add(fetch);
+		await _context.SaveChangesAsync(ct);
+	}
 }

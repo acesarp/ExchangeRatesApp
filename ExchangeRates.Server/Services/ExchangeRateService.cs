@@ -1,6 +1,7 @@
 ﻿namespace ExchangeRates.Server.Services;
 
 using global::ExchangeRates.Domain.Enums;
+using global::ExchangeRates.Domain.Interfaces;
 using global::ExchangeRates.Server.Extensions;
 using global::ExchangeRates.Server.Interfaces;
 using global::ExchangeRates.Server.Providers;
@@ -13,40 +14,45 @@ public class ExchangeRateService : IExchangeRateService {
 	private readonly FixedExchangeRateProvider _fixedExchangeRateProvider;
 	private readonly string _pivotCurrency;
 	private readonly ILogger<ExchangeRateService> _logger;
+	private readonly IExchangeRateRepository _repository;
 
-	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory, FixedExchangeRateProvider fixedExchangeRateProvider, ILogger<ExchangeRateService> logger) {
+	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory, FixedExchangeRateProvider fixedExchangeRateProvider, IExchangeRateRepository repository, ILogger<ExchangeRateService> logger) {
 		_configuration = configuration;
 		_providerFactory = providerFactory;
 		_fixedExchangeRateProvider = fixedExchangeRateProvider;
+		_repository = repository;
 		_pivotCurrency = configuration["PivotCurrency"] ?? throw new Exception("Invalid PivotCurrency configuration");
 		_logger = logger;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO from, ECurrencyISO to, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct = default) {
-		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
-		var _toDate = toDate ?? _fromDate;
+	public async Task<IReadOnlyList<ExchangeRate>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
+		var cachedRates = await _repository.GetAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
 
-		_logger.LogInformation("GetRates requested: {From}->{To} from {FromDate} to {ToDate}", from, to, _fromDate, _toDate);
+		if (cachedRates.Count > 0) {
+			// determine if the requested interval is fully covered
+		}
 
-		if (from == to) {
-			_logger.LogInformation("Identity rate path selected for {Currency}", from);
-			return new List<ExchangeRate> { new ExchangeRate(_fromDate, from, to, 1m, "IDENTITY") };
+		_logger.LogInformation("GetRates requested: {From}->{To} baseCurrency {FromDate} quoteCurrency {ToDate}", baseCurrency, quoteCurrency, fromDate, toDate);
+
+		if (baseCurrency == quoteCurrency) {
+			_logger.LogInformation("Identity rate path selected for {Currency}", baseCurrency);
+			return new List<ExchangeRate> { new ExchangeRate(fromDate, baseCurrency, quoteCurrency, 1m, "IDENTITY") };
 		}
 
 		// 1. Try direct provider
-		ICentralBankProvider? bankProvider = FindDirectProvider(from, to);
+		ICentralBankProvider? bankProvider = FindDirectProvider(baseCurrency, quoteCurrency);
 
 		if (bankProvider != null) {
-			_logger.LogInformation("Direct provider selected: {ProviderCode} for {From}->{To}", bankProvider.Code, from, to);
-			var directRates = await bankProvider.GetRatesAsync(to, _fromDate, _toDate, ct);
+			_logger.LogInformation("Direct provider selected: {ProviderCode} for {From}->{To}", bankProvider.Code, baseCurrency, quoteCurrency);
+			var directRates = await bankProvider.GetRatesAsync(quoteCurrency, fromDate, toDate, ct);
 			_logger.LogInformation("Direct provider {ProviderCode} returned {Count} records", bankProvider.Code, directRates.Count);
 			return directRates;
 		}
 
 		// 2. No direct rate - triangulate
-		_logger.LogInformation("No direct provider for {From}->{To}; using triangulation", from, to);
-		var triangulatedRates = await GetTriangulatedRatesAsync(from, to, _fromDate, _toDate, ct);
-		_logger.LogInformation("Triangulation returned {Count} records for {From}->{To}", triangulatedRates.Count, from, to);
+		_logger.LogInformation("No direct provider for {From}->{To}; using triangulation", baseCurrency, quoteCurrency);
+		var triangulatedRates = await GetTriangulatedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
+		_logger.LogInformation("Triangulation returned {Count} records for {From}->{To}", triangulatedRates.Count, baseCurrency, quoteCurrency);
 		return triangulatedRates;
 	}
 
@@ -113,7 +119,7 @@ public class ExchangeRateService : IExchangeRateService {
 		// Only throw if both sides exist but providers are missing
 		if ((!fromIsFixed && fromProvider is null) && (!toIsFixed && toProvider is null)) {
 			_logger.LogError("Triangulation failed: no providers for either side. From={From} To={To} Pivot={Pivot}", from, to, _pivotCurrency);
-			throw new InvalidOperationException($"Unable to triangulate {from}/{to} through {_pivotCurrency}.");
+			throw new InvalidOperationException($"Unable quoteCurrency triangulate {from}/{to} through {_pivotCurrency}.");
 		}
 
 		// If one side has no provider and is not fixed, return empty list (no data available)

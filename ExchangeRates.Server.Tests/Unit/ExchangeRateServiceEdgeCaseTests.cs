@@ -1,4 +1,5 @@
 using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
@@ -39,7 +40,8 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var factory = new CentralBankProviderFactory(_providers, logger);
 		var fixedProvider = new FixedExchangeRateProvider(_config);
 		var serviceLogger = _serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
-		_service = new ExchangeRateService(_config, factory, fixedProvider, serviceLogger);
+		var repository = _serviceProvider.GetRequiredService<IExchangeRateRepository>();
+		_service = new ExchangeRateService(_config, factory, fixedProvider, repository, serviceLogger);
 	}
 
 	#region Empty/Sparse Data Tests

@@ -19,8 +19,12 @@ public class QuotesController : ControllerBase {
 	[HttpGet(Name = "GetExchangeRate")]
 	public async Task<ActionResult<IReadOnlyList<ExchangeRate>>> GetRate(ECurrencyISO quoteCurrency, ECurrencyISO toCurrency, DateOnly? fromDate, DateOnly? toDate) {
 		_logger.LogInformation("GetRate request: {From}->{To}, fromDate={FromDate}, toDate={ToDate}", quoteCurrency, toCurrency, fromDate, toDate);
+
+		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+		var _toDate = toDate ?? _fromDate;
+
 		try {
-			var result = await _service.GetRatesAsync(quoteCurrency, toCurrency, fromDate, toDate);
+			var result = await _service.GetRatesAsync(quoteCurrency, toCurrency, _fromDate, _toDate);
 			_logger.LogInformation("GetRate response count: {Count} for {From}->{To}", result.Count, quoteCurrency, toCurrency);
 			return Ok(result);
 		}
