@@ -47,7 +47,18 @@ public class Program {
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
+
+			builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+			builder.Services.AddCors(ob => {
+				ob.AddPolicy("BlazorClient", policy => {
+					policy.WithOrigins("https://localhost:SEU_PORT_DO_BLAZOR")
+						   .AllowAnyMethod()
+						   .AllowAnyHeader();
+				});
+			});
+
 			var app = builder.Build();
+			app.UseCors("BlazorClient");
 
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment()) {

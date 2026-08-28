@@ -13,7 +13,6 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["ExchangeRates.Server.csproj", "."]
 COPY ["ExchangeRates.Server/ExchangeRates.Server.csproj", "ExchangeRates.Server/"]
 COPY ["ExchangeRates.Domain/ExchangeRates.Domain.csproj", "ExchangeRates.Domain/"]
 COPY ["ExchangeRates.Infrastructure/ExchangeRates.Infrastructure.csproj", "ExchangeRates.Infrastructure/"]

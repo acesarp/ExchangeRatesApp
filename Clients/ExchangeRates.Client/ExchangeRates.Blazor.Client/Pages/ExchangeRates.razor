@@ -1,0 +1,57 @@
+﻿@page "/exchange-rates"
+
+<PageTitle>Exchange Rates</PageTitle>
+
+<h1>Exchange Rates</h1>
+
+<div class="row g-3 mb-4">
+	<div class="col-md-3">
+		<label class="form-label">Base Currency</label>
+		<select class="form-select" @bind="BaseCurrency">
+			<option value="CAD">CAD</option>
+			<option value="USD">USD</option>
+			<option value="EUR">EUR</option>
+			<option value="GBP">GBP</option>
+			<option value="BRL">BRL</option>
+		</select>
+	</div>
+
+	<div class="col-md-3">
+		<label class="form-label">Quote Currency</label>
+		<select class="form-select" @bind="QuoteCurrency">
+			<option value="USD">USD</option>
+			<option value="CAD">CAD</option>
+			<option value="EUR">EUR</option>
+			<option value="GBP">GBP</option>
+			<option value="BRL">BRL</option>
+		</select>
+	</div>
+
+	<div class="col-md-2">
+		<label class="form-label">From</label>
+		<InputDate class="form-control" @bind-Value="FromDate" />
+	</div>
+
+	<div class="col-md-2">
+		<label class="form-label">To</label>
+		<InputDate class="form-control" @bind-Value="ToDate" />
+	</div>
+
+	<div class="col-md-2 d-flex align-items-end">
+		<button class="btn btn-primary w-100" @onclick="GetRatesAsync">
+			Get Rates
+		</button>
+	</div>
+</div>
+
+@code {
+	private string BaseCurrency { get; set; } = "CAD";
+	private string QuoteCurrency { get; set; } = "USD";
+
+	private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-7);
+	private DateTime ToDate { get; set; } = DateTime.Today;
+
+	private async Task GetRatesAsync() {
+		await Task.CompletedTask;
+	}
+}

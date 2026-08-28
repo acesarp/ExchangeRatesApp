@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ExchangeRates.Blazor.Client/ExchangeRates.Blazor.Client.csproj" />
+  <Project Path="ExchangeRates.Client.React/exchangerates.client.react.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
