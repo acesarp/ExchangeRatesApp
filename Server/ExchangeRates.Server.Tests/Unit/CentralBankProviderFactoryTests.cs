@@ -30,7 +30,7 @@ public class CentralBankProviderFactoryTests {
 		var factory = new CentralBankProviderFactory(serviceProvider.GetServices<ICentralBankProvider>(), logger);
 
 		// Act
-		var result = factory.GetAll();
+		var result = factory.GetAllProviders();
 
 		// Assert
 		result.Should().HaveCountGreaterThanOrEqualTo(2);
@@ -47,7 +47,7 @@ public class CentralBankProviderFactoryTests {
 		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act
-		var result = factory.GetAll();
+		var result = factory.GetAllProviders();
 
 		// Assert
 		result.Should().BeEmpty();
@@ -64,7 +64,7 @@ public class CentralBankProviderFactoryTests {
 		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act & Assert
-		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("NONEXISTENT"));
+		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("NONEXISTENT"));
 	}
 
 	[Fact]
@@ -78,7 +78,7 @@ public class CentralBankProviderFactoryTests {
 		var factory = new CentralBankProviderFactory([], logger);
 
 		// Act & Assert
-		Assert.Throws<ArgumentOutOfRangeException>(() => factory.Get("INVALID"));
+		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("INVALID"));
 	}
 
 	[Fact]
@@ -107,7 +107,7 @@ public class CentralBankProviderFactoryTests {
 		var factory = serviceProvider.GetRequiredService<CentralBankProviderFactory>();
 
 		// Act
-		var result = factory.Get("ecb");
+		var result = factory.GetProvider("ecb");
 
 		// Assert
 		result.Should().BeSameAs(provider);

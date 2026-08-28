@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Serilog;
 
+using System.Text.Json.Serialization;
+
 namespace ExchangeRates.Server;
 
 public class Program {
@@ -33,7 +35,10 @@ public class Program {
 			builder.Services.Configure<CentralBankOptions>(builder.Configuration.GetSection("CentralBanks"));
 			// Add services to the container.
 
-			builder.Services.AddControllers();
+			builder.Services.AddControllers()
+				.AddJsonOptions(options => {
+					options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+				});
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 			builder.Services.AddOpenApi();
 			builder.Services.AddHttpClient();
@@ -47,11 +52,9 @@ public class Program {
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-
-			builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 			builder.Services.AddCors(ob => {
 				ob.AddPolicy("BlazorClient", policy => {
-					policy.WithOrigins("https://localhost:SEU_PORT_DO_BLAZOR")
+					policy.WithOrigins("https://localhost:7149")
 						   .AllowAnyMethod()
 						   .AllowAnyHeader();
 				});

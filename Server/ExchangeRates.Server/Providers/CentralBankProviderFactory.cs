@@ -1,5 +1,4 @@
 using ExchangeRates.Server.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -12,14 +11,14 @@ public sealed class CentralBankProviderFactory {
 		_logger = logger;
 	}
 
-	public IEnumerable<ICentralBankProvider> GetAll() {
+	public IEnumerable<ICentralBankProvider> GetAllProviders() {
 		var providers = _providers.ToList();
 		_logger.LogDebug("Resolved {Count} central bank providers", providers.Count);
 		return providers;
 	}
 
-	public ICentralBankProvider Get(string providerCode)
-		=> GetAll().FirstOrDefault(provider =>
+	public ICentralBankProvider GetProvider(string providerCode)
+		=> GetAllProviders().FirstOrDefault(provider =>
 				string.Equals(provider.Code, providerCode, StringComparison.OrdinalIgnoreCase))
 			?? throw new ArgumentOutOfRangeException(nameof(providerCode), providerCode, "Unknown central-bank provider.");
 }

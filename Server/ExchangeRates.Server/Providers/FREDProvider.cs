@@ -12,20 +12,18 @@ public sealed class FREDProvider : CentralBankProviderBase {
 	private readonly ILogger<FREDProvider> _logger;
 	public FREDProvider(HttpClient http, IConfiguration configuration, ILogger<FREDProvider> logger) : base(http, configuration) {
 		_logger = logger;
+		Series = Configuration.GetSection("CentralBanks:FRED:SupportedCurrencies").Get<List<FREDProviderCurrencyConfiguration>>();
 	}
 
 	public override string Code => "FRED";
 	public override string Name => "Federal Reserve Bank of St. Louis"; //Federal Reserve USA
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.USD;
 
-	private static readonly Dictionary<ECurrencyISO, (string SeriesId, bool Invert)> Series = new() {
-		[ECurrencyISO.CAD] = ("DEXCAUS", false),
-		[ECurrencyISO.EUR] = ("DEXUSEU", true),
-		[ECurrencyISO.GBP] = ("DEXUSUK", true)
-	};
+	private readonly List<FREDProviderCurrencyConfiguration> Series;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (!Series.TryGetValue(quoteCurrency, out var series)) {
+		var series = Series.FirstOrDefault(s => s.Currency == quoteCurrency);
+		if (series == default) {
 			_logger.LogWarning("FRED series not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
@@ -70,4 +68,11 @@ public sealed class FREDProvider : CentralBankProviderBase {
 
 		return rates;
 	}
+
+
+}
+public class FREDProviderCurrencyConfiguration {
+	public ECurrencyISO Currency { get; set; }
+	public string SeriesId { get; set; } = string.Empty;
+	public bool Invert { get; set; }
 }

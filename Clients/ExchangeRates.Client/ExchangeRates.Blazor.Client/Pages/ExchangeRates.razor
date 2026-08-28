@@ -1,4 +1,5 @@
 ﻿@page "/exchange-rates"
+@inject Services.CurrencyService CurrencyService
 
 <PageTitle>Exchange Rates</PageTitle>
 
@@ -8,22 +9,18 @@
 	<div class="col-md-3">
 		<label class="form-label">Base Currency</label>
 		<select class="form-select" @bind="BaseCurrency">
-			<option value="CAD">CAD</option>
-			<option value="USD">USD</option>
-			<option value="EUR">EUR</option>
-			<option value="GBP">GBP</option>
-			<option value="BRL">BRL</option>
+			@foreach (var currency in Currencies) {
+				<option value="@currency">@currency</option>
+			}
 		</select>
 	</div>
 
 	<div class="col-md-3">
 		<label class="form-label">Quote Currency</label>
 		<select class="form-select" @bind="QuoteCurrency">
-			<option value="USD">USD</option>
-			<option value="CAD">CAD</option>
-			<option value="EUR">EUR</option>
-			<option value="GBP">GBP</option>
-			<option value="BRL">BRL</option>
+			@foreach (var currency in Currencies) {
+				<option value="@currency">@currency</option>
+			}
 		</select>
 	</div>
 
@@ -38,20 +35,53 @@
 	</div>
 
 	<div class="col-md-2 d-flex align-items-end">
-		<button class="btn btn-primary w-100" @onclick="GetRatesAsync">
+		<button class="btn btn-primary w-100" @onclick="Submit">
 			Get Rates
 		</button>
 	</div>
 </div>
+@if (Rates.Count > 0) {
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Base</th>
+				<th>Quote</th>
+				<th>Rate</th>
+				<th>Provider</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var rate in Rates) {
+				<tr>
+					<td>@rate.Date.ToString("yyyy-MM-dd")</td>
+					<td>@rate.BaseCurrency</td>
+					<td>@rate.QuoteCurrency</td>
+					<td>@rate.Rate</td>
+					<td>@rate.Provider</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
 
 @code {
-	private string BaseCurrency { get; set; } = "CAD";
-	private string QuoteCurrency { get; set; } = "USD";
+	private DateOnly FromDate { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
+	private DateOnly ToDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
-	private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-7);
-	private DateTime ToDate { get; set; } = DateTime.Today;
+	private List<string> Currencies { get; set; } = [];
+	private string BaseCurrency { get; set; } = string.Empty;
+	private string QuoteCurrency { get; set; } = string.Empty;
+	private IReadOnlyList<ExchangeRateResult> Rates { get; set; } = [];
 
-	private async Task GetRatesAsync() {
-		await Task.CompletedTask;
+	protected override async Task OnInitializedAsync() {
+		Currencies = await CurrencyService.GetCurrenciesAsync();
+
+		BaseCurrency = Currencies.FirstOrDefault() ?? string.Empty;
+		QuoteCurrency = Currencies.Skip(1).FirstOrDefault() ?? BaseCurrency;
+	}
+
+	private async Task Submit() {
+		Rates = await CurrencyService.GetRatesAsync(FromDate, ToDate, BaseCurrency, QuoteCurrency);
 	}
 }
