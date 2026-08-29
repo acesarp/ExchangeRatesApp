@@ -8,7 +8,10 @@ namespace ExchangeRates.Server.Providers;
 /// Monetary Authority of Macao
 /// </summary>
 public sealed class AMCMProvider : CentralBankProviderBase {
-	public AMCMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<AMCMProvider> _logger;
+	public AMCMProvider(HttpClient http, IConfiguration configuration, ILogger<AMCMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "AMCM";
 	public override string Name => "Monetary Authority of Macao";

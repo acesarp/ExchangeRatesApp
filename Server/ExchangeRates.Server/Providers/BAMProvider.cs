@@ -8,7 +8,10 @@ namespace ExchangeRates.Server.Providers;
 /// Bank Al-Maghrib
 /// </summary>
 public sealed class BAMProvider : CentralBankProviderBase {
-	public BAMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BAMProvider> _logger;
+	public BAMProvider(HttpClient http, IConfiguration configuration, ILogger<BAMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BAM";
 	public override string Name => "Bank Al-Maghrib";

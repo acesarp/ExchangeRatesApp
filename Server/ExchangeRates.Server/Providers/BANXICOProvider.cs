@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// Banco de México
 /// </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
-	public BANXICOProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BANXICOProvider> _logger;
+	public BANXICOProvider(HttpClient http, IConfiguration configuration, ILogger<BANXICOProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BANXICO";
 	public override string Name => "Banco de México";

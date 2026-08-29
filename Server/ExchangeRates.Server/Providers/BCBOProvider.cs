@@ -2,6 +2,8 @@ using ExchangeRates.Domain.Enums;
 
 namespace ExchangeRates.Server.Providers;
 
+using HtmlAgilityPack;
+
 using System.Globalization;
 /// <summary>
 /// Banco Central de Bolivia

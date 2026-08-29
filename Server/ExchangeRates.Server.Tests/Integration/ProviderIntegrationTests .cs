@@ -320,4 +320,64 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCBO_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCBOProvider>();
+
+		var provider = new BCBOProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 20);
+		var toDate = new DateOnly(2026, 8, 27);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.BOB, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCBO", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCPProvider>();
+
+		var provider = new BCPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2019, 8, 20);
+		var toDate = new DateOnly(2019, 8, 27);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.PYG, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.DKK, rate.QuoteCurrency);
+			Assert.Equal("BCP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
 }
