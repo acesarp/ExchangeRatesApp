@@ -9,7 +9,9 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central de Costa Rica
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
-	public BCCRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) {
+	private readonly ILogger<BCCRProvider> _logger;
+	public BCCRProvider(HttpClient http, IConfiguration configuration, ILogger<BCCRProvider> logger) : base(http, configuration) {
+		_logger = logger;
 	}
 	private string Token { get; set; }
 	private string NameParameter { get; set; }

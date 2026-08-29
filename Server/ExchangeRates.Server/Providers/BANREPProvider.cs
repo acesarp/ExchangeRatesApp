@@ -8,7 +8,10 @@ namespace ExchangeRates.Server.Providers;
 /// Banco de la República
 /// </summary>
 public sealed class BANREPProvider : CentralBankProviderBase {
-	public BANREPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BANREPProvider> _logger;
+	public BANREPProvider(HttpClient http, IConfiguration configuration, ILogger<BANREPProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BANREP";
 	public override string Name => "Banco de la República";

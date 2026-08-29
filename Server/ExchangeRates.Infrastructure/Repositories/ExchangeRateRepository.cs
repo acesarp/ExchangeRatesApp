@@ -47,7 +47,6 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	/// <paramref name="toDate"/>. Results are ordered by <see cref="ExchangeRateFetch.FromDate"/>.
 	/// </returns>
 	/// <remarks>
-	///
 	/// A fetch is included only when its entire recorded interval falls within the requested interval:
 	/// <c>FromDate &gt;= fromDate</c> and <c>ToDate &lt;= toDate</c>.
 	/// Fetches that only partially overlap the requested interval are not returned.

@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// Deutsche Bundesbank
 /// </summary>
 public sealed class BBKProvider : CentralBankProviderBase {
-	public BBKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BBKProvider> _logger;
+	public BBKProvider(HttpClient http, IConfiguration configuration, ILogger<BBKProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BBK";
 	public override string Name => "Deutsche Bundesbank";
