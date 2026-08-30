@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// International Monetary Fund
 /// </summary>
 public sealed class IMFProvider : CentralBankProviderBase {
-	public IMFProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<IMFProvider> _logger;
+	public IMFProvider(HttpClient http, IConfiguration configuration, ILogger<IMFProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "IMF";
 	public override string Name => "International Monetary Fund";

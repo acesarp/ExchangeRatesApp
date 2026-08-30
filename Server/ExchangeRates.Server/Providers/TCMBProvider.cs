@@ -8,7 +8,10 @@ namespace ExchangeRates.Server.Providers;
 /// Türkiye Cumhuriyet Merkez Bankası
 /// </summary>
 public sealed class TCMBProvider : CentralBankProviderBase {
-	public TCMBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<TCMBProvider> _logger;
+	public TCMBProvider(HttpClient http, IConfiguration configuration, ILogger<TCMBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "TCMB";
 	public override string Name => "Türkiye Cumhuriyet Merkez Bankası";

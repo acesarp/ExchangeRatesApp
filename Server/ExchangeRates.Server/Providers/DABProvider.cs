@@ -6,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Da Afghanistan Bank
 /// </summary>
 public sealed class DABProvider : CentralBankProviderBase {
-	public DABProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<DABProvider> _logger;
+	public DABProvider(HttpClient http, IConfiguration configuration, ILogger<DABProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "DAB";
 	public override string Name => "Da Afghanistan Bank";

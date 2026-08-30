@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Russia
 /// </summary>
 public sealed class CBRProvider : CentralBankProviderBase {
-	public CBRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBRProvider> _logger;
+	public CBRProvider(HttpClient http, IConfiguration configuration, ILogger<CBRProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBR";
 	public override string Name => "Central Bank of Russia";

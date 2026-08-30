@@ -9,7 +9,10 @@ namespace ExchangeRates.Server.Providers;
 /// Hong Kong Monetary Authority
 /// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
-	public HKMAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<HKMAProvider> _logger;
+	public HKMAProvider(HttpClient http, IConfiguration configuration, ILogger<HKMAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "HKMA";
 	public override string Name => "Hong Kong Monetary Authority";

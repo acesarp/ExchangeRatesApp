@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Magyar Nemzeti Bank
 /// </summary>
 public sealed class MNBProvider : CentralBankProviderBase {
-	public MNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<MNBProvider> _logger;
+	public MNBProvider(HttpClient http, IConfiguration configuration, ILogger<MNBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "MNB";
 	public override string Name => "Magyar Nemzeti Bank";

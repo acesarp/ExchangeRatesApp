@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// National Bank of Moldova
 /// </summary>
 public sealed class NBMProvider : CentralBankProviderBase {
-	public NBMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBMProvider> _logger;
+	public NBMProvider(HttpClient http, IConfiguration configuration, ILogger<NBMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBM";
 	public override string Name => "National Bank of Moldova";

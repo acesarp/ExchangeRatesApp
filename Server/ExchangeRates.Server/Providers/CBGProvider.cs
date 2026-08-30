@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of The Gambia
 /// </summary>
 public sealed class CBGProvider : CentralBankProviderBase {
-	public CBGProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBGProvider> _logger;
+	public CBGProvider(HttpClient http, IConfiguration configuration, ILogger<CBGProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBG";
 	public override string Name => "Central Bank of The Gambia";

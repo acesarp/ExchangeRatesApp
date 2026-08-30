@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of the Republic of China (Taiwan)
 /// </summary>
 public sealed class CBCProvider : CentralBankProviderBase {
-	public CBCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBCProvider> _logger;
+	public CBCProvider(HttpClient http, IConfiguration configuration, ILogger<CBCProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBC";
 	public override string Name => "Central Bank of the Republic of China (Taiwan)";

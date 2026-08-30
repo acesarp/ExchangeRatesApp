@@ -6,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Samoa
 /// </summary>
 public sealed class CBSProvider : CentralBankProviderBase {
-	public CBSProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBSProvider> _logger;
+	public CBSProvider(HttpClient http, IConfiguration configuration, ILogger<CBSProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBS";
 	public override string Name => "Central Bank of Samoa";

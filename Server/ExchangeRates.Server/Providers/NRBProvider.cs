@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// Nepal Rastra Bank
 /// </summary>
 public sealed class NRBProvider : CentralBankProviderBase {
-	public NRBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NRBProvider> _logger;
+	public NRBProvider(HttpClient http, IConfiguration configuration, ILogger<NRBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NRB";
 	public override string Name => "Nepal Rastra Bank";

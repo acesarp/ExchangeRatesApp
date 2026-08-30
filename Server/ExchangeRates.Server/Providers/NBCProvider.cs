@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,7 +6,10 @@ namespace ExchangeRates.Server.Providers;
 /// National Bank of Cambodia
 /// </summary>
 public sealed class NBCProvider : CentralBankProviderBase {
-	public NBCProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBCProvider> _logger;
+	public NBCProvider(HttpClient http, IConfiguration configuration, ILogger<NBCProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBC";
 	public override string Name => "National Bank of Cambodia";
