@@ -175,7 +175,7 @@ public class ExchangeRateService : IExchangeRateService {
 					continue;
 				}
 
-				rates.Add(new ExchangeRateResult(date, baseCurrency, quoteCurrency, fromRate.Value * toRate.Value, $"{fromProvider?.Code}+{toProvider?.Code}"));
+				rates.Add(new ExchangeRateResult(date, baseCurrency, quoteCurrency, fromRate * toRate, $"{fromProvider?.Code}+{toProvider?.Code}"));
 			}
 		}
 
