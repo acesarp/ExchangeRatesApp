@@ -1,7 +1,9 @@
 using ExchangeRates.Domain.Enums;
 
+using HtmlAgilityPack;
+
 using System.Globalization;
-using System.Text;
+using System.Net;
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -11,7 +13,6 @@ public sealed class BCPProvider : CentralBankProviderBase {
 	private readonly ILogger<BCPProvider> _logger;
 	public BCPProvider(HttpClient http, IConfiguration configuration, ILogger<BCPProvider> logger) : base(http, configuration) {
 		_logger = logger;
-		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 	}
 
 	public override string Code => "BCP";
@@ -22,86 +23,63 @@ public sealed class BCPProvider : CentralBankProviderBase {
 		var results = new List<ExchangeRateResult>();
 
 		for (var year = fromDate.Year; year <= toDate.Year; year++) {
-			using var content = new FormUrlEncodedContent(new Dictionary<string, string> {
-				["anho"] = year.ToString(),
-				["moneda"] = quoteCurrency.ToString()
-			});
 
-			using var response = await Http.GetAsync(Url + $"/xls?anho={year}&moneda={quoteCurrency}", ct);
+			var uri = Url + $"/xls?anho={year}&moneda={quoteCurrency}";
+			var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+			HttpResponseMessage response = await Http.SendAsync(request, ct);
 			response.EnsureSuccessStatusCode();
 
-			//await using var stream = await response.Content.ReadAsStreamAsync(ct);
-			//using var reader = ExcelReaderFactory.CreateReader(stream);
+			var html = await response.Content.ReadAsStringAsync(ct);
+			var table = ExtractTable(html, quoteCurrency, year);
+			results.AddRange(table);
 
-			var contentType = response.Content.Headers.ContentType?.ToString();
-			var bytes = await response.Content.ReadAsByteArrayAsync(ct);
-			var text = Encoding.UTF8.GetString(bytes);
+		}
+		return results;
+	}
 
-			_logger.LogInformation("BCP Content-Type: {ContentType}", contentType);
-			_logger.LogInformation("BCP Response Length: {Length}", bytes.Length);
-			_logger.LogInformation("BCP Response: {Response}", text[..Math.Min(text.Length, 500)]);
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="html"></param>
+	/// <returns></returns>
+	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, ECurrencyISO quoteCurrency, int year) {
 
-			/*
-			while (reader.Read()) {
-				if (!TryGetDay(reader.GetValue(0), out var day)) {
+		var document = new HtmlDocument();
+		document.LoadHtml(html);
+
+		var tables = document.DocumentNode.SelectNodes("//table");
+
+		if (tables is null || tables.Count < 2) {
+			return [];
+		}
+		var rows = new List<ExchangeRateResult>();
+		var nodes = tables[1].SelectNodes(".//tr").ToArray();
+
+		for (var d = 1; d < nodes.Length - 2; d++) {
+
+			var cells = nodes[d].SelectNodes("./th|./td");
+
+			if (cells is null) {
+				continue;
+			}
+
+			var values = cells.Select(cell => WebUtility.HtmlDecode(cell.InnerText).Trim())
+														.ToList();
+
+			for (var m = 1; m <= 12; m++) {
+				if (d > DateTime.DaysInMonth(year, m)) {
 					continue;
 				}
 
-				for (var month = 1; month <= 12; month++) {
-					if (month >= reader.FieldCount) {
-						continue;
-					}
+				var value = values[m]?.Replace(',', '.');
 
-					if (!DateOnly.TryParseExact($"{year}-{month:D2}-{day:D2}", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
-						continue;
-					}
-
-					if (date < fromDate || date > toDate) {
-						continue;
-					}
-
-					if (!TryGetDecimal(reader.GetValue(month), out var pygPerCurrency)) {
-						continue;
-					}
-
-					if (pygPerCurrency <= 0) {
-						continue;
-					}
-
-					var rate = 1m / pygPerCurrency;
-
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal rate)) {
+					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), NativeCurrency, quoteCurrency, rate, Code));
 				}
 			}
-		*/
 		}
 
-		return results.OrderBy(x => x.Date).ToList();
-	}
-
-	private static bool TryGetDay(object? value, out int day) {
-		day = 0;
-		return value != null && int.TryParse(value.ToString(), out day) && day is >= 1 and <= 31;
-	}
-
-	private static bool TryGetDecimal(object? value, out decimal result) {
-		result = 0;
-
-		if (value == null) {
-			return false;
-		}
-
-		if (value is double doubleValue) {
-			result = (decimal)doubleValue;
-			return true;
-		}
-
-		var text = value.ToString()?.Trim();
-
-		if (string.IsNullOrWhiteSpace(text) || text.Equals("ND", StringComparison.OrdinalIgnoreCase)) {
-			return false;
-		}
-
-		return decimal.TryParse(text, NumberStyles.Number, CultureInfo.GetCultureInfo("es-PY"), out result);
+		return rows;
 	}
 }

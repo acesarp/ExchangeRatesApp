@@ -367,7 +367,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2019, 8, 20);
 		var toDate = new DateOnly(2019, 8, 27);
 
-		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		var rates = await provider.GetRatesAsync(ECurrencyISO.DKK, fromDate, toDate, CancellationToken.None);
 
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
