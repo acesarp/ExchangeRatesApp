@@ -380,4 +380,36 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromIMF_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<IMFProvider>();
+
+		var provider = new IMFProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 3);
+		var toDate = new DateOnly(2026, 8, 7);
+
+		// Act
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		// Assert
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.XDR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("IMF", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
 }
