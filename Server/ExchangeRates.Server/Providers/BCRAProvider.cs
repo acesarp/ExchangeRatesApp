@@ -7,7 +7,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central de la República Argentina
 /// </summary>
 public sealed class BCRAProvider : CentralBankProviderBase {
-	public BCRAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BCRAProvider> _logger;
+
+	public BCRAProvider(HttpClient http, IConfiguration configuration, ILogger<BCRAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BCRA";
 	public override string Name => "Banco Central de la República Argentina";

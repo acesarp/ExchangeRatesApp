@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Egypt
 /// </summary>
 public sealed class CBEProvider : CentralBankProviderBase {
-	public CBEProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBEProvider> _logger;
+
+	public CBEProvider(HttpClient http, IConfiguration configuration, ILogger<CBEProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBE";
 	public override string Name => "Central Bank of Egypt";

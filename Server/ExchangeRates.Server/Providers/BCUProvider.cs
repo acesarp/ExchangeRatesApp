@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central del Uruguay
 /// </summary>
 public sealed class BCUProvider : CentralBankProviderBase {
-	public BCUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BCUProvider> _logger;
+
+	public BCUProvider(HttpClient http, IConfiguration configuration, ILogger<BCUProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BCU";
 	public override string Name => "Banco Central del Uruguay";

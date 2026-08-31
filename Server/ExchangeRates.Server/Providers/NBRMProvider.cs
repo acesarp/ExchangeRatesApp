@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Narodna Banka na Republika Severna Makedonija
 /// </summary>
 public sealed class NBRMProvider : CentralBankProviderBase {
-	public NBRMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBRMProvider> _logger;
+
+	public NBRMProvider(HttpClient http, IConfiguration configuration, ILogger<NBRMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBRM";
 	public override string Name => "Narodna Banka na Republika Severna Makedonija";

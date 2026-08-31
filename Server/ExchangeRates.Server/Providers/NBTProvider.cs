@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// National Bank of Tajikistan
 /// </summary>
 public sealed class NBTProvider : CentralBankProviderBase {
-	public NBTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBTProvider> _logger;
+
+	public NBTProvider(HttpClient http, IConfiguration configuration, ILogger<NBTProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";

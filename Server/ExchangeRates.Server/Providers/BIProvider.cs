@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank Indonesia
 /// </summary>
 public sealed class BIProvider : CentralBankProviderBase {
-	public BIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BIProvider> _logger;
+
+	public BIProvider(HttpClient http, IConfiguration configuration, ILogger<BIProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BI";
 	public override string Name => "Bank Indonesia";

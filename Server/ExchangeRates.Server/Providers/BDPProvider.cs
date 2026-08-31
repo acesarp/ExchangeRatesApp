@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banco de Portugal
 /// </summary>
 public sealed class BDPProvider : CentralBankProviderBase {
-	public BDPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BDPProvider> _logger;
+
+	public BDPProvider(HttpClient http, IConfiguration configuration, ILogger<BDPProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BDP";
 	public override string Name => "Banco de Portugal";

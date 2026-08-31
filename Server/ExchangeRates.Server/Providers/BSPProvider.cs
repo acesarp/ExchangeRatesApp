@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bangko Sentral ng Pilipinas
 /// </summary>
 public sealed class BSPProvider : CentralBankProviderBase {
-	public BSPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BSPProvider> _logger;
+
+	public BSPProvider(HttpClient http, IConfiguration configuration, ILogger<BSPProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BSP";
 	public override string Name => "Bangko Sentral ng Pilipinas";

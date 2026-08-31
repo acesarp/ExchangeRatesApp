@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Central de Nicaragua
 /// </summary>
 public sealed class BCNProvider : CentralBankProviderBase {
-	public BCNProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BCNProvider> _logger;
+
+	public BCNProvider(HttpClient http, IConfiguration configuration, ILogger<BCNProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BCN";
 	public override string Name => "Banco Central de Nicaragua";

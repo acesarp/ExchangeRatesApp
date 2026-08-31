@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Nigeria
 /// </summary>
 public sealed class CBNProvider : CentralBankProviderBase {
-	public CBNProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBNProvider> _logger;
+
+	public CBNProvider(HttpClient http, IConfiguration configuration, ILogger<CBNProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBN";
 	public override string Name => "Central Bank of Nigeria";

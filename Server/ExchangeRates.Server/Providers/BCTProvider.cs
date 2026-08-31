@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banque Centrale de Tunisie
 /// </summary>
 public sealed class BCTProvider : CentralBankProviderBase {
-	public BCTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BCTProvider> _logger;
+
+	public BCTProvider(HttpClient http, IConfiguration configuration, ILogger<BCTProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BCT";
 	public override string Name => "Banque Centrale de Tunisie";

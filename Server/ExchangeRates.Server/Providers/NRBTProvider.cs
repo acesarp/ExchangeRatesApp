@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// National Reserve Bank of Tonga
 /// </summary>
 public sealed class NRBTProvider : CentralBankProviderBase {
-	public NRBTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NRBTProvider> _logger;
+
+	public NRBTProvider(HttpClient http, IConfiguration configuration, ILogger<NRBTProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NRBT";
 	public override string Name => "National Reserve Bank of Tonga";

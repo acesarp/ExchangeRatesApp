@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Tanzania
 /// </summary>
 public sealed class BOTAProvider : CentralBankProviderBase {
-	public BOTAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOTAProvider> _logger;
+
+	public BOTAProvider(HttpClient http, IConfiguration configuration, ILogger<BOTAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";

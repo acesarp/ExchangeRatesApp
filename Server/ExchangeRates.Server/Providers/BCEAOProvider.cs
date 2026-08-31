@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banque Centrale des Etats de l'Afrique de l'Ouest
 /// </summary>
 public sealed class BCEAOProvider : CentralBankProviderBase {
-	public BCEAOProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BCEAOProvider> _logger;
+
+	public BCEAOProvider(HttpClient http, IConfiguration configuration, ILogger<BCEAOProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BCEAO";
 	public override string Name => "Banque Centrale des Etats de l'Afrique de l'Ouest";

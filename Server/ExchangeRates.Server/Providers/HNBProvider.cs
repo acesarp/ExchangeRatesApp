@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Hrvatska Narodna Banka
 /// </summary>
 public sealed class HNBProvider : CentralBankProviderBase {
-	public HNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<HNBProvider> _logger;
+
+	public HNBProvider(HttpClient http, IConfiguration configuration, ILogger<HNBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";

@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Japan
 /// </summary>
 public sealed class BOJProvider : CentralBankProviderBase {
-	public BOJProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOJProvider> _logger;
+
+	public BOJProvider(HttpClient http, IConfiguration configuration, ILogger<BOJProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOJ";
 	public override string Name => "Bank of Japan";

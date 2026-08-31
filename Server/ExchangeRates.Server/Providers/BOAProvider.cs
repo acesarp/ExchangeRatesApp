@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Algeria
 /// </summary>
 public sealed class BOAProvider : CentralBankProviderBase {
-	public BOAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOAProvider> _logger;
+
+	public BOAProvider(HttpClient http, IConfiguration configuration, ILogger<BOAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOA";
 	public override string Name => "Bank of Algeria";

@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banque Nationale du Rwanda
 /// </summary>
 public sealed class BNRRWProvider : CentralBankProviderBase {
-	public BNRRWProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BNRRWProvider> _logger;
+
+	public BNRRWProvider(HttpClient http, IConfiguration configuration, ILogger<BNRRWProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BNRRW";
 	public override string Name => "Banque Nationale du Rwanda";

@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Thailand
 /// </summary>
 public sealed class BOTProvider : CentralBankProviderBase {
-	public BOTProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOTProvider> _logger;
+
+	public BOTProvider(HttpClient http, IConfiguration configuration, ILogger<BOTProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOT";
 	public override string Name => "Bank of Thailand";

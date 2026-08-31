@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Reserve Bank of Fiji
 /// </summary>
 public sealed class RBFProvider : CentralBankProviderBase {
-	public RBFProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<RBFProvider> _logger;
+
+	public RBFProvider(HttpClient http, IConfiguration configuration, ILogger<RBFProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "RBF";
 	public override string Name => "Reserve Bank of Fiji";

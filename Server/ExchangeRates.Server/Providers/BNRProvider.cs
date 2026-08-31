@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banca Națională a României
 /// </summary>
 public sealed class BNRProvider : CentralBankProviderBase {
-	public BNRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BNRProvider> _logger;
+
+	public BNRProvider(HttpClient http, IConfiguration configuration, ILogger<BNRProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BNR";
 	public override string Name => "Banca Națională a României";

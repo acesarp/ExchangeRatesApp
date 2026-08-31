@@ -10,7 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Armenia
 /// </summary>
 public sealed class CBAProvider : CentralBankProviderBase {
-	public CBAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBAProvider> _logger;
+
+	public CBAProvider(HttpClient http, IConfiguration configuration, ILogger<CBAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBA";
 	public override string Name => "Central Bank of Armenia";

@@ -10,7 +10,11 @@ using System.Text.Json;
 /// Natsionalnyi Bank Ukrainy
 /// </summary>
 public sealed class NBUProvider : CentralBankProviderBase {
-	public NBUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBUProvider> _logger;
+
+	public NBUProvider(HttpClient http, IConfiguration configuration, ILogger<NBUProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBU";
 	public override string Name => "Natsionalnyi Bank Ukrainy";

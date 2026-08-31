@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Sveriges Riksbank
 /// </summary>
 public sealed class RBProvider : CentralBankProviderBase {
-	public RBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<RBProvider> _logger;
+
+	public RBProvider(HttpClient http, IConfiguration configuration, ILogger<RBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "RB";
 	public override string Name => "Sveriges Riksbank";

@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Banco Nacional de Angola
 /// </summary>
 public sealed class BNAProvider : CentralBankProviderBase {
-	public BNAProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BNAProvider> _logger;
+
+	public BNAProvider(HttpClient http, IConfiguration configuration, ILogger<BNAProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BNA";
 	public override string Name => "Banco Nacional de Angola";

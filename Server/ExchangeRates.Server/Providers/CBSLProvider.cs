@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Sri Lanka
 /// </summary>
 public sealed class CBSLProvider : CentralBankProviderBase {
-	public CBSLProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBSLProvider> _logger;
+
+	public CBSLProvider(HttpClient http, IConfiguration configuration, ILogger<CBSLProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBSL";
 	public override string Name => "Central Bank of Sri Lanka";

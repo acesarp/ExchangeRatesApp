@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Kenya
 /// </summary>
 public sealed class CBKProvider : CentralBankProviderBase {
-	public CBKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBKProvider> _logger;
+
+	public CBKProvider(HttpClient http, IConfiguration configuration, ILogger<CBKProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBK";
 	public override string Name => "Central Bank of Kenya";

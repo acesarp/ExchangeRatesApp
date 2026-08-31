@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Botswana
 /// </summary>
 public sealed class BOBProvider : CentralBankProviderBase {
-	public BOBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOBProvider> _logger;
+
+	public BOBProvider(HttpClient http, IConfiguration configuration, ILogger<BOBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOB";
 	public override string Name => "Bank of Botswana";

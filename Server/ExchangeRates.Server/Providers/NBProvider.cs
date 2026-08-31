@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Norges Bank
 /// </summary>
 public sealed class NBProvider : CentralBankProviderBase {
-	public NBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBProvider> _logger;
+
+	public NBProvider(HttpClient http, IConfiguration configuration, ILogger<NBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NB";
 	public override string Name => "Norges Bank";

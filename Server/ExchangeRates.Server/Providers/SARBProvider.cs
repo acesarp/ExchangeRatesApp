@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// South African Reserve Bank
 /// </summary>
 public sealed class SARBProvider : CentralBankProviderBase {
-	public SARBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<SARBProvider> _logger;
+
+	public SARBProvider(HttpClient http, IConfiguration configuration, ILogger<SARBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "SARB";
 	public override string Name => "South African Reserve Bank";

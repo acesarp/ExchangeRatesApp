@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Seðlabanki Íslands
 /// </summary>
 public sealed class SBIProvider : CentralBankProviderBase {
-	public SBIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<SBIProvider> _logger;
+
+	public SBIProvider(HttpClient http, IConfiguration configuration, ILogger<SBIProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "SBI";
 	public override string Name => "Seðlabanki Íslands";

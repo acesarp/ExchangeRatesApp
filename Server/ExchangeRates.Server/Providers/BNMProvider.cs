@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank Negara Malaysia
 /// </summary>
 public sealed class BNMProvider : CentralBankProviderBase {
-	public BNMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BNMProvider> _logger;
+
+	public BNMProvider(HttpClient http, IConfiguration configuration, ILogger<BNMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BNM";
 	public override string Name => "Bank Negara Malaysia";

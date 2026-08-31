@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Iraq
 /// </summary>
 public sealed class CBIProvider : CentralBankProviderBase {
-	public CBIProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBIProvider> _logger;
+
+	public CBIProvider(HttpClient http, IConfiguration configuration, ILogger<CBIProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBI";
 	public override string Name => "Central Bank of Iraq";

@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Reserve Bank of Vanuatu
 /// </summary>
 public sealed class RBVProvider : CentralBankProviderBase {
-	public RBVProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<RBVProvider> _logger;
+
+	public RBVProvider(HttpClient http, IConfiguration configuration, ILogger<RBVProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "RBV";
 	public override string Name => "Reserve Bank of Vanuatu";

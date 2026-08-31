@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Czech National Bank
 /// </summary>
 public sealed class CNBProvider : CentralBankProviderBase {
-	public CNBProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CNBProvider> _logger;
+
+	public CNBProvider(HttpClient http, IConfiguration configuration, ILogger<CNBProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CNB";
 	public override string Name => "Czech National Bank";

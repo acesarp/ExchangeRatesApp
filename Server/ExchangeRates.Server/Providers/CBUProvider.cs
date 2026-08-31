@@ -6,7 +6,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Uzbekistan
 /// </summary>
 public sealed class CBUProvider : CentralBankProviderBase {
-	public CBUProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBUProvider> _logger;
+
+	public CBUProvider(HttpClient http, IConfiguration configuration, ILogger<CBUProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBU";
 	public override string Name => "Central Bank of Uzbekistan";

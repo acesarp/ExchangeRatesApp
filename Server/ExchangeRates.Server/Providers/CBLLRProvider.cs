@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Central Bank of Liberia
 /// </summary>
 public sealed class CBLLRProvider : CentralBankProviderBase {
-	public CBLLRProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<CBLLRProvider> _logger;
+
+	public CBLLRProvider(HttpClient http, IConfiguration configuration, ILogger<CBLLRProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "CBLLR";
 	public override string Name => "Central Bank of Liberia";

@@ -13,7 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// Bank of Mongolia
 /// </summary>
 public sealed class BOMProvider : CentralBankProviderBase {
-	public BOMProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<BOMProvider> _logger;
+
+	public BOMProvider(HttpClient http, IConfiguration configuration, ILogger<BOMProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "BOM";
 	public override string Name => "Bank of Mongolia";

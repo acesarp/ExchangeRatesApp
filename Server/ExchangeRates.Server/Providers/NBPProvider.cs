@@ -8,7 +8,11 @@ namespace ExchangeRates.Server.Providers;
 /// Narodowy Bank Polski
 /// </summary>
 public sealed class NBPProvider : CentralBankProviderBase {
-	public NBPProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
+	private readonly ILogger<NBPProvider> _logger;
+
+	public NBPProvider(HttpClient http, IConfiguration configuration, ILogger<NBPProvider> logger) : base(http, configuration) {
+		_logger = logger;
+	}
 
 	public override string Code => "NBP";
 	public override string Name => "Narodowy Bank Polski";
