@@ -412,4 +412,65 @@ public sealed class ProviderIntegrationTests {
 		});
 	}
 
+	[Fact]
+	public async Task GetRates_AED_USD_ShouldReturnCBUAERates() {
+		var configuration = new ConfigurationBuilder()
+																		.AddJsonFile("appsettings.json")
+																		.Build();
+
+
+		using var http = new HttpClient();
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBUAEProvider>();
+
+		var provider = new CBUAEProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 3);
+		var toDate = new DateOnly(2026, 8, 7);
+		// Act
+		var rates = await provider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.AED, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.BRL, rate.QuoteCurrency);
+			Assert.Equal("CBUAE", rate.Provider);
+			Assert.True(rate.Rate > 0);
+		});
+	}
+
+	/// <summary>
+	/// ECBProvider integration test for EUR rates from BCB for a specific date range.
+	/// European Central Bank
+	/// </summary>
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_BRLRates_FromECB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<ECBProvider>();
+		using var http = new HttpClient();
+
+		var provider = new ECBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.EUR, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.EUR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.BRL, rate.QuoteCurrency);
+			Assert.Equal("ECB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
 }

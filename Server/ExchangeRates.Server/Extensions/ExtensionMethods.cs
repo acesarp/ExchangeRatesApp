@@ -13,6 +13,9 @@ public static class ExtensionMethods {
 	}
 
 	public static ECurrencyISO ToECurrency(this string text) {
+		if (text.Equals("SDR", StringComparison.OrdinalIgnoreCase)) { // special case
+			return ECurrencyISO.XDR;
+		}
 		var code = text.Trim();
 
 		if (CurrencyAliases.TryGetValue(code, out var normalized)) {

@@ -90,6 +90,7 @@ public static class CentralBankProviderRegistration {
 		services.AddTransient<ICentralBankProvider, SBIProvider>();
 		services.AddTransient<ICentralBankProvider, SBPProvider>();
 		services.AddTransient<ICentralBankProvider, TCMBProvider>();
+		services.AddTransient<ICentralBankProvider, CBUAEProvider>();
 		services.AddTransient<CentralBankProviderFactory>();
 		return services;
 	}

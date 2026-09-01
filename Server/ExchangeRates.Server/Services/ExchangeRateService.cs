@@ -65,14 +65,7 @@ public class ExchangeRateService : IExchangeRateService {
 			if (rates.Count > 0) {
 				await _repository.AddRangeAsync(rates.Select(r => r.ToEntity()), ct);
 
-				await _repository.AddFetchAsync(new ExchangeRateFetch {
-					Provider = provider.Code,
-					BaseCurrency = provider.NativeCurrency,
-					QuoteCurrency = quoteCurrency,
-					FromDate = range.From,
-					ToDate = range.To,
-					FetchedAtUtc = DateTime.UtcNow
-				}, ct);
+				await _repository.AddFetchAsync(new ExchangeRateFetch(provider.Code, provider.NativeCurrency, quoteCurrency, fromDate, toDate), ct);
 			}
 		}
 
@@ -100,7 +93,9 @@ public class ExchangeRateService : IExchangeRateService {
 	}
 
 	private ICentralBankProvider? FindDirectProvider(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
-		return _providerFactory.GetAllProviders().FirstOrDefault(p => p.NativeCurrency == baseCurrency);
+		var providers = _providerFactory.GetAllProviders();
+		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency || p.NativeCurrency == quoteCurrency);
+		return provider;
 	}
 
 	private ICentralBankProvider? FindPivotProvider(ECurrencyISO currency) {
@@ -121,14 +116,14 @@ public class ExchangeRateService : IExchangeRateService {
 	}
 
 	/// <summary>
-	/// 
+	/// Attempts to triangulate exchange rates between baseCurrency and quoteCurrency using the pivot currency.
 	/// </summary>
-	/// <param name="baseCurrency"></param>
-	/// <param name="quoteCurrency"></param>
-	/// <param name="fromDate"></param>
-	/// <param name="toDate"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="baseCurrency">The base currency.</param>
+	/// <param name="quoteCurrency">The quote currency.</param>
+	/// <param name="fromDate">The start date for the exchange rate data.</param>
+	/// <param name="toDate">The end date for the exchange rate data.</param>
+	/// <param name="ct">The cancellation token.</param>
+	/// <returns>A list of exchange rate results.</returns>
 	/// <exception cref="InvalidOperationException"></exception>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var fromIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(baseCurrency, out var fromFixedRate);
@@ -142,7 +137,7 @@ public class ExchangeRateService : IExchangeRateService {
 		// Only throw if both sides exist but providers are missing
 		if ((!fromIsFixed && fromProvider is null) && (!toIsFixed && toProvider is null)) {
 			_logger.LogError("Triangulation failed: no providers for either side. From={From} To={To} Pivot={Pivot}", baseCurrency, quoteCurrency, _pivotCurrency);
-			throw new InvalidOperationException($"Unable quoteCurrency triangulate {baseCurrency}/{quoteCurrency} through {_pivotCurrency}.");
+			throw new InvalidOperationException($"Unable to triangulate {baseCurrency}/{quoteCurrency} through {_pivotCurrency}.");
 		}
 
 		// If one side has no provider and is not fixed, return empty list (no data available)
