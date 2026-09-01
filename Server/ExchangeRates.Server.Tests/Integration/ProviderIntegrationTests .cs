@@ -460,7 +460,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 
-		var rates = await provider.GetRatesAsync(ECurrencyISO.EUR, fromDate, toDate, CancellationToken.None);
+		var rates = await provider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
 
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
@@ -469,6 +469,66 @@ public sealed class ProviderIntegrationTests {
 			Assert.Equal(ECurrencyISO.EUR, rate.BaseCurrency);
 			Assert.Equal(ECurrencyISO.BRL, rate.QuoteCurrency);
 			Assert.Equal("ECB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBRB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBRBProvider>();
+
+		var provider = new NBRBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.BYN, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBRB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBI_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BIProvider>();
+
+		var provider = new BIProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.AED, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.IDR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.AED, rate.QuoteCurrency);
+			Assert.Equal("BI", rate.Provider);
 			Assert.True(rate.Rate > 0);
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});

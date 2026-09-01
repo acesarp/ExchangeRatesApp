@@ -2,6 +2,9 @@
 namespace ExchangeRates.Domain.Entities;
 
 public sealed class ExchangeRateFetch {
+	public ExchangeRateFetch() {
+
+	}
 	public ExchangeRateFetch(string code, ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate) {
 		Provider = code;
 		BaseCurrency = baseCurrency;
