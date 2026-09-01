@@ -22,7 +22,39 @@ public sealed class SBIProvider : CentralBankProviderBase {
 	public override string Code => "SBI";
 	public override string Name => "Seðlabanki Íslands";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.ISK;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var currencyCode = quoteCurrency.ToString();
+			var uri = $"{Url}?currBase={currencyCode}&dateFrom={fromDate:yyyy-MM-dd}&dateTo={toDate:yyyy-MM-dd}";
+			var xml = await Http.GetStringAsync(uri, ct);
+			var xdoc = XDocument.Parse(xml);
+
+			var results = new List<ExchangeRateResult>();
+
+			foreach (var entry in xdoc.Descendants("Entry")) {
+				var dateStr = entry.Element("Date")?.Value;
+
+				if (dateStr is null || !DateOnly.TryParse(dateStr, CultureInfo.InvariantCulture, out var date)) {
+					continue;
+				}
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				var rateStr = entry.Element("Value")?.Value;
+
+				if (rateStr is null || !decimal.TryParse(rateStr.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch SBI rates.");
+			return [];
+		}
 	}
 }

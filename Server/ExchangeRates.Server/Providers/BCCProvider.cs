@@ -1,5 +1,7 @@
 using ExchangeRates.Domain.Enums;
 
+using System.Text.Json;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -15,7 +17,43 @@ public sealed class BCCProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central de Cuba";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.CUP;
 
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var json = await Http.GetStringAsync(Url, ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+			var root = doc.RootElement;
+			var items = root.ValueKind == JsonValueKind.Array ? root : root.TryGetProperty("data", out var data) ? data : default;
+
+			if (items.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			foreach (var item in items.EnumerateArray()) {
+				if (!item.TryGetProperty("moneda", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+
+				var rate = GetDecimal(item, "venta");
+
+				if (rate <= 0) {
+					continue;
+				}
+
+				var date = item.TryGetProperty("fecha", out var dateProp) && DateOnly.TryParse(dateProp.GetString(), out var d) ? d : DateOnly.FromDateTime(DateTime.UtcNow);
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch BCC rates.");
+			return [];
+		}
 	}
 }

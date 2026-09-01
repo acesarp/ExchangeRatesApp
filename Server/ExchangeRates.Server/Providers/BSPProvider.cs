@@ -1,5 +1,7 @@
 using ExchangeRates.Domain.Enums;
 
+using System.Text.Json;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -16,7 +18,56 @@ public sealed class BSPProvider : CentralBankProviderBase {
 	public override string Name => "Bangko Sentral ng Pilipinas";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.PHP;
 
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			using var request = new HttpRequestMessage(HttpMethod.Get, Url);
+			request.Headers.TryAddWithoutValidation("Accept", "application/json;odata=verbose");
+
+			using var response = await Http.SendAsync(request, ct);
+
+			if (!response.IsSuccessStatusCode) {
+				return [];
+			}
+
+			var json = await response.Content.ReadAsStringAsync(ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+
+			if (!doc.RootElement.TryGetProperty("d", out var d) || !d.TryGetProperty("results", out var items) || items.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			var currencyCode = quoteCurrency.ToString();
+
+			foreach (var item in items.EnumerateArray()) {
+				var code = item.TryGetProperty("Currency", out var c) ? c.GetString() : null;
+
+				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+
+				if (!item.TryGetProperty("Date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+					continue;
+				}
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				var rate = GetDecimal(item, "Rate");
+
+				if (rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch BSP rates.");
+			return [];
+		}
 	}
 }

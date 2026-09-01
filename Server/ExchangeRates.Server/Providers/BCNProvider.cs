@@ -1,5 +1,9 @@
 using ExchangeRates.Domain.Enums;
 
+using System.Globalization;
+using System.Text;
+using System.Xml.Linq;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -16,7 +20,47 @@ public sealed class BCNProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central de Nicaragua";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.NIO;
 
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != ECurrencyISO.USD) {
+			return [];
+		}
+
+		var results = new List<ExchangeRateResult>();
+
+		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			try {
+				var soapEnvelope = $"""
+					<?xml version="1.0" encoding="utf-8"?>
+					<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+						<soap:Body>
+							<obtenerTipoCambio xmlns="http://tempuri.org/">
+								<Fecha>{date:yyyy-MM-dd}</Fecha>
+							</obtenerTipoCambio>
+						</soap:Body>
+					</soap:Envelope>
+					""";
+
+				using var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
+				using var response = await Http.PostAsync(Url, content, ct);
+
+				if (!response.IsSuccessStatusCode) {
+					continue;
+				}
+
+				var xml = await response.Content.ReadAsStringAsync(ct);
+				var document = XDocument.Parse(xml);
+				var value = document.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("obtenerTipoCambioResult", StringComparison.OrdinalIgnoreCase))?.Value;
+
+				if (value is null || !decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			} catch (Exception ex) {
+				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);
+			}
+		}
+
+		return results;
 	}
 }

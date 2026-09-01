@@ -22,7 +22,44 @@ public sealed class RBProvider : CentralBankProviderBase {
 	public override string Code => "RB";
 	public override string Name => "Sveriges Riksbank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.SEK;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != ECurrencyISO.USD) {
+			return [];
+		}
+
+		try {
+			var uri = $"{Url}?from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
+			var json = await Http.GetStringAsync(uri, ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+
+			if (doc.RootElement.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			foreach (var item in doc.RootElement.EnumerateArray()) {
+				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+					continue;
+				}
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				var rate = GetDecimal(item, "value");
+
+				if (rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch RB rates.");
+			return [];
+		}
 	}
 }

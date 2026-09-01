@@ -1,11 +1,9 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
+
+using HtmlAgilityPack;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
+using System.Net;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -22,7 +20,58 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 	public override string Code => "BOTA";
 	public override string Name => "Bank of Tanzania";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TZS;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			using var response = await Http.GetAsync(Url, ct);
+
+			if (!response.IsSuccessStatusCode) {
+				return [];
+			}
+
+			var html = await response.Content.ReadAsStringAsync(ct);
+			var document = new HtmlDocument();
+			document.LoadHtml(html);
+
+			var results = new List<ExchangeRateResult>();
+			var rows = document.DocumentNode.SelectNodes("//table//tr");
+
+			if (rows is null) {
+				return results;
+			}
+
+			var currencyCode = quoteCurrency.ToString();
+
+			foreach (var row in rows) {
+				var cells = row.SelectNodes("./td");
+
+				if (cells is null || cells.Count < 3) {
+					continue;
+				}
+
+				var values = cells.Select(c => WebUtility.HtmlDecode(c.InnerText).Trim()).ToArray();
+
+				if (!values[0].Equals(currencyCode, StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+
+				if (!decimal.TryParse(values[2], NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+					continue;
+				}
+
+				var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+				if (today < fromDate || today > toDate) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch BOTA rates.");
+			return [];
+		}
 	}
 }

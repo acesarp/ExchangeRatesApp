@@ -24,6 +24,7 @@ public sealed class BOAProvider : CentralBankProviderBase {
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.DZD;
 
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+		_logger.LogWarning("BOA has no configured Url; unable to fetch rates.");
+		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);
 	}
 }

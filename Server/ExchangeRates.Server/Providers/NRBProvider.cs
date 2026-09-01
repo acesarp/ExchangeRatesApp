@@ -1,5 +1,7 @@
 using ExchangeRates.Domain.Enums;
 
+using System.Text.Json;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -14,7 +16,55 @@ public sealed class NRBProvider : CentralBankProviderBase {
 	public override string Code => "NRB";
 	public override string Name => "Nepal Rastra Bank";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.NPR;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var uri = $"{Url}?page=1&from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}&per_page=100";
+			var json = await Http.GetStringAsync(uri, ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+
+			if (!doc.RootElement.TryGetProperty("data", out var dataObj) || !dataObj.TryGetProperty("payload", out var payload) || payload.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			var currencyCode = quoteCurrency.ToString();
+
+			foreach (var item in payload.EnumerateArray()) {
+				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+					continue;
+				}
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				if (!item.TryGetProperty("rates", out var rates) || rates.ValueKind != JsonValueKind.Array) {
+					continue;
+				}
+
+				foreach (var rateItem in rates.EnumerateArray()) {
+					var iso3 = rateItem.TryGetProperty("currency", out var c) && c.TryGetProperty("iso3", out var iso) ? iso.GetString() : null;
+
+					if (!string.Equals(iso3, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+						continue;
+					}
+
+					var unit = GetDecimal(rateItem, "currency") == 0 && rateItem.TryGetProperty("currency", out var currencyObj) && currencyObj.TryGetProperty("unit", out var unitProp) && unitProp.ValueKind == JsonValueKind.Number ? unitProp.GetDecimal() : 1m;
+					var sell = GetDecimal(rateItem, "sell");
+
+					if (sell <= 0) {
+						continue;
+					}
+
+					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, sell / unit, Code));
+				}
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch NRB rates.");
+			return [];
+		}
 	}
 }

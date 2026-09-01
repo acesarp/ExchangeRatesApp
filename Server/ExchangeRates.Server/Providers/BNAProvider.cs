@@ -23,7 +23,43 @@ public sealed class BNAProvider : CentralBankProviderBase {
 	public override string Name => "Banco Nacional de Angola";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.AOA;
 
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var json = await Http.GetStringAsync(Url, ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+			var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+			if (today < fromDate || today > toDate) {
+				return results;
+			}
+
+			var root = doc.RootElement;
+			var items = root.ValueKind == JsonValueKind.Array ? root : root.TryGetProperty("data", out var data) ? data : default;
+
+			if (items.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			foreach (var item in items.EnumerateArray()) {
+				if (!item.TryGetProperty("currencySymbol", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+
+				var rate = GetDecimal(item, "sellValue");
+
+				if (rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch BNA rates.");
+			return [];
+		}
 	}
 }

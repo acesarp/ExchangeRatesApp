@@ -22,7 +22,41 @@ public sealed class HNBProvider : CentralBankProviderBase {
 	public override string Code => "HNB";
 	public override string Name => "Hrvatska Narodna Banka";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var currencyCode = quoteCurrency.ToString();
+			var uri = $"{Url}?currency={currencyCode}&date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}";
+			var json = await Http.GetStringAsync(uri, ct);
+			using var doc = JsonDocument.Parse(json);
+
+			var results = new List<ExchangeRateResult>();
+
+			if (doc.RootElement.ValueKind != JsonValueKind.Array) {
+				return results;
+			}
+
+			foreach (var item in doc.RootElement.EnumerateArray()) {
+				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+					continue;
+				}
+
+				if (date < fromDate || date > toDate) {
+					continue;
+				}
+
+				var rateStr = item.TryGetProperty("middle_rate", out var r) ? r.GetString() : null;
+
+				if (rateStr is null || !decimal.TryParse(rateStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+					continue;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch HNB rates.");
+			return [];
+		}
 	}
 }

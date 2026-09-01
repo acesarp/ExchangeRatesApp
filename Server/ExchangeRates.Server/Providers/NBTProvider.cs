@@ -22,7 +22,42 @@ public sealed class NBTProvider : CentralBankProviderBase {
 	public override string Code => "NBT";
 	public override string Name => "National Bank of Tajikistan";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.TJS;
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		try {
+			var results = new List<ExchangeRateResult>();
+			var currencyCode = quoteCurrency.ToString();
+
+			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+				var uri = $"{Url}?date={date:yyyy-MM-dd}";
+				var xml = await Http.GetStringAsync(uri, ct);
+				var xdoc = XDocument.Parse(xml);
+
+				var currencyNode = xdoc.Descendants("currency").FirstOrDefault(c => string.Equals(c.Element("code")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
+
+				if (currencyNode is null) {
+					continue;
+				}
+
+				var valueStr = currencyNode.Element("rate")?.Value;
+				var nominalStr = currencyNode.Element("units")?.Value;
+
+				if (valueStr is null || !decimal.TryParse(valueStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) || value <= 0) {
+					continue;
+				}
+
+				var nominal = 1m;
+
+				if (nominalStr is not null && decimal.TryParse(nominalStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedNominal) && parsedNominal > 0) {
+					nominal = parsedNominal;
+				}
+
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, value / nominal, Code));
+			}
+
+			return results;
+		} catch (Exception ex) {
+			_logger.LogWarning(ex, "Failed to fetch NBT rates.");
+			return [];
+		}
 	}
 }

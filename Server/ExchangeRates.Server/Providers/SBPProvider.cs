@@ -15,6 +15,7 @@ public sealed class SBPProvider : CentralBankProviderBase {
 	public override string Name => "State Bank of Pakistan";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.PKR;
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+		_logger.LogWarning("SBP source is an XLSX file; parsing not supported.");
+		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);
 	}
 }

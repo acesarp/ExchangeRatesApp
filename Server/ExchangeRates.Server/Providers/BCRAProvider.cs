@@ -1,5 +1,6 @@
 using ExchangeRates.Domain.Enums;
 
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -17,7 +18,41 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 	public override string Name => "Banco Central de la República Argentina";
 	public override ECurrencyISO NativeCurrency => ECurrencyISO.ARS;
 
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != ECurrencyISO.USD) {
+			return [];
+		}
+
+		var results = new List<ExchangeRateResult>();
+
+		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			try {
+				var uri = $"{Url}?fechaCotizacion={date:yyyy-MM-dd}";
+				var json = await Http.GetStringAsync(uri, ct);
+				using var doc = JsonDocument.Parse(json);
+
+				if (!doc.RootElement.TryGetProperty("results", out var resultsElement) || !resultsElement.TryGetProperty("detalle", out var detalle) || detalle.ValueKind != JsonValueKind.Array) {
+					continue;
+				}
+
+				foreach (var item in detalle.EnumerateArray()) {
+					if (!item.TryGetProperty("codigoMoneda", out var codeProp) || !codeProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+						continue;
+					}
+
+					var rate = GetDecimal(item, "tipoCotizacion");
+
+					if (rate <= 0) {
+						continue;
+					}
+
+					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				}
+			} catch (Exception ex) {
+				_logger.LogWarning(ex, "Failed to fetch BCRA rate for {Date}", date);
+			}
+		}
+
+		return results;
 	}
 }
