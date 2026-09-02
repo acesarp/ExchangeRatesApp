@@ -37,4 +37,14 @@
     <ProjectReference Include="..\ExchangeRates.Infrastructure\ExchangeRates.Infrastructure.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Include="appsettings.json" Link="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="ExchangeRates\" />
+	</ItemGroup>
+
 </Project>

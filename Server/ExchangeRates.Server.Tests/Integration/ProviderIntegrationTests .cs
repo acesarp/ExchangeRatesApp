@@ -1,5 +1,5 @@
 ﻿using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.ExchangeRates;
+
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 
@@ -15,6 +15,7 @@ namespace ExchangeRates.Server.Tests.Integration;
 /// Integration tests for the exchange rate providers.
 /// </summary>
 public sealed class ProviderIntegrationTests {
+
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_ForDateRange() {
 		using var http = new HttpClient();
@@ -1842,8 +1843,9 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public void FixedExchangeRateProvider_ShouldReturn_AdpFixedRate() {
 		var provider = new FixedExchangeRateProvider(GetConfiguration());
-		var found = provider.TryGetFixedRate(ECurrencyISO.ADP, out var rate);
+		var found = provider.TryGetFixedRate(ECurrencyISO.ADP, out var peggedOn, out var rate);
 		Assert.True(found);
+		Assert.Equal(ECurrencyISO.EUR, peggedOn);
 		Assert.Equal(6.55957m, rate);
 	}
 	[Fact]
@@ -1876,16 +1878,17 @@ public sealed class ProviderIntegrationTests {
 	[InlineData(ECurrencyISO.NPR, ECurrencyISO.INR, 1.6)]
 	[InlineData(ECurrencyISO.ADP, ECurrencyISO.EUR, 166.386)]
 	public void TryGetRate_ConfiguredCurrency_ReturnsExpectedRate(ECurrencyISO currency, ECurrencyISO expectedPeggedOn, double expectedRate) {
-		var fixedExchangeRates = new FixedExchangeRates(GetConfiguration());
-		var success = fixedExchangeRates.TryGetRate(currency, out var peggedOn, out var rate);
+		var fixedExchangeRates = new FixedExchangeRateProvider(GetConfiguration());
+		var success = fixedExchangeRates.TryGetFixedRate(currency, out var peggedOn, out var rate);
 		Assert.True(success);
 		Assert.Equal(expectedPeggedOn, peggedOn);
 		Assert.Equal((decimal)expectedRate, rate);
 	}
+
 	[Fact]
 	public void TryGetRate_NonFixedCurrency_ReturnsFalse() {
-		var fixedExchangeRates = new FixedExchangeRates(GetConfiguration());
-		var success = fixedExchangeRates.TryGetRate(ECurrencyISO.CAD, out var peggedOn, out var rate);
+		var fixedExchangeRates = new FixedExchangeRateProvider(GetConfiguration());
+		var success = fixedExchangeRates.TryGetFixedRate(ECurrencyISO.CAD, out var peggedOn, out var rate);
 		Assert.False(success);
 		Assert.Equal(default, peggedOn);
 		Assert.Equal(0m, rate);
