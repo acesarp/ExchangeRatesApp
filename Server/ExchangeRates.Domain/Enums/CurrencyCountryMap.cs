@@ -330,6 +330,7 @@ public static class CurrencyCountryMap {
 
 	public static readonly IReadOnlyDictionary<ECurrencyISO, string> CurrencyNames =
 	new Dictionary<ECurrencyISO, string> {
+		[ECurrencyISO.ADP] = "Andorran Peseta",
 		[ECurrencyISO.AUD] = "Australian dollar",
 		[ECurrencyISO.BRL] = "Brazilian real",
 		[ECurrencyISO.CAD] = "Canadian dollar",

@@ -92,9 +92,23 @@ public class ExchangeRateService : IExchangeRateService {
 		return false;
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="baseCurrency"></param>
+	/// <param name="quoteCurrency"></param>
+	/// <returns></returns>
 	private ICentralBankProvider? FindDirectProvider(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
 		var providers = _providerFactory.GetAllProviders();
-		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency || p.NativeCurrency == quoteCurrency);
+		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
+																														p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
+
+		if (provider?.NativeCurrency == quoteCurrency) {
+			var swap = baseCurrency;
+			baseCurrency = quoteCurrency;
+			quoteCurrency = swap;
+		}
+
 		return provider;
 	}
 

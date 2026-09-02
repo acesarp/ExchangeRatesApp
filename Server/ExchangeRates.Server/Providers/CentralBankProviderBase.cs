@@ -32,7 +32,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public abstract ECurrencyISO NativeCurrency { get; }
 	public IReadOnlySet<ECurrencyISO> SupportedCurrencies {
 		get {
-			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? [];
+			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:SupportedCurrencies configuration.");
 			return currencies.Select(x => x.ToECurrency()).ToHashSet();
 		}
 	}

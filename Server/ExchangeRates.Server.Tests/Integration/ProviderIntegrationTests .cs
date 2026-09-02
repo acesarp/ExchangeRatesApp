@@ -2668,4 +2668,55 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
+	[Fact]
+	public void FixedExchangeRateProvider_ShouldReturn_AdpFixedRate() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		var provider = new FixedExchangeRateProvider(configuration);
+
+		var found = provider.TryGetFixedRate(ECurrencyISO.ADP, out var rate);
+
+		Assert.True(found);
+		Assert.Equal(6.55957m, rate);
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_TriangulatedRates_ForAdpToAed() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		var fixedProvider = new FixedExchangeRateProvider(configuration);
+
+		using var http = new HttpClient();
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBUAEProvider>();
+
+		var aedProvider = new CBUAEProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 3);
+		var toDate = new DateOnly(2026, 8, 7);
+
+		// ADP is a fixed rate against EUR (pivoted through USD by ExchangeRateService in production);
+		// here we validate each leg directly, the same way other provider tests in this file do.
+		var adpIsFixed = fixedProvider.TryGetFixedRate(ECurrencyISO.ADP, out var adpFixedRate);
+		Assert.True(adpIsFixed);
+		Assert.Equal(6.55957m, adpFixedRate);
+
+		var aedRates = await aedProvider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(aedRates);
+		Assert.NotEmpty(aedRates);
+
+		Assert.All(aedRates, rate => {
+			Assert.Equal(ECurrencyISO.AED, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.BRL, rate.QuoteCurrency);
+			Assert.Equal("CBUAE", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
 }
