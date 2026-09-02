@@ -17,8 +17,6 @@ public sealed class CBGProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBG";
-	public override string Name => "Central Bank of The Gambia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.GMD;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);

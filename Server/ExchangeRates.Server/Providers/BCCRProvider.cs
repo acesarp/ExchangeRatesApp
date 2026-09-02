@@ -18,8 +18,6 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 	private string Email { get; set; }
 
 	public override string Code => "BCCR";
-	public override string Name => "Banco Central de Costa Rica";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.CRC;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		Token = Configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
 		NameParameter = Configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");

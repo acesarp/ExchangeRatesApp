@@ -18,8 +18,6 @@ public sealed class RBAProvider : CentralBankProviderBase {
 
 
 	public override string Code => "RBA";
-	public override string Name => "Reserve Bank of Australia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.AUD;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		using var request = new HttpRequestMessage(HttpMethod.Get, Url);

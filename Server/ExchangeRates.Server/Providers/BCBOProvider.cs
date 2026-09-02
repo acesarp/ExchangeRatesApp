@@ -16,8 +16,6 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCBO";
-	public override string Name => "Banco Central de Bolivia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.BOB;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (quoteCurrency != ECurrencyISO.USD) {

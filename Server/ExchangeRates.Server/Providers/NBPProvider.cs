@@ -15,8 +15,6 @@ public sealed class NBPProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBP";
-	public override string Name => "Narodowy Bank Polski";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.PLN;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";

@@ -13,8 +13,6 @@ public sealed class BDIProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BDI";
-	public override string Name => "Banca d'Italia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {

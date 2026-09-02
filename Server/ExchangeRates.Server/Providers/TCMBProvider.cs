@@ -14,8 +14,6 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "TCMB";
-	public override string Name => "Türkiye Cumhuriyet Merkez Bankası";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.TRY;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";

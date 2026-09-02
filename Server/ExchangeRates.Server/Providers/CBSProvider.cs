@@ -12,8 +12,6 @@ public sealed class CBSProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBS";
-	public override string Name => "Central Bank of Samoa";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.WST;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

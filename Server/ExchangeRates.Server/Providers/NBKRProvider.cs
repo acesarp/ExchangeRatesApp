@@ -15,8 +15,6 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBKR";
-	public override string Name => "National Bank of the Kyrgyz Republic";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.KGS;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

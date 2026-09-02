@@ -20,8 +20,6 @@ public sealed class BOMProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOM";
-	public override string Name => "Bank of Mongolia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MNT;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}&code={quoteCurrency}";

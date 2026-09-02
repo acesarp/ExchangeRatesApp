@@ -20,8 +20,6 @@ public sealed class CBKProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBK";
-	public override string Name => "Central Bank of Kenya";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.KES;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			using var content = new FormUrlEncodedContent(new Dictionary<string, string> {

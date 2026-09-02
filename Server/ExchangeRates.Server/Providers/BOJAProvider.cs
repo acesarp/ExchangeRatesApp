@@ -15,8 +15,6 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOJA";
-	public override string Name => "Bank of Jamaica";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.JMD;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

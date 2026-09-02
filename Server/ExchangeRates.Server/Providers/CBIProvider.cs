@@ -20,8 +20,6 @@ public sealed class CBIProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBI";
-	public override string Name => "Central Bank of Iraq";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.IQD;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);

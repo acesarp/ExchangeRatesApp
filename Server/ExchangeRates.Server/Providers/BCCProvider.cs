@@ -14,8 +14,6 @@ public sealed class BCCProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCC";
-	public override string Name => "Banco Central de Cuba";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.CUP;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
@@ -51,7 +49,8 @@ public sealed class BCCProvider : CentralBankProviderBase {
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch BCC rates.");
 			return [];
 		}

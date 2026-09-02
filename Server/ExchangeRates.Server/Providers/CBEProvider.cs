@@ -20,8 +20,6 @@ public sealed class CBEProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBE";
-	public override string Name => "Central Bank of Egypt";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.EGP;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";

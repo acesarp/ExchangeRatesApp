@@ -18,8 +18,6 @@ public sealed class BCTProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCT";
-	public override string Name => "Banque Centrale de Tunisie";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.TND;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

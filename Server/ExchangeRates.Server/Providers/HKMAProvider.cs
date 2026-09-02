@@ -15,8 +15,6 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "HKMA";
-	public override string Name => "Hong Kong Monetary Authority";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.HKD;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();

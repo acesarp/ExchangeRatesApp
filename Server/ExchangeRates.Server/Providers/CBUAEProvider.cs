@@ -17,9 +17,6 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBUAE";
-	public override string Name => "Central Bank of the UAE";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.AED;
-
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (!CurrencyCountryMap.CurrencyNames.TryGetValue(quoteCurrency, out var currencyName)) {

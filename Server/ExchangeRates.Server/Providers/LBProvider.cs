@@ -15,8 +15,6 @@ public sealed class LBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "LB";
-	public override string Name => "Lietuvos Bankas";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency.ToString();

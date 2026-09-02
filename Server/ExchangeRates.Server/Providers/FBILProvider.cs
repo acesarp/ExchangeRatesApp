@@ -18,8 +18,6 @@ public sealed class FBILProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "FBIL";
-	public override string Name => "Financial Benchmarks India";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.INR;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var uri = $"{Url}?fromDate={fromDate:dd-MM-yyyy}&toDate={toDate:dd-MM-yyyy}";

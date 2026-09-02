@@ -20,8 +20,6 @@ public sealed class NBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NB";
-	public override string Name => "Norges Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.NOK;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency.ToString();

@@ -15,8 +15,6 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BANXICO";
-	public override string Name => "Banco de México";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MXN;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (string.IsNullOrWhiteSpace(ApiKey)) {

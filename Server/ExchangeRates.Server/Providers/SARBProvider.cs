@@ -20,8 +20,6 @@ public sealed class SARBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "SARB";
-	public override string Name => "South African Reserve Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.ZAR;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency.ToString();

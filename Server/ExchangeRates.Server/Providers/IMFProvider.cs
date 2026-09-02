@@ -20,8 +20,6 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "IMF";
-	public override string Name => "International Monetary Fund";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.XDR;
 
 	/// <summary>
 	/// Fetches exchange rate data from the IMF API for the specified quote currency and date range.

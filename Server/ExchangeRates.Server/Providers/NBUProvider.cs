@@ -17,8 +17,6 @@ public sealed class NBUProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBU";
-	public override string Name => "Natsionalnyi Bank Ukrainy";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.UAH;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url =

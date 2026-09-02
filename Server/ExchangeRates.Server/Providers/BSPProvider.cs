@@ -15,8 +15,6 @@ public sealed class BSPProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BSP";
-	public override string Name => "Bangko Sentral ng Pilipinas";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.PHP;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

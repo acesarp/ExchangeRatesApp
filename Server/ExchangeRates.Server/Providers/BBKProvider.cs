@@ -15,8 +15,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BBK";
-	public override string Name => "Deutsche Bundesbank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.DEM;
+
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 

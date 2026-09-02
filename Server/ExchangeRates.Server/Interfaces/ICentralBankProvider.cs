@@ -4,8 +4,10 @@ namespace ExchangeRates.Server.Interfaces;
 
 public interface ICentralBankProvider {
 	string Code { get; }
-	string Name { get; }
+	string BankName { get; }
 	ECurrencyISO NativeCurrency { get; }
+	string CountryOfOrigin { get; }
+	List<string> HistoricCurrencies { get; }
 
 	/// <summary>
 	/// Retrieves exchange rates for the specified date.

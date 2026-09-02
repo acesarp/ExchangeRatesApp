@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text.Json;
@@ -18,8 +18,6 @@ public sealed class SNBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "SNB";
-	public override string Name => "Swiss National Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.CHF;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (quoteCurrency == NativeCurrency) {

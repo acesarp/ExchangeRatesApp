@@ -15,8 +15,6 @@ public sealed class BOCProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOC";
-	public override string Name => "Bank of Canada";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.CAD;
 
 	/// <inheritdoc/>
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

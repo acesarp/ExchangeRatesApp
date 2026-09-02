@@ -17,8 +17,6 @@ public sealed class NBCProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBC";
-	public override string Name => "National Bank of Cambodia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.KHR;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);

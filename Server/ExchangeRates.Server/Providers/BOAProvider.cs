@@ -20,8 +20,6 @@ public sealed class BOAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOA";
-	public override string Name => "Bank of Algeria";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.DZD;
 
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		_logger.LogWarning("BOA has no configured Url; unable to fetch rates.");

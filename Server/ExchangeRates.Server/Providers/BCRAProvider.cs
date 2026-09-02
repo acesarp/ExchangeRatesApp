@@ -15,8 +15,6 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCRA";
-	public override string Name => "Banco Central de la República Argentina";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.ARS;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (quoteCurrency != ECurrencyISO.USD) {

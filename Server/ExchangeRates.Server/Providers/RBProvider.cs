@@ -20,8 +20,6 @@ public sealed class RBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "RB";
-	public override string Name => "Sveriges Riksbank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.SEK;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (quoteCurrency != ECurrencyISO.USD) {
 			return [];

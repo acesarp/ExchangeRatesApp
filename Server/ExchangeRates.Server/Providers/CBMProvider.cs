@@ -14,8 +14,6 @@ public sealed class CBMProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBM";
-	public override string Name => "Central Bank of Myanmar";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MMK;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);

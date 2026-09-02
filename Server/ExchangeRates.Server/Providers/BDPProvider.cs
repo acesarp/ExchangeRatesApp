@@ -15,8 +15,6 @@ public sealed class BDPProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BDP";
-	public override string Name => "Banco de Portugal";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.PTE;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

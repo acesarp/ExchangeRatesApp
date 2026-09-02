@@ -16,8 +16,6 @@ public sealed class BCPProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCP";
-	public override string Name => "Banco Central del Paraguay";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.PYG;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();

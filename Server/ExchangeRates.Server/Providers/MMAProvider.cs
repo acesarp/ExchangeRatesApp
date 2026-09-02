@@ -14,8 +14,6 @@ public sealed class MMAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "MMA";
-	public override string Name => "Maldives Monetary Authority";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MVR;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);

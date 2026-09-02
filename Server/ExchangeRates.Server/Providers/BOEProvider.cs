@@ -20,8 +20,6 @@ public sealed class BOEProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOE";
-	public override string Name => "Bank of England";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.GBP;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (!_series.TryGetValue(quoteCurrency.ToString(), out var quoteCode)) {

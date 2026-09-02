@@ -15,8 +15,6 @@ public sealed class NBKProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBK";
-	public override string Name => "National Bank of Kazakhstan";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.KZT;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency.ToString();

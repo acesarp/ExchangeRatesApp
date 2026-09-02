@@ -14,8 +14,6 @@ public sealed class BAMProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BAM";
-	public override string Name => "Bank Al-Maghrib";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MAD;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;

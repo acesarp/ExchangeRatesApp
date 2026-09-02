@@ -20,8 +20,6 @@ public sealed class CBLLRProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBLLR";
-	public override string Name => "Central Bank of Liberia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.LRD;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);

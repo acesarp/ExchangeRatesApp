@@ -15,8 +15,6 @@ public sealed class ECBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "ECB";
-	public override string Name => "European Central Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";

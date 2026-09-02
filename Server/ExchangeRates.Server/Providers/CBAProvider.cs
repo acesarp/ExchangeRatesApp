@@ -17,8 +17,6 @@ public sealed class CBAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBA";
-	public override string Name => "Central Bank of Armenia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.AMD;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 

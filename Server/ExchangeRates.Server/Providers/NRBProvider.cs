@@ -14,8 +14,6 @@ public sealed class NRBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NRB";
-	public override string Name => "Nepal Rastra Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.NPR;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?page=1&from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}&per_page=100";

@@ -20,8 +20,6 @@ public sealed class RBFProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "RBF";
-	public override string Name => "Reserve Bank of Fiji";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.FJD;
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		_logger.LogWarning("RBF endpoint requires manual data discovery; parsing not supported.");
 		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);

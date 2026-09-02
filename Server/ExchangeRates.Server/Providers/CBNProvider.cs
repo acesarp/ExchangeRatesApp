@@ -20,8 +20,6 @@ public sealed class CBNProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBN";
-	public override string Name => "Central Bank of Nigeria";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.NGN;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);

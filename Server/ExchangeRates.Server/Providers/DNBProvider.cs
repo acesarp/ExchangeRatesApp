@@ -14,8 +14,6 @@ public sealed class DNBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "DNB";
-	public override string Name => "Danmarks Nationalbank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.DKK;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();

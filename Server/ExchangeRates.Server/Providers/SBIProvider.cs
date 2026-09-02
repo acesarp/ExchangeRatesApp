@@ -20,8 +20,6 @@ public sealed class SBIProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "SBI";
-	public override string Name => "Seðlabanki Íslands";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.ISK;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency.ToString();

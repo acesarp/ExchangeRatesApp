@@ -20,8 +20,6 @@ public sealed class BCUProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BCU";
-	public override string Name => "Banco Central del Uruguay";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.UYU;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (quoteCurrency != ECurrencyISO.USD) {

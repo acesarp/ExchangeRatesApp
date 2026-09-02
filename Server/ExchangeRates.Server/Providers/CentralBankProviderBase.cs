@@ -28,8 +28,10 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected string? ApiKey => Configuration[$"ProviderKeys:{Code}"];
 
 	public abstract string Code { get; }
-	public abstract string Name { get; }
-	public abstract ECurrencyISO NativeCurrency { get; }
+	public string BankName { get => Configuration.GetSection($"CentralBanks:{Code}:BankName")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:BankName configuration."); }
+	public ECurrencyISO NativeCurrency { get => Configuration.GetSection($"CentralBanks:{Code}:NativeCurrency")?.Value?.Trim().ToECurrency() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:NativeCurrency configuration."); }
+	public string CountryOfOrigin { get => Configuration.GetSection($"CentralBanks:{Code}:CountryOfOrigin")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:CountryOfOrigin configuration."); }
+	public List<string> HistoricCurrencies { get => Configuration.GetSection($"CentralBanks:{Code}:HistoricCurrencies").Get<List<string>>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:HistoricCurrencies configuration."); }
 	public IReadOnlySet<ECurrencyISO> SupportedCurrencies {
 		get {
 			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:SupportedCurrencies configuration.");

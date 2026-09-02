@@ -18,8 +18,6 @@ public sealed class CBSLProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBSL";
-	public override string Name => "Central Bank of Sri Lanka";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.LKR;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

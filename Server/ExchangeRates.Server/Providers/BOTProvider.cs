@@ -15,8 +15,6 @@ public sealed class BOTProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOT";
-	public override string Name => "Bank of Thailand";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.THB;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;

@@ -17,8 +17,6 @@ public sealed class DABProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "DAB";
-	public override string Name => "Da Afghanistan Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.AFN;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

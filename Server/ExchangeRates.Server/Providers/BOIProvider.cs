@@ -15,8 +15,6 @@ public sealed class BOIProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOI";
-	public override string Name => "Bank of Israel";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.ILS;
 	/// 
 	/// <summary>
 	/// Bank of Israel.

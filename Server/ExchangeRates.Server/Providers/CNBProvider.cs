@@ -15,8 +15,6 @@ public sealed class CNBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CNB";
-	public override string Name => "Czech National Bank";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.CZK;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

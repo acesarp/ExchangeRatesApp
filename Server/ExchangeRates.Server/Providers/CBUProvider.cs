@@ -15,8 +15,6 @@ public sealed class CBUProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBU";
-	public override string Name => "Central Bank of Uzbekistan";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.UZS;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

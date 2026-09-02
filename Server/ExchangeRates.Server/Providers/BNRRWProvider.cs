@@ -20,8 +20,6 @@ public sealed class BNRRWProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BNRRW";
-	public override string Name => "Banque Nationale du Rwanda";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.RWF;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

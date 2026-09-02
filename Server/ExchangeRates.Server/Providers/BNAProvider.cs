@@ -20,8 +20,6 @@ public sealed class BNAProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BNA";
-	public override string Name => "Banco Nacional de Angola";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.AOA;
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {

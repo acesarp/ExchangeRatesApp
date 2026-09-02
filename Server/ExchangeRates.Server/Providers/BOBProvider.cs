@@ -20,8 +20,6 @@ public sealed class BOBProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "BOB";
-	public override string Name => "Bank of Botswana";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.BWP;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var csv = await Http.GetStringAsync(Url, ct);

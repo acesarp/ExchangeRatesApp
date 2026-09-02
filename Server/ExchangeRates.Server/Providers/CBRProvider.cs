@@ -15,8 +15,6 @@ public sealed class CBRProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "CBR";
-	public override string Name => "Central Bank of Russia";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.RUB;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var historicalUrl = HistoricalUrl;

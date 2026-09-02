@@ -17,8 +17,6 @@ public sealed class NBMProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NBM";
-	public override string Name => "National Bank of Moldova";
-	public override ECurrencyISO NativeCurrency => ECurrencyISO.MDL;
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);
