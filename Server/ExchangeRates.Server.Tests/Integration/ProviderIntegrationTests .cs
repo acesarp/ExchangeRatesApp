@@ -533,4 +533,2139 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromAMCM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<AMCMProvider>();
+
+		var provider = new AMCMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MOP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("AMCM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBAM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile("providerkeys.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BAMProvider>();
+
+		var provider = new BAMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MAD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BAM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBANREP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BANREPProvider>();
+
+		var provider = new BANREPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.COP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BANREP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBANXICO_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile("providerkeys.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BANXICOProvider>();
+
+		var provider = new BANXICOProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MXN, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BANXICO", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBBK_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BBKProvider>();
+
+		var provider = new BBKProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.DEM, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BBK", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCC_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCCProvider>();
+
+		var provider = new BCCProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.CUP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCC", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCCR_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile("providerkeys.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCCRProvider>();
+
+		var provider = new BCCRProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.CRC, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCCR", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCEAO_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCEAOProvider>();
+
+		var provider = new BCEAOProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.XOF, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCEAO", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCN_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCNProvider>();
+
+		var provider = new BCNProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.NIO, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCN", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCRA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCRAProvider>();
+
+		var provider = new BCRAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.ARS, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCRA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCT_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCTProvider>();
+
+		var provider = new BCTProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TND, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCT", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCU_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BCUProvider>();
+
+		var provider = new BCUProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.UYU, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BCU", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBDP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BDPProvider>();
+
+		var provider = new BDPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.PTE, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BDP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BNAProvider>();
+
+		var provider = new BNAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.AOA, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BNA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BNMProvider>();
+
+		var provider = new BNMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MYR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BNM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNR_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BNRProvider>();
+
+		var provider = new BNRProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.RON, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BNR", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNRRW_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BNRRWProvider>();
+
+		var provider = new BNRRWProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.RWF, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BNRRW", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOAProvider>();
+
+		var provider = new BOAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.DZD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOBProvider>();
+
+		var provider = new BOBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.BWP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOJA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOJAProvider>();
+
+		var provider = new BOJAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.JMD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOJA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOJ_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOJProvider>();
+
+		var provider = new BOJProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.JPY, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOJ", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOMProvider>();
+
+		var provider = new BOMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MNT, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOTA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOTAProvider>();
+
+		var provider = new BOTAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TZS, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOTA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOT_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile("providerkeys.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BOTProvider>();
+
+		var provider = new BOTProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.THB, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BOT", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBRB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BRBProvider>();
+
+		var provider = new BRBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.BIF, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BRB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBSP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<BSPProvider>();
+
+		var provider = new BSPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.PHP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("BSP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBAProvider>();
+
+		var provider = new CBAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.AMD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBC_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBCProvider>();
+
+		var provider = new CBCProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TWD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBC", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBE_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBEProvider>();
+
+		var provider = new CBEProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.EGP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBE", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBG_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBGProvider>();
+
+		var provider = new CBGProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.GMD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBG", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBI_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBIProvider>();
+
+		var provider = new CBIProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.IQD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBI", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBK_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBKProvider>();
+
+		var provider = new CBKProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.KES, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBK", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBLLR_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBLLRProvider>();
+
+		var provider = new CBLLRProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.LRD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBLLR", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBMProvider>();
+
+		var provider = new CBMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MMK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBN_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBNProvider>();
+
+		var provider = new CBNProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.NGN, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBN", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBR_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBRProvider>();
+
+		var provider = new CBRProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.RUB, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBR", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBSL_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBSLProvider>();
+
+		var provider = new CBSLProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.LKR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBSL", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBS_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBSProvider>();
+
+		var provider = new CBSProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.WST, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBS", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBU_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CBUProvider>();
+
+		var provider = new CBUProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.UZS, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CBU", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCNB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<CNBProvider>();
+
+		var provider = new CNBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.CZK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("CNB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromDAB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<DABProvider>();
+
+		var provider = new DABProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.AFN, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("DAB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromDNB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<DNBProvider>();
+
+		var provider = new DNBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.DKK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("DNB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromFBIL_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<FBILProvider>();
+
+		var provider = new FBILProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.INR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("FBIL", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromHKMA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<HKMAProvider>();
+
+		var provider = new HKMAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.HKD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("HKMA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromHNB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<HNBProvider>();
+
+		var provider = new HNBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.EUR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("HNB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromLB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<LBProvider>();
+
+		var provider = new LBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.EUR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("LB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromMAS_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<MASProvider>();
+
+		var provider = new MASProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.SGD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("MAS", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromMMA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<MMAProvider>();
+
+		var provider = new MMAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MVR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("MMA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromMNB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<MNBProvider>();
+
+		var provider = new MNBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.HUF, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("MNB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBC_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBCProvider>();
+
+		var provider = new NBCProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.KHR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBC", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBE_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBEProvider>();
+
+		var provider = new NBEProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.ETB, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBE", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBG_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBGProvider>();
+
+		var provider = new NBGProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.GEL, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBG", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBK_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBKProvider>();
+
+		var provider = new NBKProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.KZT, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBK", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBKR_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBKRProvider>();
+
+		var provider = new NBKRProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.KGS, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBKR", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBMProvider>();
+
+		var provider = new NBMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MDL, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBPProvider>();
+
+		var provider = new NBPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.PLN, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBProvider>();
+
+		var provider = new NBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.NOK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBRM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBRMProvider>();
+
+		var provider = new NBRMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MKD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBRM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBT_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBTProvider>();
+
+		var provider = new NBTProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TJS, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBT", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNBU_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NBUProvider>();
+
+		var provider = new NBUProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.UAH, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NBU", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNRB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NRBProvider>();
+
+		var provider = new NRBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.NPR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NRB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNRBT_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<NRBTProvider>();
+
+		var provider = new NRBTProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TOP, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("NRBT", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRBF_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<RBFProvider>();
+
+		var provider = new RBFProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.FJD, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("RBF", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRBM_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<RBMProvider>();
+
+		var provider = new RBMProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.MWK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("RBM", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<RBProvider>();
+
+		var provider = new RBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.SEK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("RB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRBV_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<RBVProvider>();
+
+		var provider = new RBVProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.VUV, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("RBV", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromSARB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<SARBProvider>();
+
+		var provider = new SARBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.ZAR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("SARB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromSBI_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<SBIProvider>();
+
+		var provider = new SBIProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.ISK, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("SBI", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromSBP_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<SBPProvider>();
+
+		var provider = new SBPProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.PKR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("SBP", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromTCMB_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile("providerkeys.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<TCMBProvider>();
+
+		var provider = new TCMBProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.TRY, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("TCMB", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromAFA_ForDateRange() {
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
+
+		using var http = new HttpClient();
+
+		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+		var logger = loggerFactory.CreateLogger<AFAProvider>();
+
+		var provider = new AFAProvider(http, configuration, logger);
+
+		var fromDate = new DateOnly(2026, 8, 10);
+		var toDate = new DateOnly(2026, 8, 14);
+
+		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
+		Assert.NotNull(rates);
+		Assert.NotEmpty(rates);
+
+		Assert.All(rates, rate => {
+			Assert.Equal(ECurrencyISO.EUR, rate.BaseCurrency);
+			Assert.Equal(ECurrencyISO.USD, rate.QuoteCurrency);
+			Assert.Equal("AFA", rate.Provider);
+			Assert.True(rate.Rate > 0);
+			Assert.InRange(rate.Date, fromDate, toDate);
+		});
+	}
 }

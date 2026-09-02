@@ -4,6 +4,7 @@
 /// Central bank and monetary authority provider codes.
 /// </summary>
 public enum ECentralBankProvider {
+	AFA,     // Autoritat Financera Andorrana
 	AMCM,    // Monetary Authority of Macao
 	BAM,     // Bank Al-Maghrib
 	BANREP,  // Banco de la República

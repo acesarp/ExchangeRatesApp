@@ -1,7 +1,6 @@
 using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
-
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>

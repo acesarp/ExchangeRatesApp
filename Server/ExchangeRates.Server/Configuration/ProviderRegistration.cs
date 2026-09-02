@@ -6,6 +6,7 @@ namespace ExchangeRates.Server.Configuration;
 
 public static class CentralBankProviderRegistration {
 	public static IServiceCollection AddCentralBankProviders(this IServiceCollection services) {
+		services.AddTransient<ICentralBankProvider, AFAProvider>();
 		services.AddTransient<ICentralBankProvider, AMCMProvider>();
 		services.AddTransient<ICentralBankProvider, BAMProvider>();
 		services.AddTransient<ICentralBankProvider, BANREPProvider>();
