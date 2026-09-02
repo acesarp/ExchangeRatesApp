@@ -11,9 +11,15 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 	private readonly HashSet<ECurrencyISO> _supported;
 
 	public string Code { get; }
-	public string Name { get; }
-	public ECurrencyISO NativeCurrency { get; }
 	public IReadOnlySet<ECurrencyISO> SupportedCurrencies { get; }
+
+	public string BankName => "Bank name";
+
+	public ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
+
+	public string CountryOfOrigin => "Test country";
+
+	public List<string> HistoricCurrencies => new();
 
 	public TestCentralBankProvider(
 		string code,
@@ -22,11 +28,9 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 		IEnumerable<ECurrencyISO> supportedCurrencies,
 		Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal>? rates = null) {
 		Code = code;
-		Name = name;
-		NativeCurrency = nativeCurrency;
 		_supported = new HashSet<ECurrencyISO>(supportedCurrencies);
 		SupportedCurrencies = _supported;
-		_rates = rates ?? [];
+		_rates = rates ?? new Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal>();
 	}
 
 	public bool Supports(ECurrencyISO currency) => _supported.Contains(currency);
