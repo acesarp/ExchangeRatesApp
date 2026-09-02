@@ -14,20 +14,36 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	}
 
 	public async Task<IReadOnlyList<ExchangeRateEntity>> GetAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-
 		return await _context.ExchangeRates.AsNoTracking()
-																	.Where(x =>
-																		x.BaseCurrency == baseCurrency &&
-																		x.QuoteCurrency == quoteCurrency &&
-																		x.Date >= fromDate &&
-																		x.Date <= toDate)
-																	.OrderBy(x => x.Date)
-																	.ToListAsync(ct);
+			.Where(x => x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency && x.Date >= fromDate && x.Date <= toDate)
+			.OrderBy(x => x.Date)
+			.ToListAsync(ct);
 	}
 
 	public async Task AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
+		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrency, x.QuoteCurrency }).ToList();
+		if (items.Count == 0) {
+			return;
+		}
 
-		_context.ExchangeRates.AddRange(rates);
+		var minDate = items.Min(x => x.Date);
+		var maxDate = items.Max(x => x.Date);
+		var baseCurrencies = items.Select(x => x.BaseCurrency).Distinct().ToList();
+		var quoteCurrencies = items.Select(x => x.QuoteCurrency).Distinct().ToList();
+
+		var existing = await _context.ExchangeRates.AsNoTracking()
+			.Where(x => x.Date >= minDate && x.Date <= maxDate && baseCurrencies.Contains(x.BaseCurrency) && quoteCurrencies.Contains(x.QuoteCurrency))
+			.Select(x => new { x.Date, x.BaseCurrency, x.QuoteCurrency })
+			.ToListAsync(ct);
+
+		var existingKeys = existing.Select(x => (x.Date, x.BaseCurrency, x.QuoteCurrency)).ToHashSet();
+		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrency, x.QuoteCurrency))).ToList();
+
+		if (newRates.Count == 0) {
+			return;
+		}
+
+		_context.ExchangeRates.AddRange(newRates);
 		await _context.SaveChangesAsync(ct);
 	}
 
@@ -53,14 +69,13 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	/// </remarks>
 	public async Task<IReadOnlyList<ExchangeRateFetch>> GetFetchesAsync(string provider, ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		return await _context.ExchangeRateFetches.AsNoTracking()
-																	.Where(x =>
-																		x.Provider == provider &&
-																		x.BaseCurrency == baseCurrency &&
-																		x.QuoteCurrency == quoteCurrency &&
-																		x.FromDate >= fromDate &&
-																		x.ToDate <= toDate)
-																	.OrderBy(x => x.FromDate)
-																	.ToListAsync(ct);
+																				.Where(x => x.Provider == provider &&
+																												x.BaseCurrency == baseCurrency &&
+																												x.QuoteCurrency == quoteCurrency &&
+																												x.FromDate >= fromDate &&
+																												x.ToDate <= toDate)
+																				.OrderBy(x => x.FromDate)
+																				.ToListAsync(ct);
 	}
 
 	public async Task AddFetchAsync(ExchangeRateFetch fetch, CancellationToken ct) {

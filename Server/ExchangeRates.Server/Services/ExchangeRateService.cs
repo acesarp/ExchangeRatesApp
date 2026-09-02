@@ -40,6 +40,10 @@ public class ExchangeRateService : IExchangeRateService {
 		// 1. Try direct provider
 		ICentralBankProvider? bankProvider = FindDirectProvider(baseCurrency, quoteCurrency);
 
+		if (bankProvider?.NativeCurrency == quoteCurrency) {
+			(quoteCurrency, baseCurrency) = (baseCurrency, quoteCurrency);
+		}
+
 		if (bankProvider != null) {
 			_logger.LogInformation("Direct provider selected: {ProviderCode} for {From}->{To}", bankProvider.Code, baseCurrency, quoteCurrency);
 			var directRates = await GetProviderRatesAsync(bankProvider, quoteCurrency, fromDate, toDate, ct);
@@ -60,7 +64,7 @@ public class ExchangeRateService : IExchangeRateService {
 		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, fetches);
 
 		foreach (var range in missingRanges) {
-			IReadOnlyList<ExchangeRateResult> rates = await provider.GetRatesAsync(quoteCurrency, range.From, range.To, ct);
+			var rates = await provider.GetRatesAsync(quoteCurrency, range.From, range.To, ct);
 
 			if (rates.Count > 0) {
 				await _repository.AddRangeAsync(rates.Select(r => r.ToEntity()), ct);
@@ -101,13 +105,10 @@ public class ExchangeRateService : IExchangeRateService {
 	private ICentralBankProvider? FindDirectProvider(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
 		var providers = _providerFactory.GetAllProviders();
 		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
-																														p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
+																										  p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
 
-		if (provider?.NativeCurrency == quoteCurrency) {
-			var swap = baseCurrency;
-			baseCurrency = quoteCurrency;
-			quoteCurrency = swap;
-		}
+		var rst = providers.Where(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
+																								  p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
 
 		return provider;
 	}
