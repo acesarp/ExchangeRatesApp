@@ -15,17 +15,19 @@ async function handleResponse(response) {
 }
 
 export async function getAvailableCurrencies(signal) {
-  const response = await fetch(`${API_BASE_URL}/api/available-currencies`, { signal })
+	const response = await fetch(`${API_BASE_URL}/api/available-currencies`, { signal });
+
   return handleResponse(response)
 }
 
 export async function getExchangeRates({ baseCurrency, quoteCurrency, fromDate, toDate }, signal) {
-  const params = new URLSearchParams({
-	baseCurrency,
-	quoteCurrency,
-	fromDate,
-	toDate,
-  })
-  const response = await fetch(`${API_BASE_URL}/api/exchange-rates?${params.toString()}`, { signal })
+  const params = new URLSearchParams({baseCurrency,	quoteCurrency,	fromDate,	toDate  })
+	const response = await fetch(`${API_BASE_URL}/api/exchange-rates?${params.toString()}`, { signal })
+
+  return handleResponse(response)
+}
+
+export async function getZacaMedia(signal) {
+  const response = await fetch(`${API_BASE_URL}/api/zaca-media`, { signal })
   return handleResponse(response)
 }

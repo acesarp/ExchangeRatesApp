@@ -1,130 +1,209 @@
-import { useEffect, useMemo, useState } from 'react'
-import { getAvailableCurrencies, getExchangeRates } from './services/currencyService'
-import './App.css'
+import { useEffect, useMemo, useRef, useState } from 'react';
+import ChartJS from 'chart.js/auto'
+import { getAvailableCurrencies, getExchangeRates, getZacaMedia } from './services/currencyService';
+import './App.css';
 
-const CHART_WIDTH = 640
-const CHART_HEIGHT = 220
-const CHART_PADDING = 32
 
-function RateChart({ rates }) {
-  const points = useMemo(() => {
-    if (!rates || rates.length === 0) return null
-
-    const values = rates.map((r) => r.rate)
-    const minValue = Math.min(...values)
-    const maxValue = Math.max(...values)
-    const range = maxValue - minValue || 1
-    const stepX = rates.length > 1 ? (CHART_WIDTH - CHART_PADDING * 2) / (rates.length - 1) : 0
-
-    return rates.map((r, index) => {
-      const x = CHART_PADDING + index * stepX
-      const y =
-        CHART_HEIGHT - CHART_PADDING - ((r.rate - minValue) / range) * (CHART_HEIGHT - CHART_PADDING * 2)
-      return { x, y, rate: r.rate, date: r.date }
-    })
-  }, [rates])
-
-  if (!points) return null
-
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-
-  return (
-    <div className="chart-card">
-      <h3 className="chart-title">Rate Trend</h3>
-      <svg
-        className="chart-svg"
-        viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        role="img"
-        aria-label="Exchange rate trend chart"
-      >
-        <line
-          x1={CHART_PADDING}
-          y1={CHART_HEIGHT - CHART_PADDING}
-          x2={CHART_WIDTH - CHART_PADDING}
-          y2={CHART_HEIGHT - CHART_PADDING}
-          className="chart-axis"
-        />
-        <line
-          x1={CHART_PADDING}
-          y1={CHART_PADDING}
-          x2={CHART_PADDING}
-          y2={CHART_HEIGHT - CHART_PADDING}
-          className="chart-axis"
-        />
-        <path d={linePath} className="chart-line" fill="none" />
-        {points.map((p) => (
-          <circle key={p.date} cx={p.x} cy={p.y} r="3" className="chart-point">
-            <title>{`${p.date}: ${p.rate}`}</title>
-          </circle>
-        ))}
-      </svg>
-    </div>
-  )
-}
+const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
 function getTodayIsoDate() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
-function App() {
-  const [currencies, setCurrencies] = useState([])
-  const [baseCurrency, setBaseCurrency] = useState('')
-  const [quoteCurrency, setQuoteCurrency] = useState('')
-  const [fromDate, setFromDate] = useState(getTodayIsoDate)
-  const [toDate, setToDate] = useState(getTodayIsoDate)
+function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
+    const canvasRef = useRef(null)
+    const chartRef = useRef(null)
+    const [hoverPosition, setHoverPosition] = useState(null)
 
-  const [rates, setRates] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [hasSearched, setHasSearched] = useState(false)
+    useEffect(() => {
+        if (!canvasRef.current || !rates?.length) return
 
-  useEffect(() => {
-    const controller = new AbortController()
+        chartRef.current?.destroy();
 
-    async function loadCurrencies() {
-      try {
-        const data = await getAvailableCurrencies(controller.signal)
-        setCurrencies(data ?? [])
-      } catch (err) {
-          if (err.name !== 'AbortError') {
-              setError('Unable to load available currencies.' + err.name + ': ' + err.message)
+        chartRef.current = new ChartJS(canvasRef.current, {
+            type: 'line',
+            data: {
+                labels: rates.map(r => r.date),
+                datasets: [{
+                    label: `${baseCurrency} / ${quoteCurrency}`,
+                    data: rates.map(r => r.rate),
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => `${baseCurrency} / ${quoteCurrency}: ${context.parsed.y}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 0,
+                            autoSkip: true,
+                            callback(value) {
+                                const isoDate = this.getLabelForValue(value)
+                                if (!isoDate) return ''
+
+                                const [, month, day] = isoDate.split('-')
+                                return `${day}-${month}`
+                            }
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            callback: value => Number(value).toFixed(4)
+                        }
+                    }
+                },
+                onHover: event => {
+                    if (event.x == null || event.y == null) return
+                    setHoverPosition({ x: event.x, y: event.y })
+                }
+            }
+        })
+
+        return () => {
+            chartRef.current?.destroy()
+            chartRef.current = null
         }
-      }
-    }
+    }, [rates, baseCurrency, quoteCurrency])
 
-    loadCurrencies()
-    return () => controller.abort()
-  }, [])
+    if (!rates?.length) return null
 
-  const canSubmit =
-    Boolean(baseCurrency) &&
-    Boolean(quoteCurrency) &&
-    Boolean(fromDate) &&
-    Boolean(toDate) &&
-    baseCurrency !== quoteCurrency &&
-    !loading
+    return (
+        <div className="chart-card">
+            <h3 className="chart-title">Rate Trend</h3>
+
+            <div className="chart-container" onMouseLeave={() => setHoverPosition(null)}>
+                <canvas ref={canvasRef} />
+
+                {hoverPosition && zacaPictureSrc && (
+                    <img
+                        src={zacaPictureSrc}
+                        alt="Zaca"
+                        className="chart-zaca-image"
+                        style={{ left: `${hoverPosition.x}px`, top: `${hoverPosition.y}px` }}
+                    />
+                )}
+            </div>
+        </div>
+    )
+
+}
+function App() {
+    const [currencies, setCurrencies] = useState([]);
+    const [baseCurrency, setBaseCurrency] = useState('USD');
+    const [quoteCurrency, setQuoteCurrency] = useState('EUR');
+    const [fromDate, setFromDate] = useState(getTodayIsoDate);
+    const [toDate, setToDate] = useState(getTodayIsoDate);
+
+    const [rates, setRates] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [hasSearched, setHasSearched] = useState(false);
+
+    const [zacaPictureSrc, setZacaPictureSrc] = useState('');
+    const audioRef = useRef(null);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function loadCurrencies() {
+            try {
+                const data = await getAvailableCurrencies(controller.signal);
+                const availableCurrencies = data ?? [];
+                setCurrencies(availableCurrencies);
+
+                if (availableCurrencies.length > 0) {
+                    setBaseCurrency(availableCurrencies.includes('USD') ? 'USD' : availableCurrencies[0]);
+                    setQuoteCurrency(availableCurrencies.includes('EUR') ? 'EUR' : availableCurrencies[0]);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    setError('Unable to load available currencies.' + err.name + ': ' + err.message);
+                }
+            }
+        }
+
+        loadCurrencies();
+        return () => controller.abort();
+    }, []);
+
+    const sortedCurrencies = useMemo(() => {
+        return [...currencies].sort((a, b) => {
+            const aPriority = PRIORITY_CURRENCIES.indexOf(a);
+            const bPriority = PRIORITY_CURRENCIES.indexOf(b);
+
+            if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
+            if (aPriority !== -1) return -1;
+            if (bPriority !== -1) return 1;
+            return a.localeCompare(b);
+        })
+    }, [currencies]);
+
+    const canSubmit =
+        Boolean(baseCurrency) &&
+        Boolean(quoteCurrency) &&
+        Boolean(fromDate) &&
+        Boolean(toDate) &&
+        baseCurrency !== quoteCurrency &&
+        !loading;
 
   async function handleSubmit(event) {
-    event.preventDefault()
-    if (!canSubmit) return
+      event.preventDefault();
+      if (!canSubmit) return;
 
-    setLoading(true)
-    setError('')
+      setLoading(true);
+      setError('');
 
     try {
-      const data = await getExchangeRates({ baseCurrency, quoteCurrency, fromDate, toDate })
-      setRates(data ?? [])
-      setHasSearched(true)
+        const data = await getExchangeRates({ baseCurrency, quoteCurrency, fromDate, toDate });
+        setRates(data ?? []);
+        setHasSearched(true);
+
+      if (data && data.length > 0) {
+        try {
+            const media = await getZacaMedia();
+          if (media?.picture) {
+              setZacaPictureSrc(`data:image/png;base64,${media.picture}`);
+          }
+          if (media?.audio && audioRef.current) {
+              audioRef.current.src = `data:audio/mpeg;base64,${media.audio}`;
+              audioRef.current.play().catch(() => { });
+          }
+        } catch {
+          // ignore zaca media failures, they are non-critical
+        }
+      }
     } catch {
-      setError('Unable to fetch exchange rates. Please try again.')
-      setRates([])
-      setHasSearched(true)
+      setError('Unable to fetch exchange rates. Please try again.');
+      setRates([]);
+      setHasSearched(true);
     } finally {
-      setLoading(false)
+        setLoading(false);
     }
   }
 
@@ -142,6 +221,7 @@ function App() {
 
   return (
     <div className="page">
+      <audio ref={audioRef} hidden />
       <header className="app-header">
         <h1>Exchange Rates</h1>
         <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
@@ -153,69 +233,37 @@ function App() {
             <div className="form-grid">
               <div className="form-field">
                 <label htmlFor="baseCurrency">Base Currency</label>
-                <select
-                  id="baseCurrency"
-                  value={baseCurrency}
-                  onChange={(e) => setBaseCurrency(e.target.value)}
-                  required
-                >
-                  <option value="" disabled>
-                    Select currency
-                  </option>
-                  {currencies.map((currency) => (
-                    <option key={currency} value={currency}>
-                      {currency}
-                    </option>
+                <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
+                  <option value="" disabled>Select currency</option>
+                  {sortedCurrencies.map((currency) => (
+                    <option key={currency} value={currency}>{currency}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form-field">
                 <label htmlFor="quoteCurrency">Quote Currency</label>
-                <select
-                  id="quoteCurrency"
-                  value={quoteCurrency}
-                  onChange={(e) => setQuoteCurrency(e.target.value)}
-                  required
-                >
-                  <option value="" disabled>
-                    Select currency
-                  </option>
-                  {currencies.map((currency) => (
-                    <option key={currency} value={currency}>
-                      {currency}
-                    </option>
+                <select id="quoteCurrency" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)} required>
+                  <option value="" disabled>Select currency</option>
+                  {sortedCurrencies.map((currency) => (
+                    <option key={currency} value={currency}>{currency}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form-field">
                 <label htmlFor="fromDate">From Date</label>
-                <input
-                  id="fromDate"
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  required
-                />
+                <input id="fromDate" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} required />
               </div>
 
               <div className="form-field">
                 <label htmlFor="toDate">To Date</label>
-                <input
-                  id="toDate"
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  required
-                />
+                <input id="toDate" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} required />
               </div>
             </div>
 
             {baseCurrency && quoteCurrency && baseCurrency === quoteCurrency && (
-              <p className="field-error" role="alert">
-                Base and quote currencies must be different.
-              </p>
+              <p className="field-error" role="alert">Base and quote currencies must be different.</p>
             )}
 
             <div className="form-actions">
@@ -227,15 +275,11 @@ function App() {
         </section>
 
         {error && (
-          <div className="alert alert-error" role="alert">
-            {error}
-          </div>
+          <div className="alert alert-error" role="alert">{error}</div>
         )}
 
         {loading && (
-          <div className="alert alert-loading" role="status">
-            Fetching exchange rates…
-          </div>
+          <div className="alert alert-loading" role="status">Fetching exchange rates…</div>
         )}
 
         {!loading && hasSearched && !error && (
@@ -261,7 +305,14 @@ function App() {
               </div>
             )}
 
-            {rates.length > 0 && <RateChart rates={rates} />}
+            {rates.length > 0 && (
+              <RateChart
+                rates={rates}
+                baseCurrency={baseCurrency}
+                quoteCurrency={quoteCurrency}
+                zacaPictureSrc={zacaPictureSrc}
+              />
+            )}
 
             <div className="table-wrapper">
               <table className="rates-table">
@@ -270,10 +321,7 @@ function App() {
                     <th scope="col">Date</th>
                     <th scope="col">Base</th>
                     <th scope="col">Quote</th>
-                    <th scope="col" className="numeric">
-                      Rate
-                    </th>
-                    <th scope="col">Provider</th>
+                    <th scope="col" className="numeric">Rate</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -290,7 +338,6 @@ function App() {
                         <td>{rate.baseCurrency}</td>
                         <td>{rate.quoteCurrency}</td>
                         <td className="numeric">{rate.rate}</td>
-                        <td>{rate.provider}</td>
                       </tr>
                     ))
                   )}
@@ -304,4 +351,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

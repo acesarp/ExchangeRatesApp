@@ -44,4 +44,14 @@ public class QuotesController : ControllerBase {
 		var result = Ok(currencies);
 		return result;
 	}
+
+	[Route("zaca-media", Name = "ZacaMedia")]
+	[HttpGet]
+	public ActionResult GetZacaMedia() {
+		var picture = System.IO.File.ReadAllBytes("./Assets/zaca01.png");
+		var audio = System.IO.File.ReadAllBytes("./Assets/risada-zacarias.mp3");
+
+		var result = Ok(new { picture, audio });
+		return result;
+	}
 }

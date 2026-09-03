@@ -1,9 +1,27 @@
 namespace ExchangeRates.Domain.Enums;
 
 /// <summary>
-/// ISO 4217
+/// Current ISO 4217 currencies
 /// </summary>
 public enum ECurrencyISO {
+
+	//------------------ Major currencies ---------------//
+
+	/// <summary> US Dollar </summary>
+	USD = 840,
+	/// <summary> Euro </summary>
+	EUR = 978,
+	/// <summary> Brazilian Real </summary>
+	BRL = 986,
+	/// <summary> Canadian Dollar </summary>
+	CAD = 124,
+	/// <summary> Pound Sterling </summary>
+	GBP = 826,
+	/// <summary> Australian Dollar </summary>
+	AUD = 36,
+
+	//------------------ All currencies ---------------//
+
 	/// <summary> United Arab Emirates Dirham </summary>
 	AED = 784,
 	/// <summary> Afghani </summary>
@@ -16,8 +34,6 @@ public enum ECurrencyISO {
 	AOA = 973,
 	/// <summary> Argentine Peso </summary>
 	ARS = 32,
-	/// <summary> Australian Dollar </summary>
-	AUD = 36,
 	/// <summary> Aruban Florin </summary>
 	AWG = 533,
 	/// <summary> Azerbaijan Manat </summary>
@@ -42,8 +58,6 @@ public enum ECurrencyISO {
 	BOB = 68,
 	/// <summary> Mvdol </summary>
 	BOV = 984,
-	/// <summary> Brazilian Real </summary>
-	BRL = 986,
 	/// <summary> Bahamian Dollar </summary>
 	BSD = 44,
 	/// <summary> Ngultrum </summary>
@@ -54,8 +68,7 @@ public enum ECurrencyISO {
 	BYN = 933,
 	/// <summary> Belize Dollar </summary>
 	BZD = 84,
-	/// <summary> Canadian Dollar </summary>
-	CAD = 124,
+
 	/// <summary> Congolese Franc </summary>
 	CDF = 976,
 	/// <summary> WIR Euro </summary>
@@ -96,16 +109,12 @@ public enum ECurrencyISO {
 	ERN = 232,
 	/// <summary> Ethiopian Birr </summary>
 	ETB = 230,
-	/// <summary> Euro </summary>
-	EUR = 978,
 
 	/// <summary> Fiji Dollar </summary>
 	FJD = 242,
 	/// <summary> Falkland Islands Pound </summary>
 	FKP = 238,
 
-	/// <summary> Pound Sterling </summary>
-	GBP = 826,
 	/// <summary> Lari </summary>
 	GEL = 981,
 	/// <summary> Ghana Cedi </summary>
@@ -309,8 +318,7 @@ public enum ECurrencyISO {
 	UAH = 980,
 	/// <summary> Uganda Shilling </summary>
 	UGX = 800,
-	/// <summary> US Dollar </summary>
-	USD = 840,
+
 	/// <summary> US Dollar (Next day) </summary>
 	USN = 997,
 	/// <summary> Uruguay Peso en Unidades Indexadas </summary>

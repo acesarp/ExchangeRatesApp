@@ -141,8 +141,8 @@ public class ExchangeRateService : IExchangeRateService {
 	/// <returns>A list of exchange rate results.</returns>
 	/// <exception cref="InvalidOperationException"></exception>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var fromIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(baseCurrency, out var fromFixedRate);
-		var toIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(quoteCurrency, out var toFixedRate);
+		var fromIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(baseCurrency, out var fromPeggedOn, out var fromFixedRate);
+		var toIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(quoteCurrency, out var toPeggedOn, out var toFixedRate);
 
 		var fromProvider = fromIsFixed ? null : FindPivotProvider(baseCurrency);
 		var toProvider = toIsFixed ? null : FindPivotProvider(quoteCurrency);
