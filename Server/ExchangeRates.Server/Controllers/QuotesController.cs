@@ -48,7 +48,7 @@ public class QuotesController : ControllerBase {
 	[Route("zaca-media", Name = "ZacaMedia")]
 	[HttpGet]
 	public ActionResult GetZacaMedia() {
-		var picture = System.IO.File.ReadAllBytes("./Assets/zaca01.png");
+		var picture = System.IO.File.ReadAllBytes("./Assets/zaca01.PNG");
 		var audio = System.IO.File.ReadAllBytes("./Assets/risada-zacarias.mp3");
 
 		var result = Ok(new { picture, audio });

@@ -26,14 +26,17 @@ public class Program {
 			var builder = WebApplication.CreateBuilder(args);
 			builder.Host.UseSerilog();
 
+			Log.Information("Environment: {Environment}", builder.Environment.EnvironmentName);
+
+			builder.Configuration.AddJsonFile("providerkeys.json", optional: false, reloadOnChange: true);
+
+			builder.Services.Configure<Dictionary<string, string>>(builder.Configuration.GetSection("ProviderKeys"));
+			builder.Services.Configure<CentralBankOptions>(builder.Configuration.GetSection("CentralBanks"));
+
+			// Add services to the container.
 			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
 
-			builder.Configuration.AddJsonFile("providerkeys.json", optional: false, reloadOnChange: false);
-			builder.Services.Configure<Dictionary<string, string>>(builder.Configuration.GetSection("ProviderKeys"));
-
-			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-			builder.Services.Configure<CentralBankOptions>(builder.Configuration.GetSection("CentralBanks"));
-			// Add services to the container.
+			Log.Logger.Information("Connection string: {ConnectionString}", builder.Configuration.GetConnectionString("ExchangeRates"));
 
 			builder.Services.AddControllers()
 				.AddJsonOptions(options => {
