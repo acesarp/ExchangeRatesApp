@@ -3,6 +3,7 @@ services:
         build:
             context: ./Clients/ExchangeRates.Client
             dockerfile: Dockerfile
+                container_name: exchangerates-client
         ports:
             - "80:80"
         depends_on:
