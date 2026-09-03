@@ -1,0 +1,23 @@
+services:
+  client:
+    build:
+      context: ./Clients/ExchangeRates.Client
+      dockerfile: Dockerfile
+    container_name: exchangerates-client
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: ExchangeRates.Server/Dockerfile
+    container_name: exchangerates-server
+    ports:
+      - "8081:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+    restart: unless-stopped
