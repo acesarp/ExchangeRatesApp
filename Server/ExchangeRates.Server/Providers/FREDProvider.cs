@@ -64,7 +64,6 @@ public sealed class FREDProvider : CentralBankProviderBase {
 			if (InverseProvider) {
 				rate = 1m / rate;
 			}
-
 			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 

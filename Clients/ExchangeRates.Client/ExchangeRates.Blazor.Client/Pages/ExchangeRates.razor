@@ -3,66 +3,96 @@
 
 <PageTitle>Exchange Rates</PageTitle>
 
-<h1>Exchange Rates</h1>
+<h1 class="mb-4">Exchange Rates</h1>
 
-<div class="row g-3 mb-4">
-	<div class="col-md-3">
-		<label class="form-label">Base Currency</label>
-		<select class="form-select" @bind="BaseCurrency">
-			@foreach (var currency in Currencies) {
-				<option value="@currency">@currency</option>
-			}
-		</select>
-	</div>
+<div class="card shadow-sm mb-4">
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-md-3">
+				<label class="form-label">Base Currency</label>
+				<select class="form-select" @bind="BaseCurrency">
+					@foreach (var currency in Currencies) {
+						<option value="@currency">@currency</option>
+					}
+				</select>
+			</div>
 
-	<div class="col-md-3">
-		<label class="form-label">Quote Currency</label>
-		<select class="form-select" @bind="QuoteCurrency">
-			@foreach (var currency in Currencies) {
-				<option value="@currency">@currency</option>
-			}
-		</select>
-	</div>
+			<div class="col-md-3">
+				<label class="form-label">Quote Currency</label>
+				<select class="form-select" @bind="QuoteCurrency">
+					@foreach (var currency in Currencies) {
+						<option value="@currency">@currency</option>
+					}
+				</select>
+			</div>
 
-	<div class="col-md-2">
-		<label class="form-label">From</label>
-		<InputDate class="form-control" @bind-Value="FromDate" />
-	</div>
+			<div class="col-md-2">
+				<label class="form-label">From</label>
+				<InputDate class="form-control" @bind-Value="FromDate" />
+			</div>
 
-	<div class="col-md-2">
-		<label class="form-label">To</label>
-		<InputDate class="form-control" @bind-Value="ToDate" />
-	</div>
+			<div class="col-md-2">
+				<label class="form-label">To</label>
+				<InputDate class="form-control" @bind-Value="ToDate" />
+			</div>
 
-	<div class="col-md-2 d-flex align-items-end">
-		<button class="btn btn-primary w-100" @onclick="Submit">
-			Get Rates
-		</button>
+			<div class="col-md-2 d-flex align-items-end">
+				<button class="btn btn-primary w-100"
+						@onclick="Submit"
+						disabled="@IsLoading">
+					@if (IsLoading) {
+						<span class="spinner-border spinner-border-sm me-2"></span>
+						<span>Loading...</span>
+					}
+					else {
+						<span>Get Rates</span>
+					}
+				</button>
+			</div>
+		</div>
+
+		@if (!string.IsNullOrWhiteSpace(ErrorMessage)) {
+			<div class="alert alert-danger mt-3 mb-0">
+				@ErrorMessage
+			</div>
+		}
 	</div>
 </div>
+
 @if (Rates.Count > 0) {
-	<table class="table table-striped">
-		<thead>
-			<tr>
-				<th>Date</th>
-				<th>Base</th>
-				<th>Quote</th>
-				<th>Rate</th>
-				<th>Provider</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var rate in Rates) {
-				<tr>
-					<td>@rate.Date.ToString("yyyy-MM-dd")</td>
-					<td>@rate.BaseCurrency</td>
-					<td>@rate.QuoteCurrency</td>
-					<td>@rate.Rate</td>
-					<td>@rate.Provider</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<div class="card shadow-sm">
+		<div class="card-header">
+			<strong>@BaseCurrency / @QuoteCurrency</strong>
+			<span class="text-muted ms-2">
+				@FromDate.ToString("yyyy-MM-dd") - @ToDate.ToString("yyyy-MM-dd")
+			</span>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table table-hover mb-0">
+				<thead class="table-light">
+					<tr>
+						<th>Date</th>
+						<th>Base</th>
+						<th>Quote</th>
+						<th class="text-end">Rate</th>
+						<th>Provider</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var rate in Rates) {
+						<tr>
+							<td>@rate.Date.ToString("yyyy-MM-dd")</td>
+							<td>@rate.BaseCurrency</td>
+							<td>@rate.QuoteCurrency</td>
+							<td class="text-end">@rate.Rate.ToString("N6")</td>
+							<td>@rate.Provider</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
 }
 
 @code {
@@ -72,7 +102,11 @@
 	private List<string> Currencies { get; set; } = [];
 	private string BaseCurrency { get; set; } = string.Empty;
 	private string QuoteCurrency { get; set; } = string.Empty;
+
 	private IReadOnlyList<ExchangeRateResult> Rates { get; set; } = [];
+
+	private bool IsLoading { get; set; }
+	private string? ErrorMessage { get; set; }
 
 	protected override async Task OnInitializedAsync() {
 		Currencies = await CurrencyService.GetCurrenciesAsync();
@@ -82,6 +116,38 @@
 	}
 
 	private async Task Submit() {
-		Rates = await CurrencyService.GetRatesAsync(FromDate, ToDate, BaseCurrency, QuoteCurrency);
+		ErrorMessage = null;
+
+		if (string.IsNullOrWhiteSpace(BaseCurrency) || string.IsNullOrWhiteSpace(QuoteCurrency)) {
+			ErrorMessage = "Please select both currencies.";
+			return;
+		}
+
+		if (BaseCurrency == QuoteCurrency) {
+			ErrorMessage = "Base and quote currencies must be different.";
+			return;
+		}
+
+		if (FromDate > ToDate) {
+			ErrorMessage = "From date cannot be greater than To date.";
+			return;
+		}
+
+		try {
+			IsLoading = true;
+
+			Rates = await CurrencyService.GetRatesAsync(
+				FromDate,
+				ToDate,
+				BaseCurrency,
+				QuoteCurrency);
+		}
+		catch (Exception ex) {
+			Rates = [];
+			ErrorMessage = ex.Message;
+		}
+		finally {
+			IsLoading = false;
+		}
 	}
 }

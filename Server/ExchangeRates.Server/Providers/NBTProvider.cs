@@ -1,10 +1,6 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
 using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
@@ -49,11 +45,17 @@ public sealed class NBTProvider : CentralBankProviderBase {
 					nominal = parsedNominal;
 				}
 
+
+				if (InverseProvider) {
+					value = 1m / value;
+				}
+
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, value / nominal, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch NBT rates.");
 			return [];
 		}

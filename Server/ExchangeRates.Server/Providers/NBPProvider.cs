@@ -35,6 +35,9 @@ public sealed class NBPProvider : CentralBankProviderBase {
 			var rate = GetDecimal(row, "mid");
 
 			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, Enum.Parse<ECurrencyISO>(code!), rate, Code));
 			}
 		}

@@ -43,11 +43,15 @@ public sealed class NBGProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / quantity, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch NBG rates.");
 			return [];
 		}

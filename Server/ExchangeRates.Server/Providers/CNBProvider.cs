@@ -53,12 +53,16 @@ public sealed class CNBProvider : CentralBankProviderBase {
 						continue;
 					}
 
+					if (InverseProvider) {
+						rate = 1m / rate;
+					}
 					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / amount, Code));
 				}
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch CNB rates.");
 			return [];
 		}

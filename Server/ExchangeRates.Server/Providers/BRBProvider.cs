@@ -56,12 +56,16 @@ public sealed class BRBProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
 				break;
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch BRB rates.");
 			return [];
 		}

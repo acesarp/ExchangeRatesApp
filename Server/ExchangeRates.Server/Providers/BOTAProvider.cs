@@ -63,11 +63,15 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch BOTA rates.");
 			return [];
 		}

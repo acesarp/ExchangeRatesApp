@@ -67,6 +67,10 @@ public sealed class SNBProvider : CentralBankProviderBase {
 				// We store CHF -> quoteCurrency.
 				var rate = seriesInfo.Units / value;
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
+
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 		}

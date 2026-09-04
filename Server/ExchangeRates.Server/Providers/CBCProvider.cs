@@ -50,11 +50,17 @@ public sealed class CBCProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, elements[1].GetDecimal(), Code));
+				var rate = elements[1].GetDecimal();
+
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
+				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch CBC rates.");
 			return [];
 		}

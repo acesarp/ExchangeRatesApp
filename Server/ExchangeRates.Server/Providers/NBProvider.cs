@@ -1,11 +1,6 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -81,17 +76,24 @@ public sealed class NBProvider : CentralBankProviderBase {
 					}
 
 					var rateElement = obs.Value[0];
-
+					decimal rate = default;
 					if (rateElement.ValueKind != JsonValueKind.Number || rateElement.GetDecimal() <= 0) {
 						continue;
 					}
+					if (InverseProvider) {
+						rate = 1m / rateElement.GetDecimal();
+					}
+					else {
+						rate = rateElement.GetDecimal();
+					}
 
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rateElement.GetDecimal(), Code));
+					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 				}
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch NB rates.");
 			return [];
 		}

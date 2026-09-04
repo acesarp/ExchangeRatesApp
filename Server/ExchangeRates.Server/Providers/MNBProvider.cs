@@ -78,11 +78,15 @@ public sealed class MNBProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / unit, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch MNB rates.");
 			return [];
 		}

@@ -41,11 +41,15 @@ public sealed class LBProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch LB rates.");
 			return [];
 		}

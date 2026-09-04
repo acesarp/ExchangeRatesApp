@@ -81,6 +81,9 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 					var rate = 1m / bobPerUsd;
 
+					if (InverseProvider) {
+						rate = 1m / rate;
+					}
 					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 				}
 			}

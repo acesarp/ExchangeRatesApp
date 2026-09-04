@@ -61,6 +61,9 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
+			if (InverseProvider) {
+				rate = 1m / rate;
+			}
 			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, 1m / rate, Code));
 		}
 		return rates;

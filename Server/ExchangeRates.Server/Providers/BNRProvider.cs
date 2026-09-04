@@ -1,10 +1,6 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
 using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
@@ -50,9 +46,13 @@ public sealed class BNRProvider : CentralBankProviderBase {
 					var multiplierAttr = rateElement.Attribute("multiplier")?.Value;
 					var multiplier = multiplierAttr is not null && decimal.TryParse(multiplierAttr, NumberStyles.Any, CultureInfo.InvariantCulture, out var m) ? m : 1m;
 
+					if (InverseProvider) {
+						rate = 1m / rate;
+					}
 					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / multiplier, Code));
 				}
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BNR rate for {Date}", date);
 			}
 		}

@@ -83,6 +83,9 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 				continue;
 			}
 
+			if (InverseProvider) {
+				rate = 1m / rate;
+			}
 			return new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code);
 		}
 

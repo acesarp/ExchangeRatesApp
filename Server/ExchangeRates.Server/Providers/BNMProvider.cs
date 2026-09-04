@@ -1,11 +1,6 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -47,9 +42,11 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 				if (data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0) {
 					rate = GetDecimal(data[0], "rate");
-				} else if (data.ValueKind == JsonValueKind.Object) {
+				}
+				else if (data.ValueKind == JsonValueKind.Object) {
 					rate = GetDecimal(data, "rate");
-				} else {
+				}
+				else {
 					continue;
 				}
 
@@ -57,8 +54,12 @@ public sealed class BNMProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BNM rate for {Date}", date);
 			}
 		}

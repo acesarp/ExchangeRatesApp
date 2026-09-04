@@ -53,8 +53,12 @@ public sealed class BCNProvider : CentralBankProviderBase {
 					continue;
 				}
 
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);
 			}
 		}
