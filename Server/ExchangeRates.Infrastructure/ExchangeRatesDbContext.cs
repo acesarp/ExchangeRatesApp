@@ -9,7 +9,6 @@ public sealed class ExchangeRatesDbContext : DbContext {
 		: base(options) { }
 
 	public DbSet<ExchangeRateEntity> ExchangeRates => Set<ExchangeRateEntity>();
-	public DbSet<ExchangeRateFetch> ExchangeRateFetches => Set<ExchangeRateFetch>();
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);

@@ -54,4 +54,9 @@ public class QuotesController : ControllerBase {
 		var result = Ok(new { picture, audio });
 		return result;
 	}
+
+	[HttpGet("environment")]
+	public IActionResult GetEnvironment([FromServices] IWebHostEnvironment environment) {
+		return Ok(new { environment = environment.EnvironmentName });
+	}
 }

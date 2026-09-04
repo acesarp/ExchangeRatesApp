@@ -1,6 +1,5 @@
 ﻿namespace ExchangeRates.Server.Services;
 
-using global::ExchangeRates.Domain.Entities;
 using global::ExchangeRates.Domain.Enums;
 using global::ExchangeRates.Domain.Interfaces;
 using global::ExchangeRates.Server.Extensions;
@@ -40,7 +39,7 @@ public class ExchangeRateService : IExchangeRateService {
 		// 1. Try direct provider
 		ICentralBankProvider? bankProvider = FindDirectProvider(baseCurrency, quoteCurrency);
 
-		if (bankProvider?.NativeCurrency == quoteCurrency) {
+		if (bankProvider?.InverseProvider == true) {
 			(quoteCurrency, baseCurrency) = (baseCurrency, quoteCurrency);
 		}
 
@@ -59,21 +58,19 @@ public class ExchangeRateService : IExchangeRateService {
 	}
 
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetProviderRatesAsync(ICentralBankProvider provider, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-
-		var fetches = await _repository.GetFetchesAsync(provider.Code, provider.NativeCurrency, quoteCurrency, fromDate, toDate, ct);
-		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, fetches);
+		var existingRates = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, provider.InverseProvider, ct);
+		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, existingRates.Select(s => s.Date)
+																																						.ToList());
 
 		foreach (var range in missingRanges) {
 			var rates = await provider.GetRatesAsync(quoteCurrency, range.From, range.To, ct);
 
 			if (rates.Count > 0) {
 				await _repository.AddRangeAsync(rates.Select(r => r.ToEntity()), ct);
-
-				await _repository.AddFetchAsync(new ExchangeRateFetch(provider.Code, provider.NativeCurrency, quoteCurrency, fromDate, toDate), ct);
 			}
 		}
 
-		var result = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, ct);
+		var result = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, provider.InverseProvider, ct);
 		return result.Select(s => s.ToResult()).ToList();
 	}
 
@@ -97,22 +94,28 @@ public class ExchangeRateService : IExchangeRateService {
 	}
 
 	/// <summary>
-	/// 
+	/// Finds a direct provider that supports the specified base and quote currencies.
 	/// </summary>
-	/// <param name="baseCurrency"></param>
-	/// <param name="quoteCurrency"></param>
-	/// <returns></returns>
+	/// <param name="baseCurrency">The base currency.</param>
+	/// <param name="quoteCurrency">The quote currency.</param>
+	/// <returns>The direct provider if found; otherwise, null.</returns>
 	private ICentralBankProvider? FindDirectProvider(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
 		var providers = _providerFactory.GetAllProviders();
 		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
 																										  p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
 
-		var rst = providers.Where(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
-																								  p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
+		if (provider?.NativeCurrency == quoteCurrency) {
+			provider.InverseProvider = true;
+		}
 
 		return provider;
 	}
 
+	/// <summary>
+	/// Finds a pivot provider that supports the specified currency and the pivot currency.
+	/// </summary>
+	/// <param name="currency">The currency to find a pivot provider for.</param>
+	/// <returns>The pivot provider if found; otherwise, null.</returns>
 	private ICentralBankProvider? FindPivotProvider(ECurrencyISO currency) {
 		var providers = _providerFactory.GetAllProviders().ToList();
 		_logger.LogDebug("Evaluating pivot providers for {Currency}. Registered providers: {ProviderCount}", currency, providers.Count);

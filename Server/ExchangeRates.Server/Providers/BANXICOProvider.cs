@@ -46,6 +46,10 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
+		if (InverseProvider) {
+			rate = 1m / rate;
+		}
+
 		return [   new ExchangeRateResult(fromDate,  NativeCurrency,quoteCurrency,rate,Code)
 		];
 	}

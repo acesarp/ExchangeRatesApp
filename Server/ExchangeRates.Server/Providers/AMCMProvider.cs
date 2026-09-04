@@ -35,6 +35,9 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 			if (unit <= 0 || value <= 0) {
 				continue;
 			}
+			if (InverseProvider) {
+				value = 1 / value;
+			}
 			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, NativeCurrency, value / unit, Code));
 		}
 		return rates;

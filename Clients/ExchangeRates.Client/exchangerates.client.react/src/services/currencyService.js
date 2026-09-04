@@ -19,6 +19,11 @@ export async function getAvailableCurrencies(signal) {
 
   return handleResponse(response)
 }
+export async function getEnvironment(signal) {
+	const response = await fetch(`${API_BASE_URL}/environment`, { signal })
+	if (!response.ok) throw new Error(`HTTP ${response.status}`)
+	return response.json()
+}
 
 export async function getExchangeRates({ baseCurrency, quoteCurrency, fromDate, toDate }, signal) {
   const params = new URLSearchParams({baseCurrency,	quoteCurrency,	fromDate,	toDate  })

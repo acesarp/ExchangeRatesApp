@@ -39,9 +39,10 @@ public sealed class CBMProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, (InverseProvider ? 1 / rate : rate), Code));
 			return results;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch CBM rates.");
 			return [];
 		}

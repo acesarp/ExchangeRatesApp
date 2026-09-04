@@ -40,6 +40,9 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 		}

@@ -1,11 +1,4 @@
 using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Utilities;
-
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -20,8 +13,8 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 	}
 
 	public override string Code => "NRBT";
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		_logger.LogWarning("NRBT source is an XLSX file; parsing not supported.");
-		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);
+		return await Task.FromResult<IReadOnlyList<ExchangeRateResult>>(Array.Empty<ExchangeRateResult>());
 	}
 }

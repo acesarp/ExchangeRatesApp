@@ -1,5 +1,5 @@
-using ExchangeRates.Server;
 using ExchangeRates.Domain.Enums;
+using ExchangeRates.Server;
 using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Providers;
 
@@ -47,6 +47,9 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
+				if (InverseProvider) {
+					rate = 1m / rate;
+				}
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, code.ToECurrency(), rate, Code));
 			}
 		}

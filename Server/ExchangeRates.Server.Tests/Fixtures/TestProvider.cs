@@ -12,6 +12,7 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 
 	public string Code { get; }
 	public IReadOnlySet<ECurrencyISO> SupportedCurrencies { get; }
+	public bool InverseProvider { get; set; }
 
 	public string BankName => "Bank name";
 

@@ -61,14 +61,17 @@ public sealed class FREDProvider : CentralBankProviderBase {
 				rate = 1m / rate;
 			}
 
+			if (InverseProvider) {
+				rate = 1m / rate;
+			}
+
 			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 
 		return rates;
 	}
-
-
 }
+
 public class FREDProviderCurrencyConfiguration {
 	public ECurrencyISO Currency { get; set; }
 	public string SeriesId { get; set; } = string.Empty;

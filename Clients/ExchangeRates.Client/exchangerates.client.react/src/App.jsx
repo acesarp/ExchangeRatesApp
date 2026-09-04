@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ChartJS from 'chart.js/auto'
-import { getAvailableCurrencies, getExchangeRates, getZacaMedia } from './services/currencyService';
+import { getAvailableCurrencies, getExchangeRates, getZacaMedia, getEnvironment } from './services/currencyService';
 import './App.css';
 
 
@@ -15,14 +15,18 @@ function getTodayIsoDate() {
 }
 
 function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
-    const canvasRef = useRef(null)
-    const chartRef = useRef(null)
-    const [hoverPosition, setHoverPosition] = useState(null)
+    const canvasRef = useRef(null);
+    const chartRef = useRef(null);
+    const [hoverPosition, setHoverPosition] = useState(null);
 
     useEffect(() => {
-        if (!canvasRef.current || !rates?.length) return
+        if (!canvasRef.current || !rates?.length) return;
 
         chartRef.current?.destroy();
+
+        const firstRate = Number(rates[0].rate);
+        const lastRate = Number(rates[rates.length - 1].rate);
+        const trendColor = lastRate >= firstRate ? '#90ee90' : '#FF6666';
 
         chartRef.current = new ChartJS(canvasRef.current, {
             type: 'line',
@@ -31,6 +35,8 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
                 datasets: [{
                     label: `${baseCurrency} / ${quoteCurrency}`,
                     data: rates.map(r => r.rate),
+                    borderColor: trendColor,
+                    backgroundColor: trendColor,
                     borderWidth: 2,
                     pointRadius: 3,
                     pointHoverRadius: 5,
@@ -96,24 +102,19 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
     return (
         <div className="chart-card">
             <h3 className="chart-title">Rate Trend</h3>
-
             <div className="chart-container" onMouseLeave={() => setHoverPosition(null)}>
                 <canvas ref={canvasRef} />
 
                 {hoverPosition && zacaPictureSrc && (
-                    <img
-                        src={zacaPictureSrc}
-                        alt="Zaca"
-                        className="chart-zaca-image"
-                        style={{ left: `${hoverPosition.x}px`, top: `${hoverPosition.y}px` }}
-                    />
+                    <img src={zacaPictureSrc} alt="Zaca" className="chart-zaca-image" style={{ left: `${hoverPosition.x}px`, top: `${hoverPosition.y}px` }} />
                 )}
             </div>
         </div>
     )
-
 }
+
 function App() {
+    const [environment, setEnvironment] = useState('');
     const [currencies, setCurrencies] = useState([]);
     const [baseCurrency, setBaseCurrency] = useState('USD');
     const [quoteCurrency, setQuoteCurrency] = useState('EUR');
@@ -130,6 +131,9 @@ function App() {
 
     useEffect(() => {
         const controller = new AbortController();
+        getEnvironment()
+            .then(data => setEnvironment(data.environment))
+            .catch(() => setEnvironment('Unknown'));
 
         async function loadCurrencies() {
             try {
@@ -207,24 +211,25 @@ function App() {
     }
   }
 
-  const summary = useMemo(() => {
-    if (!rates || rates.length === 0) return null
-    const latest = rates[rates.length - 1]
-    return {
-      pair: `${baseCurrency} / ${quoteCurrency}`,
-      range: `${fromDate} to ${toDate}`,
-      count: rates.length,
-      latestRate: latest.rate,
-      latestDate: latest.date,
-    }
-  }, [rates, baseCurrency, quoteCurrency, fromDate, toDate])
+    const summary = useMemo(() => {
+        if (!rates || rates.length === 0) return null;
+        const latest = rates[rates.length - 1];
+        return {
+            pair: `${baseCurrency} / ${quoteCurrency}`,
+            range: `${fromDate} to ${toDate}`,
+            count: rates.length,
+            latestRate: latest.rate,
+            latestDate: latest.date,
+        }
+    }, [rates, baseCurrency, quoteCurrency, fromDate, toDate]);
 
   return (
     <div className="page">
       <audio ref={audioRef} hidden />
       <header className="app-header">
         <h1>Exchange Rates</h1>
-        <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
+              <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
+              <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
       </header>
 
       <main className="content">

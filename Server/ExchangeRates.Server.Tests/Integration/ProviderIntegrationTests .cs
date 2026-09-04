@@ -44,6 +44,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.EUR, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -82,6 +83,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -101,6 +103,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -120,6 +123,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.MXN, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -139,6 +143,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.THB, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -158,6 +163,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.CHF, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -177,6 +183,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 5, 1);
 		var toDate = new DateOnly(2026, 7, 31);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.EUR, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -195,6 +202,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -214,6 +222,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 20);
 		var toDate = new DateOnly(2026, 8, 27);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -233,7 +242,9 @@ public sealed class ProviderIntegrationTests {
 		var provider = new BCPProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2019, 8, 20);
 		var toDate = new DateOnly(2019, 8, 27);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.DKK, fromDate, toDate, CancellationToken.None);
+		//Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -279,6 +290,7 @@ public sealed class ProviderIntegrationTests {
 		var toDate = new DateOnly(2026, 8, 7);
 		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
+		//Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -303,7 +315,10 @@ public sealed class ProviderIntegrationTests {
 		var provider = new ECBProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.BRL, fromDate, toDate, CancellationToken.None);
+
+		// Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -324,7 +339,9 @@ public sealed class ProviderIntegrationTests {
 		var provider = new NBRBProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		// Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -345,7 +362,9 @@ public sealed class ProviderIntegrationTests {
 		var provider = new BIProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.AED, fromDate, toDate, CancellationToken.None);
+		// Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -359,14 +378,15 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromAMCM_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<AMCMProvider>();
 		var provider = new AMCMProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		// Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -387,7 +407,9 @@ public sealed class ProviderIntegrationTests {
 		var provider = new BAMProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		// Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -408,7 +430,9 @@ public sealed class ProviderIntegrationTests {
 		var provider = new BANREPProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		//  Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -422,14 +446,15 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBANXICO_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BANXICOProvider>();
 		var provider = new BANXICOProvider(http, GetConfiguration(), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
+		// Act
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+		//  Assert
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -442,7 +467,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBBK_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -463,7 +487,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCC_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -506,7 +529,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCEAO_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BCEAOProvider>();
@@ -526,7 +548,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCN_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -548,7 +569,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCRA_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BCRAProvider>();
@@ -568,7 +588,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCT_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -590,7 +609,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBCU_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BCUProvider>();
@@ -610,7 +628,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBDP_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -672,7 +689,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNR_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BNRProvider>();
@@ -692,7 +708,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBNRRW_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -714,7 +729,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOA_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BOAProvider>();
@@ -734,7 +748,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOB_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -756,7 +769,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOJA_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BOJAProvider>();
@@ -776,7 +788,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOJ_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -798,7 +809,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOM_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BOMProvider>();
@@ -818,7 +828,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOTA_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -840,7 +849,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBOT_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BOTProvider>();
@@ -860,7 +868,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBRB_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -882,7 +889,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromBSP_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<BSPProvider>();
@@ -902,7 +908,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBA_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -924,7 +929,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBC_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<CBCProvider>();
@@ -942,9 +946,9 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBE_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -963,9 +967,9 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBG_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -1049,7 +1053,6 @@ public sealed class ProviderIntegrationTests {
 	}
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromCBM_ForDateRange() {
-
 
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -1848,6 +1851,7 @@ public sealed class ProviderIntegrationTests {
 		Assert.Equal(ECurrencyISO.EUR, peggedOn);
 		Assert.Equal(6.55957m, rate);
 	}
+
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_TriangulatedRates_ForAdpToAed() {
 		using var factory = new WebApplicationFactory<Program>();

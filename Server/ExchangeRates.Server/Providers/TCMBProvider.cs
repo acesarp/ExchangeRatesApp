@@ -38,7 +38,11 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 			decimal.TryParse(forexSellingText, NumberStyles.Any, CultureInfo.InvariantCulture, out var sell);
 
 			var mid = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
+
 			if (mid > 0) {
+				if (InverseProvider) {
+					mid = 1 / mid;
+				}
 				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 			}
 		}

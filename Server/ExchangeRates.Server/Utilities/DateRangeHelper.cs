@@ -1,36 +1,30 @@
-﻿using ExchangeRates.Domain.Entities;
-
-namespace ExchangeRates.Server.Utilities;
+﻿namespace ExchangeRates.Server.Utilities;
 
 public static class DateRangeHelper {
-	public static IReadOnlyList<(DateOnly From, DateOnly To)> GetMissingRanges(DateOnly fromDate, DateOnly toDate, IReadOnlyList<ExchangeRateFetch> fetches) {
+	public static IReadOnlyList<(DateOnly From, DateOnly To)> GetMissingRanges(DateOnly fromDate, DateOnly toDate, IReadOnlyCollection<DateOnly> existingDates) {
 		var missing = new List<(DateOnly From, DateOnly To)>();
 		var current = fromDate;
+		if (fromDate > toDate) {
+			return missing;
+		}
+		var existing = existingDates.Where(x => x >= fromDate && x <= toDate)
+													.ToHashSet();
 
-		foreach (var fetch in fetches.OrderBy(x => x.FromDate)) {
-			if (fetch.ToDate < current) {
+		DateOnly? rangeStart = null;
+
+		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			if (!existing.Contains(date)) {
+				rangeStart ??= date;
 				continue;
 			}
 
-			if (fetch.FromDate > toDate) {
-				break;
-			}
-
-			if (fetch.FromDate > current) {
-				missing.Add((current, fetch.FromDate.AddDays(-1)));
-			}
-
-			if (fetch.ToDate >= current) {
-				current = fetch.ToDate.AddDays(1);
-			}
-
-			if (current > toDate) {
-				break;
+			if (rangeStart.HasValue) {
+				missing.Add((rangeStart.Value, date.AddDays(-1)));
+				rangeStart = null;
 			}
 		}
-
-		if (current <= toDate) {
-			missing.Add((current, toDate));
+		if (rangeStart.HasValue) {
+			missing.Add((rangeStart.Value, toDate));
 		}
 
 		return missing;

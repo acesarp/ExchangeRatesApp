@@ -28,6 +28,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected string? ApiKey => Configuration[$"ProviderKeys:{Code}"];
 
 	public abstract string Code { get; }
+	public bool InverseProvider { get; set; }
 	public string BankName { get => Configuration.GetSection($"CentralBanks:{Code}:BankName")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:BankName configuration."); }
 	public ECurrencyISO NativeCurrency { get => Configuration.GetSection($"CentralBanks:{Code}:NativeCurrency")?.Value?.Trim().ToECurrency() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:NativeCurrency configuration."); }
 	public string CountryOfOrigin { get => Configuration.GetSection($"CentralBanks:{Code}:CountryOfOrigin")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:CountryOfOrigin configuration."); }
