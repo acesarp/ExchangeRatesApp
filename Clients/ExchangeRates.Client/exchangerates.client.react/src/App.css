@@ -285,3 +285,42 @@
   color: var(--color-text-muted);
   padding: 32px 16px !important;
 }
+
+.currency-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.currency-field {
+    flex: 1;
+}
+
+.currency-swap {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom:1px;
+}
+
+.swap-button {
+    width: 42px;
+    height: 42px;
+    border: 0px solid #ccc;
+    /*border-radius: 50%;*/
+    background: white;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    flex: 0 0 42px;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+    .swap-button:hover:not(:disabled) {
+        /*background: #f3f3f3;*/
+        transform: rotateZ(180deg);
+    }
+
+    .swap-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }

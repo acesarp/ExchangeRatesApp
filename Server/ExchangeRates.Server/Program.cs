@@ -9,6 +9,8 @@ using ExchangeRates.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
 
 using System.Text.Json.Serialization;
 
@@ -16,17 +18,51 @@ namespace ExchangeRates.Server;
 
 public class Program {
 	public static void Main(string[] args) {
-		Log.Logger = new LoggerConfiguration()
-			.MinimumLevel.Debug()
-			.Enrich.FromLogContext()
-			.WriteTo.Console()
-			.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day)
-			.CreateLogger();
 		try {
 			var builder = WebApplication.CreateBuilder(args);
+
+			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
+			var loggerConfiguration = new LoggerConfiguration()
+				.MinimumLevel.Debug()
+				.Enrich.FromLogContext()
+				.WriteTo.Console()
+				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
+
+			Exception? sqlSinkConfigurationException = null;
+			if (!string.IsNullOrWhiteSpace(connectionString)) {
+				var columnOptions = new ColumnOptions();
+				columnOptions.Store.Clear();
+				columnOptions.Store.Add(StandardColumn.Id);
+				columnOptions.Store.Add(StandardColumn.Message);
+				columnOptions.Store.Add(StandardColumn.MessageTemplate);
+				columnOptions.Store.Add(StandardColumn.Level);
+				columnOptions.Store.Add(StandardColumn.TimeStamp);
+				columnOptions.Store.Add(StandardColumn.Exception);
+				columnOptions.Store.Add(StandardColumn.Properties);
+
+				try {
+					loggerConfiguration = loggerConfiguration.WriteTo.MSSqlServer(
+						connectionString: connectionString,
+						sinkOptions: new MSSqlServerSinkOptions {
+							TableName = "Logs",
+							AutoCreateSqlTable = true
+						},
+						columnOptions: columnOptions,
+						restrictedToMinimumLevel: LogEventLevel.Information);
+				}
+				catch (Exception ex) {
+					sqlSinkConfigurationException = ex;
+				}
+			}
+
+			Log.Logger = loggerConfiguration.CreateLogger();
 			builder.Host.UseSerilog();
 
 			Log.Information("Environment: {Environment}", builder.Environment.EnvironmentName);
+			Log.Information("SQL Server sink enabled: {SqlServerSinkEnabled}", !string.IsNullOrWhiteSpace(connectionString));
+			if (sqlSinkConfigurationException is not null) {
+				Log.Warning(sqlSinkConfigurationException, "SQL Server sink could not be configured; continuing with console and file sinks.");
+			}
 
 			builder.Configuration.AddJsonFile("providerkeys.json", optional: false, reloadOnChange: true);
 
@@ -35,8 +71,6 @@ public class Program {
 
 			// Add services to the container.
 			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
-
-			Log.Logger.Information("Connection string: {ConnectionString}", builder.Configuration.GetConnectionString("ExchangeRates"));
 
 			builder.Services.AddControllers()
 				.AddJsonOptions(options => {

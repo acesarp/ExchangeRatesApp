@@ -176,40 +176,55 @@ function App() {
         baseCurrency !== quoteCurrency &&
         !loading;
 
-  async function handleSubmit(event) {
-      event.preventDefault();
-      if (!canSubmit) return;
-
-      setLoading(true);
-      setError('');
-
-    try {
-        const data = await getExchangeRates({ baseCurrency, quoteCurrency, fromDate, toDate });
-        setRates(data ?? []);
-        setHasSearched(true);
-
-      if (data && data.length > 0) {
-        try {
-            const media = await getZacaMedia();
-          if (media?.picture) {
-              setZacaPictureSrc(`data:image/png;base64,${media.picture}`);
-          }
-          if (media?.audio && audioRef.current) {
-              audioRef.current.src = `data:audio/mpeg;base64,${media.audio}`;
-              audioRef.current.play().catch(() => { });
-          }
-        } catch {
-          // ignore zaca media failures, they are non-critical
-        }
-      }
-    } catch {
-      setError('Unable to fetch exchange rates. Please try again.');
-      setRates([]);
-      setHasSearched(true);
-    } finally {
-        setLoading(false);
+    async function handleSubmit(event) {
+        event.preventDefault();
+        if (!canSubmit) return;
+        await loadRates(baseCurrency, quoteCurrency);
     }
-  }
+
+    async function handleSwapCurrencies() {
+        const newBase = quoteCurrency;
+        const newQuote = baseCurrency;
+
+        setBaseCurrency(newBase);
+        setQuoteCurrency(newQuote);
+
+        await loadRates(newBase, newQuote);
+    }
+
+    async function loadRates(base, quote) {
+        if (!base || !quote || base === quote || !fromDate || !toDate || loading) return;
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const data = await getExchangeRates({ baseCurrency: base, quoteCurrency: quote, fromDate, toDate });
+            setRates(data ?? []);
+            setHasSearched(true);
+
+            if (data?.length > 0) {
+                try {
+                    const media = await getZacaMedia();
+
+                    if (media?.picture) setZacaPictureSrc(`data:image/png;base64,${media.picture}`);
+
+                    if (media?.audio && audioRef.current) {
+                        audioRef.current.src = `data:audio/mpeg;base64,${media.audio}`;
+                        audioRef.current.play().catch(() => { });
+                    }
+                } catch {
+                    // ignore zaca media failures
+                }
+            }
+        } catch {
+            setError('Unable to fetch exchange rates. Please try again.');
+            setRates([]);
+            setHasSearched(true);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const summary = useMemo(() => {
         if (!rates || rates.length === 0) return null;
@@ -235,8 +250,9 @@ function App() {
       <main className="content">
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
-            <div className="form-grid">
-              <div className="form-field">
+                      <div className="form-grid">
+                          <div className="currency-row">
+                              <div className="form-field currency-field">
                 <label htmlFor="baseCurrency">Base Currency</label>
                 <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
                   <option value="" disabled>Select currency</option>
@@ -245,8 +261,12 @@ function App() {
                   ))}
                 </select>
               </div>
-
-              <div className="form-field">
+            <div className="currency-swap">
+                <button type="button" className="swap-button" onClick={handleSwapCurrencies} disabled={!baseCurrency || !quoteCurrency || loading} title="Swap currencies" aria-label="Swap base and quote currencies">
+                    ⇄
+                </button>
+            </div>
+              <div className="form-field currency-field">
                 <label htmlFor="quoteCurrency">Quote Currency</label>
                 <select id="quoteCurrency" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)} required>
                   <option value="" disabled>Select currency</option>
@@ -255,6 +275,7 @@ function App() {
                   ))}
                 </select>
               </div>
+            </div>
 
               <div className="form-field">
                 <label htmlFor="fromDate">From Date</label>
@@ -272,9 +293,7 @@ function App() {
             )}
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-                {loading ? 'Loading…' : 'Get Rates'}
-              </button>
+              <button type="submit" className="btn btn-primary" disabled={!canSubmit}> {loading ? 'Loading…' : 'Get Rates'} </button>
             </div>
           </form>
         </section>
@@ -311,12 +330,7 @@ function App() {
             )}
 
             {rates.length > 0 && (
-              <RateChart
-                rates={rates}
-                baseCurrency={baseCurrency}
-                quoteCurrency={quoteCurrency}
-                zacaPictureSrc={zacaPictureSrc}
-              />
+              <RateChart rates={rates} baseCurrency={baseCurrency} quoteCurrency={quoteCurrency} zacaPictureSrc={zacaPictureSrc}     />
             )}
 
             <div className="table-wrapper">

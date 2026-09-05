@@ -1620,7 +1620,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNRB_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<NRBProvider>();
@@ -1628,6 +1627,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -1641,7 +1641,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromNRBT_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<NRBTProvider>();
@@ -1649,6 +1648,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
@@ -1662,7 +1662,6 @@ public sealed class ProviderIntegrationTests {
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_UsdRates_FromRBF_ForDateRange() {
 
-
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<RBFProvider>();
@@ -1670,6 +1669,7 @@ public sealed class ProviderIntegrationTests {
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync(ECurrencyISO.USD, fromDate, toDate, CancellationToken.None);
+
 		Assert.NotNull(rates);
 		Assert.NotEmpty(rates);
 		Assert.All(rates, rate => {
