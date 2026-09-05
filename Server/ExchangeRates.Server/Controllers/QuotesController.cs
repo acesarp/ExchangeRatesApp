@@ -19,18 +19,18 @@ public class QuotesController : ControllerBase {
 	[Route("exchange-rates", Name = "ExchangeRates")]
 	[HttpGet]
 	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly? fromDate, DateOnly? toDate) {
-		_logger.LogInformation("GetRate request: {From}->{To}, fromDate={FromDate}, toDate={ToDate}", baseCurrency, quoteCurrency, fromDate, toDate);
+		_logger.LogInformation($"GetRate request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 		var _toDate = toDate ?? _fromDate;
 
 		try {
 			var result = await _service.GetRatesAsync(baseCurrency, quoteCurrency, _fromDate, _toDate);
-			_logger.LogInformation("GetRate response count: {Count} for {From}->{To}", result.Count, baseCurrency, quoteCurrency);
+			_logger.LogInformation($"GetRate response count: {result.Count} for {baseCurrency}->{quoteCurrency}");
 			return Ok(result);
 		}
 		catch (InvalidOperationException ex) {
-			_logger.LogWarning(ex, "Unable to retrieve rates for {From}->{To}", baseCurrency, quoteCurrency);
+			_logger.LogError(ex, $"Unable to retrieve rates for {baseCurrency}->{quoteCurrency}");
 			return BadRequest(new { error = ex.Message });
 		}
 	}
