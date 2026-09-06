@@ -43,9 +43,10 @@ public class ExchangeRateServiceTests {
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
 		var factory = new CentralBankProviderFactory(_providers, logger);
 		var fixedProvider = new FixedExchangeRateProvider(_config);
-		var serviceLogger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
+		var serviceLogger = serviceProvider.GetRequiredService<ILogger<ExchangeRateResolver>>();
 		var repository = serviceProvider.GetRequiredService<IExchangeRateRepository>();
-		_service = new ExchangeRateService(_config, factory, fixedProvider, repository, serviceLogger);
+		var resolver = new ExchangeRateResolver(_config, factory, serviceLogger);
+		_service = new ExchangeRateService(resolver);
 	}
 
 	#region Identity Tests

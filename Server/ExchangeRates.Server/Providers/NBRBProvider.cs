@@ -35,9 +35,8 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+				
+					
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 			catch {

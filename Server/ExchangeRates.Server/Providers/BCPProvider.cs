@@ -74,9 +74,6 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 				if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal rate)) {
 
-					if (InverseProvider) {
-						rate = 1m / rate;
-					}
 					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), NativeCurrency, quoteCurrency, rate, Code));
 				}
 			}

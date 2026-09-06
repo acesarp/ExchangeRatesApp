@@ -43,9 +43,6 @@ public sealed class AFAProvider : CentralBankProviderBase {
 
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
 
-				if (InverseProvider) {
-					rate = 1 / rate;
-				}
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 		}

@@ -46,9 +46,8 @@ public sealed class BNRProvider : CentralBankProviderBase {
 					var multiplierAttr = rateElement.Attribute("multiplier")?.Value;
 					var multiplier = multiplierAttr is not null && decimal.TryParse(multiplierAttr, NumberStyles.Any, CultureInfo.InvariantCulture, out var m) ? m : 1m;
 
-					if (InverseProvider) {
-						rate = 1m / rate;
-					}
+					
+						
 					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / multiplier, Code));
 				}
 			}

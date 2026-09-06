@@ -38,9 +38,8 @@ public sealed class BIProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+
+
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate.Value, Code));
 			}
 			catch (Exception ex) {

@@ -52,9 +52,6 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 				nominal = parsedNominal;
 			}
 
-			if (InverseProvider) {
-				value = 1m / value;
-			}
 			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, value / nominal, Code));
 			return results;
 		}

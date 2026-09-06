@@ -80,9 +80,6 @@ public sealed class NBProvider : CentralBankProviderBase {
 					if (rateElement.ValueKind != JsonValueKind.Number || rateElement.GetDecimal() <= 0) {
 						continue;
 					}
-					if (InverseProvider) {
-						rate = 1m / rateElement.GetDecimal();
-					}
 					else {
 						rate = rateElement.GetDecimal();
 					}

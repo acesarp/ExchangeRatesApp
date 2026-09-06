@@ -17,7 +17,59 @@ public sealed class ECBProvider : CentralBankProviderBase {
 	public override string Code => "ECB";
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{Url}/D.{quoteCurrency}.EUR.SP00.A?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+
+		_logger.LogDebug("ECB request: {Url}", url);
+
+		var csv = await Http.GetStringAsync(url, ct);
+
+		if (string.IsNullOrWhiteSpace(csv)) {
+			return Array.Empty<ExchangeRateResult>();
+		}
+
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+		if (lines.Length < 2) {
+			return Array.Empty<ExchangeRateResult>();
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+		var valueIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
+
+		if (dateIndex < 0 || valueIndex < 0) {
+			_logger.LogWarning("ECB CSV response does not contain TIME_PERIOD or OBS_VALUE columns.");
+			return Array.Empty<ExchangeRateResult>();
+		}
+
+		var rates = new List<ExchangeRateResult>();
+
+		foreach (var line in lines.Skip(1)) {
+			var cols = TextUtils.SplitCsv(line);
+
+			if (dateIndex >= cols.Count || valueIndex >= cols.Count) {
+				continue;
+			}
+
+			if (!DateOnly.TryParse(cols[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				continue;
+			}
+
+			if (!decimal.TryParse(cols[valueIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+		}
+
+		return rates.OrderBy(x => x.Date)
+							.ToList();
+	}
+
+
+	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync_OLD(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRateResult>();
@@ -40,9 +92,8 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+
+
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 		}

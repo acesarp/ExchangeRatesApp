@@ -53,9 +53,6 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (InverseProvider) {
-				mid = 1m / mid;
-			}
 			rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
 		}
 		return rates;

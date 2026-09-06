@@ -39,9 +39,10 @@ public class ExchangeRateServiceEdgeCaseTests {
 		var logger = _serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
 		var factory = new CentralBankProviderFactory(_providers, logger);
 		var fixedProvider = new FixedExchangeRateProvider(_config);
-		var serviceLogger = _serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
+		var serviceLogger = _serviceProvider.GetRequiredService<ILogger<ExchangeRateResolver>>();
 		var repository = _serviceProvider.GetRequiredService<IExchangeRateRepository>();
-		_service = new ExchangeRateService(_config, factory, fixedProvider, repository, serviceLogger);
+		var resolver = new ExchangeRateResolver(_config, factory, serviceLogger);
+		_service = new ExchangeRateService(resolver);
 	}
 
 	#region Empty/Sparse Data Tests

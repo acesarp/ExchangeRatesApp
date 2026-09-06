@@ -54,9 +54,7 @@ public sealed class NRBProvider : CentralBankProviderBase {
 					if (sell <= 0) {
 						continue;
 					}
-					if (InverseProvider) {
-						sell = 1m / sell;
-					}
+
 					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, sell / unit, Code));
 				}
 			}

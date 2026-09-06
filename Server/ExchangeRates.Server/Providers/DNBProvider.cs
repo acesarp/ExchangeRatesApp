@@ -40,9 +40,6 @@ public sealed class DNBProvider : CentralBankProviderBase {
 
 			rate /= 100m;
 
-			if (InverseProvider) {
-				rate = 1m / rate;
-			}
 			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 		}
 

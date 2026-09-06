@@ -22,6 +22,8 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 
 	public List<string> HistoricCurrencies => new();
 
+	public ECurrencyISO PivotCurrency => ECurrencyISO.USD;
+
 	public TestCentralBankProvider(
 		string code,
 		string name,

@@ -1,206 +1,32 @@
-﻿namespace ExchangeRates.Server.Services;
+﻿using ExchangeRates.Domain.Enums;
+using ExchangeRates.Server.Interfaces;
 
-using global::ExchangeRates.Domain.Enums;
-using global::ExchangeRates.Domain.Interfaces;
-using global::ExchangeRates.Server.Extensions;
-using global::ExchangeRates.Server.Interfaces;
-using global::ExchangeRates.Server.Mappers;
-using global::ExchangeRates.Server.Providers;
-using global::ExchangeRates.Server.Utilities;
+namespace ExchangeRates.Server.Services;
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+public sealed class ExchangeRateService : IExchangeRateService {
+	private readonly ExchangeRateResolver _resolver;
 
-public class ExchangeRateService : IExchangeRateService {
-	private readonly IConfiguration _configuration;
-	private readonly CentralBankProviderFactory _providerFactory;
-	private readonly FixedExchangeRateProvider _fixedExchangeRateProvider;
-	private readonly string _pivotCurrency;
-	private readonly ILogger<ExchangeRateService> _logger;
-	private readonly IExchangeRateRepository _repository;
-
-	public ExchangeRateService(IConfiguration configuration, CentralBankProviderFactory providerFactory, FixedExchangeRateProvider fixedExchangeRateProvider, IExchangeRateRepository repository, ILogger<ExchangeRateService> logger) {
-		_configuration = configuration;
-		_providerFactory = providerFactory;
-		_fixedExchangeRateProvider = fixedExchangeRateProvider;
-		_repository = repository;
-		_pivotCurrency = configuration["PivotCurrency"] ?? throw new Exception("Invalid PivotCurrency configuration");
-		_logger = logger;
+	public ExchangeRateService(ExchangeRateResolver resolver) {
+		_resolver = resolver;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
-		_logger.LogInformation("GetRates requested: {baseCurrency}->{quoteCurrency} baseCurrency {fromDate} quoteCurrency {toDate}", baseCurrency, quoteCurrency, fromDate, toDate);
+	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (fromDate > toDate) {
+			throw new ArgumentException("fromDate cannot be greater than toDate.");
+		}
 
 		if (baseCurrency == quoteCurrency) {
-			_logger.LogInformation("Identity rate path selected for {baseCurrency}", baseCurrency);
-			return new List<ExchangeRateResult> { new ExchangeRateResult(fromDate, baseCurrency, quoteCurrency, 1m, "IDENTITY") };
+			return Enumerable.Range(0, toDate.DayNumber - fromDate.DayNumber + 1)
+				.Select(i => new ExchangeRateResult(fromDate.AddDays(i), baseCurrency, quoteCurrency, 1m, "IDENTITY"))
+				.ToList();
 		}
 
-		// 1. Try direct provider
-		ICentralBankProvider? bankProvider = FindDirectProvider(baseCurrency, quoteCurrency);
+		var directRates = await _resolver.GetDirectRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
 
-		if (bankProvider?.InverseProvider == true) {
-			(quoteCurrency, baseCurrency) = (baseCurrency, quoteCurrency);
-		}
-
-		if (bankProvider != null) {
-			_logger.LogInformation($"Direct provider selected: {bankProvider.Code} for {baseCurrency}->{quoteCurrency}");
-			var directRates = await GetProviderRatesAsync(bankProvider, quoteCurrency, fromDate, toDate, ct);
-			_logger.LogInformation($"Direct provider {bankProvider.Code} returned {directRates.Count} records");
+		if (directRates.Count > 0) {
 			return directRates;
 		}
 
-		// 2. No direct rate - triangulate
-		_logger.LogInformation($"No direct provider for {baseCurrency}->{quoteCurrency}; using triangulation");
-		var triangulatedRates = await GetTriangulatedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-		_logger.LogInformation($"Triangulation returned {triangulatedRates.Count} records for {baseCurrency}->{quoteCurrency}");
-		return triangulatedRates;
-	}
-
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetProviderRatesAsync(ICentralBankProvider provider, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var existingRates = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, provider.InverseProvider, ct);
-		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, existingRates.Select(s => s.Date)
-																																						.ToList());
-
-		foreach (var range in missingRanges) {
-			var rates = await provider.GetRatesAsync(quoteCurrency, range.From, range.To, ct);
-
-			if (rates.Count > 0) {
-				await _repository.AddRangeAsync(rates.Select(r => r.ToEntity()), ct);
-			}
-		}
-
-		var result = await _repository.GetAsync(provider.NativeCurrency, quoteCurrency, fromDate, toDate, provider.InverseProvider, ct);
-		return result.Select(s => s.ToResult()).ToList();
-	}
-
-	private bool TryGetDirectRate(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, IReadOnlyList<ExchangeRateResult> rates, out decimal rate) {
-		var direct = rates.FirstOrDefault(x => x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency);
-
-		if (direct is not null) {
-			rate = direct.Rate;
-			return true;
-		}
-
-		var inverse = rates.FirstOrDefault(x => x.BaseCurrency == quoteCurrency && x.QuoteCurrency == baseCurrency);
-
-		if (inverse is not null && inverse.Rate != 0) {
-			rate = 1m / inverse.Rate;
-			return true;
-		}
-
-		rate = 0;
-		return false;
-	}
-
-	/// <summary>
-	/// Finds a direct provider that supports the specified base and quote currencies.
-	/// </summary>
-	/// <param name="baseCurrency">The base currency.</param>
-	/// <param name="quoteCurrency">The quote currency.</param>
-	/// <returns>The direct provider if found; otherwise, null.</returns>
-	private ICentralBankProvider? FindDirectProvider(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
-		var providers = _providerFactory.GetAllProviders();
-		var provider = providers.FirstOrDefault(p => p.NativeCurrency == baseCurrency && p.SupportedCurrencies.Contains(quoteCurrency) ||
-																										  p.NativeCurrency == quoteCurrency && p.SupportedCurrencies.Contains(baseCurrency));
-
-		if (provider?.NativeCurrency == quoteCurrency) {
-			provider.InverseProvider = true;
-		}
-
-		return provider;
-	}
-
-	/// <summary>
-	/// Finds a pivot provider that supports the specified currency and the pivot currency.
-	/// </summary>
-	/// <param name="currency">The currency to find a pivot provider for.</param>
-	/// <returns>The pivot provider if found; otherwise, null.</returns>
-	private ICentralBankProvider? FindPivotProvider(ECurrencyISO currency) {
-		var providers = _providerFactory.GetAllProviders().ToList();
-		_logger.LogDebug($"Evaluating pivot providers for {currency}. Registered providers: {providers.Count}");
-
-		var pivotProvider = providers.FirstOrDefault(p => p.Supports(currency)
-			&& p.Supports(_pivotCurrency.ToECurrency()));
-
-		if (pivotProvider == null) {
-			_logger.LogWarning($"No pivot provider found for {currency} through pivot {_pivotCurrency}");
-		}
-		else {
-			_logger.LogDebug($"Pivot provider {pivotProvider.Code} selected for {currency}");
-		}
-
-		return pivotProvider;
-	}
-
-	/// <summary>
-	/// Attempts to triangulate exchange rates between baseCurrency and quoteCurrency using the pivot currency.
-	/// </summary>
-	/// <param name="baseCurrency">The base currency.</param>
-	/// <param name="quoteCurrency">The quote currency.</param>
-	/// <param name="fromDate">The start date for the exchange rate data.</param>
-	/// <param name="toDate">The end date for the exchange rate data.</param>
-	/// <param name="ct">The cancellation token.</param>
-	/// <returns>A list of exchange rate results.</returns>
-	/// <exception cref="InvalidOperationException"></exception>
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var fromIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(baseCurrency, out var fromPeggedOn, out var fromFixedRate);
-		var toIsFixed = _fixedExchangeRateProvider.TryGetFixedRate(quoteCurrency, out var toPeggedOn, out var toFixedRate);
-
-		var fromProvider = fromIsFixed ? null : FindPivotProvider(baseCurrency);
-		var toProvider = toIsFixed ? null : FindPivotProvider(quoteCurrency);
-
-		var pivot = _pivotCurrency.ToECurrency();
-
-		// Only throw if both sides exist but providers are missing
-		if ((!fromIsFixed && fromProvider is null) && (!toIsFixed && toProvider is null)) {
-			_logger.LogError($"Triangulation failed: no providers for either side. From={baseCurrency} To={quoteCurrency} Pivot={_pivotCurrency}");
-			throw new InvalidOperationException($"Unable to triangulate {baseCurrency}/{quoteCurrency} through {_pivotCurrency}.");
-		}
-
-		// If one side has no provider and is not fixed, return empty list (no data available)
-		if ((!fromIsFixed && fromProvider is null) || (!toIsFixed && toProvider is null)) {
-			_logger.LogWarning($"Triangulation incomplete: provider missing on one side. From={baseCurrency} To={quoteCurrency} Pivot={_pivotCurrency}");
-			return new List<ExchangeRateResult>();
-		}
-
-		_logger.LogInformation($"Triangulation providers selected. FromProvider={fromProvider?.Code} ToProvider={toProvider?.Code} Pivot={pivot}");
-
-		var fromRates = fromIsFixed
-			? BuildFixedRates(baseCurrency, pivot, fromFixedRate, fromDate, toDate)
-			: await GetProviderRatesAsync(fromProvider!, baseCurrency, fromDate, toDate, ct);
-
-		var toRates = toIsFixed
-			? BuildFixedRates(pivot, quoteCurrency, 1m / toFixedRate, fromDate, toDate)
-			: await GetProviderRatesAsync(toProvider!, quoteCurrency, fromDate, toDate, ct);
-
-		_logger.LogDebug($"Triangulation source rates: fromRates={fromRates.Count}, toRates={toRates.Count}");
-
-		var rates = new List<ExchangeRateResult>();
-
-		if (toRates != null && fromRates != null) {
-			foreach (var date in fromRates.Select(x => x.Date).Intersect(toRates.Select(x => x.Date)).Order()) {
-				var fromRatesForDate = fromRates.Where(x => x.Date == date).ToList();
-				var toRatesForDate = toRates.Where(x => x.Date == date).ToList();
-
-				if (!TryGetDirectRate(baseCurrency, pivot, fromRatesForDate, out var fromRate) ||
-					!TryGetDirectRate(pivot, quoteCurrency, toRatesForDate, out var toRate)) {
-					continue;
-				}
-
-				rates.Add(new ExchangeRateResult(date, baseCurrency, quoteCurrency, fromRate * toRate, $"{fromProvider?.Code}+{toProvider?.Code}"));
-			}
-		}
-
-		_logger.LogInformation($"Triangulation completed with {rates.Count} records for {baseCurrency}->{quoteCurrency}");
-		return rates;
-	}
-
-	private static IReadOnlyList<ExchangeRateResult> BuildFixedRates(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, decimal rate, DateOnly fromDate, DateOnly toDate) {
-		var rates = new List<ExchangeRateResult>();
-		for (var d = fromDate; d <= toDate; d = d.AddDays(1)) {
-			rates.Add(new ExchangeRateResult(d, baseCurrency, quoteCurrency, rate, "FIXED"));
-		}
-		return rates;
+		return await _resolver.GetTriangulatedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
 	}
 }

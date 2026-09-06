@@ -71,9 +71,6 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (InverseProvider) {
-				rate = 1m / rate;
-			}
 			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), NativeCurrency, rate / amount, Code));
 		}
 

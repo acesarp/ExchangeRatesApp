@@ -41,9 +41,6 @@ public sealed class SBIProvider : CentralBankProviderBase {
 				if (rateStr is null || !decimal.TryParse(rateStr.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
 
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}

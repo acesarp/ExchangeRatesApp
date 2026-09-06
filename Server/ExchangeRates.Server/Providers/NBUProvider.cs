@@ -47,9 +47,8 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+				
+					
 				rates.Add(new ExchangeRateResult(date, NativeCurrency, code.ToECurrency(), rate, Code));
 			}
 		}

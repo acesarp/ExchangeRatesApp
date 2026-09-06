@@ -43,9 +43,6 @@ public sealed class BCBProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (InverseProvider) {
-				rate = 1 / rate;
-			}
 			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, NativeCurrency, rate, Code));
 		}
 

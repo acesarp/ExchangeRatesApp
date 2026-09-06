@@ -52,9 +52,8 @@ public sealed class CBCProvider : CentralBankProviderBase {
 
 				var rate = elements[1].GetDecimal();
 
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+				
+					
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			}
 

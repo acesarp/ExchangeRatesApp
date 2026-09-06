@@ -250,17 +250,15 @@ function App() {
       <main className="content">
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
-                      <div className="form-grid">
-                          <div className="currency-row">
-                              <div className="form-field currency-field">
-                <label htmlFor="baseCurrency">Base Currency</label>
-                <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
-                  <option value="" disabled>Select currency</option>
-                  {sortedCurrencies.map((currency) => (
-                    <option key={currency} value={currency}>{currency}</option>
-                  ))}
-                </select>
-              </div>
+                <div className="form-grid">
+                    <div className="currency-row">
+                        <div className="form-field currency-field">
+                            <label htmlFor="baseCurrency">Base Currency</label>
+                                 <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
+                                    <option value="" disabled>Select currency</option>
+                                        {sortedCurrencies.map((currency) => ( <option key={currency} value={currency}>{currency}</option> ))}
+                                 </select>
+                        </div>
             <div className="currency-swap">
                 <button type="button" className="swap-button" onClick={handleSwapCurrencies} disabled={!baseCurrency || !quoteCurrency || loading} title="Swap currencies" aria-label="Swap base and quote currencies">
                     ⇄
@@ -270,9 +268,7 @@ function App() {
                 <label htmlFor="quoteCurrency">Quote Currency</label>
                 <select id="quoteCurrency" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)} required>
                   <option value="" disabled>Select currency</option>
-                  {sortedCurrencies.map((currency) => (
-                    <option key={currency} value={currency}>{currency}</option>
-                  ))}
+                  {sortedCurrencies.map((currency) => (<option key={currency} value={currency}>{currency}</option>))}
                 </select>
               </div>
             </div>
@@ -298,13 +294,8 @@ function App() {
           </form>
         </section>
 
-        {error && (
-          <div className="alert alert-error" role="alert">{error}</div>
-        )}
-
-        {loading && (
-          <div className="alert alert-loading" role="status">Fetching exchange rates…</div>
-        )}
+        {error && ( <div className="alert alert-error" role="alert">{error}</div> )}
+        {loading && ( <div className="alert alert-loading" role="status">Fetching exchange rates…</div> )}
 
         {!loading && hasSearched && !error && (
           <section className="card results-card" aria-label="Exchange rate results">
@@ -324,14 +315,12 @@ function App() {
                 </div>
                 <div className="summary-item">
                   <span className="summary-label">Latest rate ({summary.latestDate})</span>
-                  <span className="summary-value summary-highlight">{summary.latestRate}</span>
+                  <span className="summary-value summary-highlight">{summary.latestRate.toFixed(5)}</span>
                 </div>
               </div>
             )}
 
-            {rates.length > 0 && (
-              <RateChart rates={rates} baseCurrency={baseCurrency} quoteCurrency={quoteCurrency} zacaPictureSrc={zacaPictureSrc}     />
-            )}
+            {rates.length > 0 && ( <RateChart rates={rates} baseCurrency={baseCurrency} quoteCurrency={quoteCurrency} zacaPictureSrc={zacaPictureSrc} /> )}
 
             <div className="table-wrapper">
               <table className="rates-table">
@@ -346,17 +335,15 @@ function App() {
                 <tbody>
                   {rates.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="empty-state">
-                        No rates found for the selected criteria.
-                      </td>
+                      <td colSpan={5} className="empty-state"> No rates found for the selected criteria. </td>
                     </tr>
                   ) : (
                     rates.map((rate) => (
                       <tr key={`${rate.date}-${rate.baseCurrency}-${rate.quoteCurrency}`}>
                         <td>{rate.date}</td>
-                        <td>{rate.baseCurrency}</td>
-                        <td>{rate.quoteCurrency}</td>
-                        <td className="numeric">{rate.rate}</td>
+                        <td>{baseCurrency}</td>
+                            <td>{quoteCurrency}</td>
+                            <td className="numeric">{rate.rate.toFixed(5)}</td>
                       </tr>
                     ))
                   )}

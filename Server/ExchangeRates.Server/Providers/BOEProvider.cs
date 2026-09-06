@@ -28,15 +28,12 @@ public sealed class BOEProvider : CentralBankProviderBase {
 		}
 
 		var url = $"{Url}?CodeVer=new&xml.x=yes" +
-	$"&Datefrom={Uri.EscapeDataString(fromDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
-	$"&Dateto={Uri.EscapeDataString(toDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
-	$"&SeriesCodes={quoteCode}" +
-	"&VPD=Y";
+						$"&Datefrom={Uri.EscapeDataString(fromDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
+						$"&Dateto={Uri.EscapeDataString(toDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
+						$"&SeriesCodes={quoteCode}" +
+						"&VPD=Y";
 
 		var csv = await Http.GetStringAsync(url, ct);
-
-		Console.WriteLine(url);
-		Console.WriteLine(csv);
 
 		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
@@ -61,9 +58,6 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (InverseProvider) {
-				rate = 1m / rate;
-			}
 			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, 1m / rate, Code));
 		}
 		return rates;

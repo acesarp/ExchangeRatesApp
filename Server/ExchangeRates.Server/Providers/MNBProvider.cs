@@ -78,9 +78,8 @@ public sealed class MNBProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+				
+					
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / unit, Code));
 			}
 

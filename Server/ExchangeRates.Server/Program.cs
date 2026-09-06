@@ -24,6 +24,10 @@ public class Program {
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 			var loggerConfiguration = new LoggerConfiguration()
 				.MinimumLevel.Debug()
+				//.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 				.Enrich.FromLogContext()
 				.WriteTo.Console()
 				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
@@ -39,16 +43,14 @@ public class Program {
 				columnOptions.Store.Add(StandardColumn.TimeStamp);
 				columnOptions.Store.Add(StandardColumn.Exception);
 				columnOptions.Store.Add(StandardColumn.Properties);
+				columnOptions.Store.Add(StandardColumn.LogEvent);
 
 				try {
 					loggerConfiguration = loggerConfiguration.WriteTo.MSSqlServer(
 						connectionString: connectionString,
-						sinkOptions: new MSSqlServerSinkOptions {
-							TableName = "Logs",
-							AutoCreateSqlTable = true
-						},
+						sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", AutoCreateSqlTable = true },
 						columnOptions: columnOptions,
-						restrictedToMinimumLevel: LogEventLevel.Information);
+						restrictedToMinimumLevel: LogEventLevel.Debug);
 				}
 				catch (Exception ex) {
 					sqlSinkConfigurationException = ex;
@@ -58,8 +60,8 @@ public class Program {
 			Log.Logger = loggerConfiguration.CreateLogger();
 			builder.Host.UseSerilog();
 
-			Log.Information("Environment: {Environment}", builder.Environment.EnvironmentName);
-			Log.Information("SQL Server sink enabled: {SqlServerSinkEnabled}", !string.IsNullOrWhiteSpace(connectionString));
+			Log.Information($"Environment: {builder.Environment.EnvironmentName}");
+			Log.Information($"SQL Server sink enabled: {!string.IsNullOrWhiteSpace(connectionString)}");
 			if (sqlSinkConfigurationException is not null) {
 				Log.Warning(sqlSinkConfigurationException, "SQL Server sink could not be configured; continuing with console and file sinks.");
 			}
@@ -80,6 +82,7 @@ public class Program {
 			builder.Services.AddOpenApi();
 			builder.Services.AddHttpClient();
 
+			builder.Services.AddScoped<ExchangeRateResolver>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();

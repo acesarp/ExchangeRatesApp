@@ -8,7 +8,7 @@ public interface ICentralBankProvider {
 	ECurrencyISO NativeCurrency { get; }
 	string CountryOfOrigin { get; }
 	List<string> HistoricCurrencies { get; }
-	bool InverseProvider { get; set; }
+	ECurrencyISO PivotCurrency { get; }
 
 	/// <summary>
 	/// Retrieves exchange rates for the specified date.

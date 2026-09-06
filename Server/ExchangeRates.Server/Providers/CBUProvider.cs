@@ -52,9 +52,8 @@ public sealed class CBUProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				if (InverseProvider) {
-					rate = 1m / rate;
-				}
+				
+					
 				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / nominal, Code));
 			}
 
