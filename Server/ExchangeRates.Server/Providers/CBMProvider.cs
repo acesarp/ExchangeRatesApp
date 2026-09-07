@@ -39,7 +39,7 @@ public sealed class CBMProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, (InverseProvider ? 1 / rate : rate), Code));
+			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
 			return results;
 		}
 		catch (Exception ex) {

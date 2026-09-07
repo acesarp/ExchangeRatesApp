@@ -5,6 +5,7 @@ using ExchangeRates.Server.Tests.Fixtures;
 
 using FluentAssertions;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +28,8 @@ public class CentralBankProviderFactoryTests {
 
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(serviceProvider.GetServices<ICentralBankProvider>(), logger);
+		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+		var factory = new CentralBankProviderFactory(configuration, serviceProvider.GetServices<ICentralBankProvider>(), logger);
 
 		// Act
 		var result = factory.GetAllProviders();
@@ -43,8 +45,9 @@ public class CentralBankProviderFactoryTests {
 			.AddLogging(builder => builder.AddConsole());
 
 		var serviceProvider = services.BuildServiceProvider();
+		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory([], logger);
+		var factory = new CentralBankProviderFactory(configuration, [], logger);
 
 		// Act
 		var result = factory.GetAllProviders();
@@ -60,8 +63,9 @@ public class CentralBankProviderFactoryTests {
 			.AddLogging(builder => builder.AddConsole());
 
 		var serviceProvider = services.BuildServiceProvider();
+		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory([], logger);
+		var factory = new CentralBankProviderFactory(configuration, [], logger);
 
 		// Act & Assert
 		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("NONEXISTENT"));
@@ -74,8 +78,9 @@ public class CentralBankProviderFactoryTests {
 			.AddLogging(builder => builder.AddConsole());
 
 		var serviceProvider = services.BuildServiceProvider();
+		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory([], logger);
+		var factory = new CentralBankProviderFactory(configuration, [], logger);
 
 		// Act & Assert
 		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("INVALID"));

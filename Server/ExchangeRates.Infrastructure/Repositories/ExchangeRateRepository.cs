@@ -13,7 +13,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context = context;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRateEntity>> GetAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, bool inverseRate, CancellationToken ct) {
+	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		return await _context.ExchangeRates.AsNoTracking()
 																	.Where(x => (x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency ||
 																													x.BaseCurrency == quoteCurrency && x.QuoteCurrency == baseCurrency) &&
@@ -22,7 +22,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																		Date = s.Date,
 																		BaseCurrency = s.BaseCurrency,
 																		QuoteCurrency = s.QuoteCurrency,
-																		Rate = (s.Rate == 0 ? 0 : (inverseRate ? 1 / s.Rate : s.Rate))
+																		Rate = s.Rate
 																	})
 																	.OrderBy(x => x.Date)
 																	.ToListAsync(ct);

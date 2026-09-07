@@ -9,6 +9,7 @@ using ExchangeRates.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
+using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
 
@@ -22,12 +23,15 @@ public class Program {
 			var builder = WebApplication.CreateBuilder(args);
 
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
+
+			SelfLog.Enable(message => Console.Error.WriteLine($"SERILOG SELFLOG: {message}"));
+
 			var loggerConfiguration = new LoggerConfiguration()
 				.MinimumLevel.Debug()
-				//.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 				.Enrich.FromLogContext()
 				.WriteTo.Console()
 				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
@@ -45,16 +49,11 @@ public class Program {
 				columnOptions.Store.Add(StandardColumn.Properties);
 				columnOptions.Store.Add(StandardColumn.LogEvent);
 
-				try {
-					loggerConfiguration = loggerConfiguration.WriteTo.MSSqlServer(
-						connectionString: connectionString,
-						sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", AutoCreateSqlTable = true },
-						columnOptions: columnOptions,
-						restrictedToMinimumLevel: LogEventLevel.Debug);
-				}
-				catch (Exception ex) {
-					sqlSinkConfigurationException = ex;
-				}
+				loggerConfiguration = loggerConfiguration.WriteTo.MSSqlServer(
+					connectionString: connectionString,
+					sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", SchemaName = "dbo", AutoCreateSqlTable = true },
+					columnOptions: columnOptions,
+					restrictedToMinimumLevel: LogEventLevel.Debug);
 			}
 
 			Log.Logger = loggerConfiguration.CreateLogger();
@@ -82,7 +81,6 @@ public class Program {
 			builder.Services.AddOpenApi();
 			builder.Services.AddHttpClient();
 
-			builder.Services.AddScoped<ExchangeRateResolver>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
@@ -106,11 +104,11 @@ public class Program {
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment()) {
 				app.MapOpenApi();
-				app.UseSwagger();
-				app.UseSwaggerUI(options => {
-					options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
-					options.RoutePrefix = string.Empty;
-				});
+				//app.UseSwagger();
+				//app.UseSwaggerUI(options => {
+				//	options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
+				//	options.RoutePrefix = string.Empty;
+				//});
 			}
 
 			app.UseHttpsRedirection();
