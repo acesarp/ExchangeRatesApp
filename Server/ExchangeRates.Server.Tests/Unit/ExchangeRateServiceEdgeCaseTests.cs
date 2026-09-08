@@ -24,7 +24,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 	public ExchangeRateServiceEdgeCaseTests() {
 		_providers = [];
 		var configDict = new Dictionary<string, string?> {
-			{ "PivotCurrency", "USD" },
+			{ "Priority", "USD" },
 			{ "FixedExchangeRates:Rates:USD", "1.00" }
 		};
 		var configBuilder = new ConfigurationBuilder().AddInMemoryCollection(configDict);

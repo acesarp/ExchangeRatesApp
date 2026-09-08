@@ -8,5 +8,5 @@ public interface IExchangeRateRepository {
 
 	Task AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct);
 	Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesAsync(CancellationToken ct);
-
+	Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct);
 }

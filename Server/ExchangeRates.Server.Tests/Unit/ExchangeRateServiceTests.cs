@@ -25,7 +25,7 @@ public class ExchangeRateServiceTests {
 
 		// Setup configuration
 		var configDict = new Dictionary<string, string?> {
-			{ "PivotCurrency", "USD" },
+			{ "Priority", "USD" },
 			{ "FixedExchangeRates:Rates:USD", "1.00" },
 			{ "FixedExchangeRates:Rates:EUR", "0.92" }
 		};

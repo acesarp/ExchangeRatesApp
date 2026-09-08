@@ -56,7 +56,10 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	}
 
 	public async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesAsync(CancellationToken ct) {
-		return await _context.Currencies.AsNoTracking()
-															.ToListAsync(ct);
+		return await _context.Currencies.AsNoTracking().ToListAsync(ct);
+	}
+
+	public async Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct) {
+		return await _context.CentralBanks.AsNoTracking().ToListAsync(ct);
 	}
 }

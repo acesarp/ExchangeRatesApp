@@ -3,7 +3,8 @@
 public sealed class CentralBankEntity {
 	public int Id { get; set; }
 	public string Code { get; set; } = null!;
-	public string Name { get; set; } = null!;
+
+	public string BankName { get; set; } = null!;
 	public string CountryOfOrigin { get; set; }
 	public int CurrencyId { get; set; }
 	public bool IsActive { get; set; }

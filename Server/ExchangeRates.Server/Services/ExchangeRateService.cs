@@ -21,7 +21,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		_logger = logger;
 		_repository = repository;
 		_providerFactory = providerFactory;
-		_pivotCurrency = configuration["PivotCurrency"]?.ToECurrency() ?? throw new InvalidOperationException("Missing PivotCurrency configuration.");
+		_pivotCurrency = configuration["Priority"]?.ToECurrency() ?? throw new InvalidOperationException("Missing Priority configuration.");
 	}
 
 
@@ -194,5 +194,11 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	public async Task<IReadOnlyList<CurrencyModel>> GetCurrenciesAsync(CancellationToken ct) {
 		var currencies = await _repository.GetCurrenciesAsync(ct);
 		return currencies.Select(x => new CurrencyModel(x.Code, x.NumericCode, x.Name, x.IsHistoric, x.Priority)).ToList();
+	}
+
+	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
+		var centralBanks = await _repository.GetCentralBanksAsync(ct);
+		return centralBanks.Select(x => new CentralBankModel(x.Code, x.BankName, x.CountryOfOrigin, x.Currency.Code, x.CurrencyId, x.Priority))
+										.ToList();
 	}
 }
