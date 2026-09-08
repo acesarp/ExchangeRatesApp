@@ -65,7 +65,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 			rates = await GetDirectRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
 
 			if (rates.Any()) {
-				_logger.LogInformation("No direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}. Attempting triangulation.", baseCurrency, quoteCurrency, fromDate, toDate);
+				_logger.LogInformation("Direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
 				var ratesForDbToSave = OrientToCanonical(rates);
 				await _repository.AddRangeAsync(ratesForDbToSave.Select(ExchangeRateMapper.ToEntity), ct);
 
@@ -75,6 +75,8 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		else {
 			return OrientRates(rates.ToList(), baseCurrency, quoteCurrency);
 		}
+
+		_logger.LogInformation("Direct rates not found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}. Attempting triangulation.", baseCurrency, quoteCurrency, fromDate, toDate);
 		// If direct rates are not available, fetch triangulated rates
 		return await GetTriangulatedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
 	}
@@ -111,8 +113,8 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range using triangulation through the pivot currency.
 	/// </summary>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var baseToPivot = await GetRatesAsync(baseCurrency, _pivotCurrency, fromDate, toDate, ct);
-		var pivotToQuote = await GetRatesAsync(_pivotCurrency, quoteCurrency, fromDate, toDate, ct);
+		var baseToPivot = await GetDirectRatesAsync(baseCurrency, _pivotCurrency, fromDate, toDate, ct);
+		var pivotToQuote = await GetDirectRatesAsync(_pivotCurrency, quoteCurrency, fromDate, toDate, ct);
 
 		if (baseToPivot.Count == 0 || pivotToQuote.Count == 0) {
 			return Array.Empty<ExchangeRateResult>();
