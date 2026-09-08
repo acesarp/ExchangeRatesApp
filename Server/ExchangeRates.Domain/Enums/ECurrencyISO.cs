@@ -8,688 +8,688 @@ public enum ECurrencyISO {
 	//------------------ Major currencies ---------------//
 
 	/// <summary> US Dollar </summary>
-	USD = 840,
+	USD,
 	/// <summary> Euro </summary>
-	EUR = 978,
+	EUR,
 	/// <summary> Brazilian Real </summary>
-	BRL = 986,
+	BRL,
 	/// <summary> Canadian Dollar </summary>
-	CAD = 124,
+	CAD,
 	/// <summary> Pound Sterling </summary>
-	GBP = 826,
+	GBP,
 	/// <summary> Australian Dollar </summary>
-	AUD = 36,
+	AUD,
 
 	//------------------ All currencies ---------------//
 
 	/// <summary> United Arab Emirates Dirham </summary>
-	AED = 784,
+	AED,
 	/// <summary> Afghani </summary>
-	AFN = 971,
+	AFN,
 	/// <summary> Lek </summary>
-	ALL = 8,
+	ALL,
 	/// <summary> Armenian Dram </summary>
-	AMD = 51,
+	AMD,
 	/// <summary> Kwanza </summary>
-	AOA = 973,
+	AOA,
 	/// <summary> Argentine Peso </summary>
-	ARS = 32,
+	ARS,
 	/// <summary> Aruban Florin </summary>
-	AWG = 533,
+	AWG,
 	/// <summary> Azerbaijan Manat </summary>
-	AZN = 944,
+	AZN,
 	/// <summary> Convertible Mark </summary>
-	BAM = 977,
+	BAM,
 	/// <summary> Barbados Dollar </summary>
-	BBD = 52,
+	BBD,
 	/// <summary> Taka </summary>
-	BDT = 50,
+	BDT,
 	/// <summary> Bulgarian Lev </summary>
-	BGN = 975,
+	BGN,
 	/// <summary> Bahraini Dinar </summary>
-	BHD = 48,
+	BHD,
 	/// <summary> Burundi Franc </summary>
-	BIF = 108,
+	BIF,
 	/// <summary> Bermudian Dollar </summary>
-	BMD = 60,
+	BMD,
 	/// <summary> Brunei Dollar </summary>
-	BND = 96,
+	BND,
 	/// <summary> Boliviano </summary>
-	BOB = 68,
+	BOB,
 	/// <summary> Mvdol </summary>
-	BOV = 984,
+	BOV,
 	/// <summary> Bahamian Dollar </summary>
-	BSD = 44,
+	BSD,
 	/// <summary> Ngultrum </summary>
-	BTN = 64,
+	BTN,
 	/// <summary> Pula </summary>
-	BWP = 72,
+	BWP,
 	/// <summary> Belarusian Ruble </summary>
-	BYN = 933,
+	BYN,
 	/// <summary> Belize Dollar </summary>
-	BZD = 84,
+	BZD,
 
 	/// <summary> Congolese Franc </summary>
-	CDF = 976,
+	CDF,
 	/// <summary> WIR Euro </summary>
-	CHE = 947,
+	CHE,
 	/// <summary> Swiss Franc </summary>
-	CHF = 756,
+	CHF,
 	/// <summary> WIR Franc </summary>
-	CHW = 948,
+	CHW,
 	/// <summary> Unidad de Fomento </summary>
-	CLF = 990,
+	CLF,
 	/// <summary> Chilean Peso </summary>
-	CLP = 152,
+	CLP,
 	/// <summary> Yuan Renminbi </summary>
-	CNY = 156,
+	CNY,
 	/// <summary> Colombian Peso </summary>
-	COP = 170,
+	COP,
 	/// <summary> Unidad de Valor Real </summary>
-	COU = 970,
+	COU,
 	/// <summary> Costa Rican Colon </summary>
-	CRC = 188,
+	CRC,
 	/// <summary> Cuban Peso </summary>
-	CUP = 192,
+	CUP,
 	/// <summary> Cabo Verde Escudo </summary>
-	CVE = 132,
+	CVE,
 	/// <summary> Czech Koruna </summary>
-	CZK = 203,
+	CZK,
 	/// <summary> Djibouti Franc </summary>
-	DJF = 262,
+	DJF,
 	/// <summary> Danish Krone </summary>
-	DKK = 208,
+	DKK,
 	/// <summary> Dominican Peso </summary>
-	DOP = 214,
+	DOP,
 	/// <summary> Algerian Dinar </summary>
-	DZD = 12,
+	DZD,
 	/// <summary> Egyptian Pound </summary>
-	EGP = 818,
+	EGP,
 	/// <summary> Nakfa </summary>
-	ERN = 232,
+	ERN,
 	/// <summary> Ethiopian Birr </summary>
-	ETB = 230,
+	ETB,
 
 	/// <summary> Fiji Dollar </summary>
-	FJD = 242,
+	FJD,
 	/// <summary> Falkland Islands Pound </summary>
-	FKP = 238,
+	FKP,
 
 	/// <summary> Lari </summary>
-	GEL = 981,
+	GEL,
 	/// <summary> Ghana Cedi </summary>
-	GHS = 936,
+	GHS,
 	/// <summary> Gibraltar Pound </summary>
-	GIP = 292,
+	GIP,
 	/// <summary> Dalasi </summary>
-	GMD = 270,
+	GMD,
 	/// <summary> Guinean Franc </summary>
-	GNF = 324,
+	GNF,
 	/// <summary> Quetzal </summary>
-	GTQ = 320,
+	GTQ,
 	/// <summary> Guyana Dollar </summary>
-	GYD = 328,
+	GYD,
 
 	/// <summary> Hong Kong Dollar </summary>
-	HKD = 344,
+	HKD,
 	/// <summary> Lempira </summary>
-	HNL = 340,
+	HNL,
 	/// <summary> Gourde </summary>
-	HTG = 332,
+	HTG,
 	/// <summary> Forint </summary>
-	HUF = 348,
+	HUF,
 
 	/// <summary> Rupiah </summary>
-	IDR = 360,
+	IDR,
 	/// <summary> New Israeli Sheqel </summary>
-	ILS = 376,
+	ILS,
 	/// <summary> Indian Rupee </summary>
-	INR = 356,
+	INR,
 	/// <summary> Iraqi Dinar </summary>
-	IQD = 368,
+	IQD,
 	/// <summary> Iranian Rial </summary>
-	IRR = 364,
+	IRR,
 	/// <summary> Iceland Krona </summary>
-	ISK = 352,
+	ISK,
 	/// <summary> Jamaican Dollar </summary>
-	JMD = 388,
+	JMD,
 	/// <summary> Jordanian Dinar </summary>
-	JOD = 400,
+	JOD,
 	/// <summary> Yen </summary>
-	JPY = 392,
+	JPY,
 
 	/// <summary> Kenyan Shilling </summary>
-	KES = 404,
+	KES,
 	/// <summary> Som </summary>
-	KGS = 417,
+	KGS,
 	/// <summary> Riel </summary>
-	KHR = 116,
+	KHR,
 	/// <summary> Comorian Franc </summary>
-	KMF = 174,
+	KMF,
 	/// <summary> North Korean Won </summary>
-	KPW = 408,
+	KPW,
 	/// <summary> Won </summary>
-	KRW = 410,
+	KRW,
 	/// <summary> Kuwaiti Dinar </summary>
-	KWD = 414,
+	KWD,
 	/// <summary> Cayman Islands Dollar </summary>
-	KYD = 136,
+	KYD,
 	/// <summary> Tenge </summary>
-	KZT = 398,
+	KZT,
 
 	/// <summary> Lao Kip </summary>
-	LAK = 418,
+	LAK,
 	/// <summary> Lebanese Pound </summary>
-	LBP = 422,
+	LBP,
 	/// <summary> Sri Lanka Rupee </summary>
-	LKR = 144,
+	LKR,
 	/// <summary> Liberian Dollar </summary>
-	LRD = 430,
+	LRD,
 	/// <summary> Loti </summary>
-	LSL = 426,
+	LSL,
 	/// <summary> Libyan Dinar </summary>
-	LYD = 434,
+	LYD,
 
 	/// <summary> Moroccan Dirham </summary>
-	MAD = 504,
+	MAD,
 	/// <summary> Moldovan Leu </summary>
-	MDL = 498,
+	MDL,
 	/// <summary> Malagasy Ariary </summary>
-	MGA = 969,
+	MGA,
 	/// <summary> Denar </summary>
-	MKD = 807,
+	MKD,
 	/// <summary> Kyat </summary>
-	MMK = 104,
+	MMK,
 	/// <summary> Tugrik </summary>
-	MNT = 496,
+	MNT,
 	/// <summary> Pataca </summary>
-	MOP = 446,
+	MOP,
 	/// <summary> Ouguiya </summary>
-	MRU = 929,
+	MRU,
 	/// <summary> Mauritius Rupee </summary>
-	MUR = 480,
+	MUR,
 	/// <summary> Rufiyaa </summary>
-	MVR = 462,
+	MVR,
 	/// <summary> Malawi Kwacha </summary>
-	MWK = 454,
+	MWK,
 	/// <summary> Mexican Peso </summary>
-	MXN = 484,
+	MXN,
 	/// <summary> Mexican Unidad de Inversion </summary>
-	MXV = 979,
+	MXV,
 	/// <summary> Malaysian Ringgit </summary>
-	MYR = 458,
+	MYR,
 	/// <summary> Mozambique Metical </summary>
-	MZN = 943,
+	MZN,
 
 	/// <summary> Namibia Dollar </summary>
-	NAD = 516,
+	NAD,
 	/// <summary> Naira </summary>
-	NGN = 566,
+	NGN,
 	/// <summary> Cordoba Oro </summary>
-	NIO = 558,
+	NIO,
 	/// <summary> Norwegian Krone </summary>
-	NOK = 578,
+	NOK,
 	/// <summary> Nepalese Rupee </summary>
-	NPR = 524,
+	NPR,
 	/// <summary> New Zealand Dollar </summary>
-	NZD = 554,
+	NZD,
 
 	/// <summary> Rial Omani </summary>
-	OMR = 512,
+	OMR,
 
 	/// <summary> Balboa </summary>
-	PAB = 590,
+	PAB,
 	/// <summary> Sol </summary>
-	PEN = 604,
+	PEN,
 	/// <summary> Kina </summary>
-	PGK = 598,
+	PGK,
 	/// <summary> Philippine Peso </summary>
-	PHP = 608,
+	PHP,
 	/// <summary> Pakistan Rupee </summary>
-	PKR = 586,
+	PKR,
 	/// <summary> Zloty </summary>
-	PLN = 985,
+	PLN,
 	/// <summary> Guarani </summary>
-	PYG = 600,
+	PYG,
 
 	/// <summary> Qatari Rial </summary>
-	QAR = 634,
+	QAR,
 
 	/// <summary> Romanian Leu </summary>
-	RON = 946,
+	RON,
 	/// <summary> Serbian Dinar </summary>
-	RSD = 941,
+	RSD,
 	/// <summary> Russian Ruble </summary>
-	RUB = 643,
+	RUB,
 	/// <summary> Rwanda Franc </summary>
-	RWF = 646,
+	RWF,
 
 	/// <summary> Saudi Riyal </summary>
-	SAR = 682,
+	SAR,
 	/// <summary> Solomon Islands Dollar </summary>
-	SBD = 90,
+	SBD,
 	/// <summary> Seychelles Rupee </summary>
-	SCR = 690,
+	SCR,
 	/// <summary> Sudanese Pound </summary>
-	SDG = 938,
+	SDG,
 	/// <summary> Swedish Krona </summary>
-	SEK = 752,
+	SEK,
 	/// <summary> Singapore Dollar </summary>
-	SGD = 702,
+	SGD,
 	/// <summary> Saint Helena Pound </summary>
-	SHP = 654,
+	SHP,
 	/// <summary> Leone </summary>
-	SLE = 925,
+	SLE,
 	/// <summary> Somali Shilling </summary>
-	SOS = 706,
+	SOS,
 	/// <summary> Surinam Dollar </summary>
-	SRD = 968,
+	SRD,
 	/// <summary> South Sudanese Pound </summary>
-	SSP = 728,
+	SSP,
 	/// <summary> Dobra </summary>
-	STN = 930,
+	STN,
 	/// <summary> El Salvador Colon </summary>
-	SVC = 222,
+	SVC,
 	/// <summary> Syrian Pound </summary>
-	SYP = 760,
+	SYP,
 	/// <summary> Lilangeni </summary>
-	SZL = 748,
+	SZL,
 
 	/// <summary> Baht </summary>
-	THB = 764,
+	THB,
 	/// <summary> Somoni </summary>
-	TJS = 972,
+	TJS,
 	/// <summary> Turkmenistan New Manat </summary>
-	TMT = 934,
+	TMT,
 	/// <summary> Tunisian Dinar </summary>
-	TND = 788,
+	TND,
 	/// <summary> Pa’anga </summary>
-	TOP = 776,
+	TOP,
 	/// <summary> Turkish Lira </summary>
-	TRY = 949,
+	TRY,
 	/// <summary> Trinidad and Tobago Dollar </summary>
-	TTD = 780,
+	TTD,
 	/// <summary> New Taiwan Dollar </summary>
-	TWD = 901,
+	TWD,
 	/// <summary> Tanzanian Shilling </summary>
-	TZS = 834,
+	TZS,
 
 	/// <summary> Hryvnia </summary>
-	UAH = 980,
+	UAH,
 	/// <summary> Uganda Shilling </summary>
-	UGX = 800,
+	UGX,
 
 	/// <summary> US Dollar (Next day) </summary>
-	USN = 997,
+	USN,
 	/// <summary> Uruguay Peso en Unidades Indexadas </summary>
-	UYI = 940,
+	UYI,
 	/// <summary> Peso Uruguayo </summary>
-	UYU = 858,
+	UYU,
 	/// <summary> Unidad Previsional </summary>
-	UYW = 927,
+	UYW,
 	/// <summary> Uzbekistan Sum </summary>
-	UZS = 860,
+	UZS,
 
 	/// <summary> Bolívar Soberano </summary>
-	VED = 926,
+	VED,
 	/// <summary> Bolívar Soberano </summary>
-	VES = 928,
+	VES,
 	/// <summary> Dong </summary>
-	VND = 704,
+	VND,
 	/// <summary> Vatu </summary>
-	VUV = 548,
+	VUV,
 
 	/// <summary> Tala </summary>
-	WST = 882,
+	WST,
 
 	// Metals
 	/// <summary> Silver </summary>
-	XAG = 961,
+	XAG,
 	/// <summary> Gold </summary>
-	XAU = 959,
+	XAU,
 	/// <summary> Palladium </summary>
-	XPD = 964,
+	XPD,
 	/// <summary> Platinum </summary>
-	XPT = 962,
+	XPT,
 
 	/// <summary> CFA Franc BEAC </summary>
-	XAF = 950,
+	XAF,
 	/// <summary> East Caribbean Dollar </summary>
-	XCD = 951,
+	XCD,
 	/// <summary> Caribbean Guilder </summary>
-	XCG = 532,
+	XCG,
 	/// <summary> SDR (Special Drawing Right) </summary>
-	XDR = 960,
+	XDR,
 	/// <summary> CFA Franc BCEAO </summary>
-	XOF = 952,
+	XOF,
 	/// <summary> CFP Franc </summary>
-	XPF = 953,
+	XPF,
 	/// <summary> Sucre </summary>
-	XSU = 994,
+	XSU,
 	/// <summary> ADB Unit of Account </summary>
-	XUA = 965,
+	XUA,
 
 	/// <summary> Yemeni Rial </summary>
-	YER = 886,
+	YER,
 
 	/// <summary> Rand </summary>
-	ZAR = 710,
+	ZAR,
 	/// <summary> Zambian Kwacha </summary>
-	ZMW = 967,
+	ZMW,
 	/// <summary> Zimbabwe Gold </summary>
-	ZWG = 924,
+	ZWG,
 
 	//------------------ Historic codes ---------------//
 	// Historical ISO 4217 currencies
 	/// <summary> Andorran Peseta </summary>
-	ADP = 20,
+	ADP,
 	/// <summary> Afghan Afghani </summary>
-	AFA = 4,
+	AFA,
 	/// <summary> Old Albanian Lek </summary>
-	ALK = 8,
+	ALK,
 	/// <summary> Netherlands Antillean Guilder </summary>
-	ANG = 532,
+	ANG,
 
 	/// <summary> Angolan Kwanza </summary>
-	AOK = 24,
+	AOK,
 	/// <summary> Angolan Novo Kwanza </summary>
-	AON = 24,
+	AON,
 	/// <summary> Angolan Kwanza Reajustado </summary>
-	AOR = 982,
+	AOR,
 
 	/// <summary> Argentine Austral </summary>
-	ARA = 32,
+	ARA,
 	/// <summary> Argentine Peso Argentino </summary>
-	ARP = 32,
+	ARP,
 	/// <summary> Argentine Peso Ley </summary>
-	ARY = 32,
+	ARY,
 
 	/// <summary> Austrian Schilling </summary>
-	ATS = 40,
+	ATS,
 	/// <summary> Azerbaijani Manat </summary>
-	AYM = 945,
+	AYM,
 	/// <summary> Azerbaijani Manat </summary>
-	AZM = 31,
+	AZM,
 
 	/// <summary> Bosnia and Herzegovina Dinar </summary>
-	BAD = 70,
+	BAD,
 	/// <summary> Belgian Convertible Franc </summary>
-	BEC = 993,
+	BEC,
 	/// <summary> Belgian Franc </summary>
-	BEF = 56,
+	BEF,
 	/// <summary> Belgian Financial Franc </summary>
-	BEL = 992,
+	BEL,
 
 	/// <summary> Bulgarian Lev (First) </summary>
-	BGJ = 100,
+	BGJ,
 	/// <summary> Bulgarian Lev (Second) </summary>
-	BGK = 100,
+	BGK,
 	/// <summary> Bulgarian Lev (Third) </summary>
-	BGL = 100,
+	BGL,
 	/// <summary> Bulgarian Lev </summary>
 	// BGN = 975 already exists in your current enum
 
 	/// <summary> Bolivian Peso </summary>
-	BOP = 68,
+	BOP,
 
 	/// <summary> Brazilian Cruzeiro </summary>
-	BRB = 76,
+	BRB,
 	/// <summary> Brazilian Cruzado </summary>
-	BRC = 76,
+	BRC,
 	/// <summary> Brazilian Cruzeiro </summary>
-	BRE = 76,
+	BRE,
 	/// <summary> Brazilian Cruzado Novo </summary>
-	BRN = 76,
+	BRN,
 	/// <summary> Brazilian Cruzeiro Real </summary>
-	BRR = 987,
+	BRR,
 
 	/// <summary> Burmese Kyat </summary>
-	BUK = 104,
+	BUK,
 
 	/// <summary> Belarusian Ruble </summary>
-	BYB = 112,
+	BYB,
 	/// <summary> Belarusian Ruble </summary>
-	BYR = 974,
+	BYR,
 
 	/// <summary> WIR Franc (electronic currency) </summary>
-	CHC = 948,
+	CHC,
 
 	/// <summary> Serbian Dinar </summary>
-	CSD = 891,
+	CSD,
 	/// <summary> Czechoslovak Koruna (Second) </summary>
-	CSJ = 203,
+	CSJ,
 	/// <summary> Czechoslovak Koruna </summary>
-	CSK = 200,
+	CSK,
 
 	/// <summary>  Cuban Convertible Peso </summary>
-	CUC = 931,
+	CUC,
 	/// <summary>  Cypriot Pound </summary>
-	CYP = 196,
+	CYP,
 
 	/// <summary>  East German Mark </summary>
-	DDM = 278,
+	DDM,
 	/// <summary>  German Mark </summary>
-	DEM = 276,
+	DEM,
 
 	/// <summary>  Ecuadorian Sucre </summary>
-	ECS = 218,
+	ECS,
 	/// <summary>  Ecuador Unidad de Valor Constante </summary>
-	ECV = 983,
+	ECV,
 	/// <summary>  Estonian Kroon </summary>
-	EEK = 233,
+	EEK,
 
 	/// <summary>  Spanish Peseta Account A </summary>
-	ESA = 996,
+	ESA,
 	/// <summary>  Spanish Peseta Account B </summary>
-	ESB = 995,
+	ESB,
 	/// <summary>  Spanish Peseta </summary>
-	ESP = 724,
+	ESP,
 
 	/// <summary>  Finnish Markka </summary>
-	FIM = 246,
+	FIM,
 	/// <summary>  French Franc </summary>
-	FRF = 250,
+	FRF,
 
 	/// <summary>  Georgian Kuponi </summary>
-	GEK = 268,
+	GEK,
 
 	/// <summary>  Ghanaian Cedi </summary>
-	GHC = 288,
+	GHC,
 	/// <summary>  Ghanaian Cedi </summary>
-	GHP = 939,
+	GHP,
 
 	/// <summary>  Guinean Syli </summary>
-	GNE = 324,
+	GNE,
 	/// <summary>  Guinean Syli </summary>
-	GNS = 324,
+	GNS,
 	/// <summary>  Equatorial Guinean Ekwele </summary>
-	GQE = 226,
+	GQE,
 	/// <summary>  Greek Drachma </summary>
-	GRD = 300,
+	GRD,
 
 	/// <summary>  Guinean Escudo </summary>
-	GWE = 624,
+	GWE,
 	/// <summary>  Guinea-Bissau Peso </summary>
-	GWP = 624,
+	GWP,
 
 	/// <summary>  Croatian Dinar </summary>
-	HRD = 191,
+	HRD,
 	/// <summary>  Croatian Kuna </summary>
-	HRK = 191,
+	HRK,
 
 	/// <summary>  Irish Pound </summary>
-	IEP = 372,
+	IEP,
 
 	/// <summary>  Israeli Pound </summary>
-	ILP = 376,
+	ILP,
 	/// <summary>  Israeli Shekel </summary>
-	ILR = 376,
+	ILR,
 
 	/// <summary>  Icelandic Krona </summary>
-	ISJ = 352,
+	ISJ,
 	/// <summary>  Italian Lira </summary>
-	ITL = 380,
+	ITL,
 
 	/// <summary>  Lao Kip </summary>
-	LAJ = 418,
+	LAJ,
 	/// <summary>  Lesotho Loti </summary>
-	LSM = 426,
+	LSM,
 
 	/// <summary>  Lithuanian Litas </summary>
-	LTL = 440,
+	LTL,
 	/// <summary>  Lithuanian Talonas </summary>
-	LTT = 440,
+	LTT,
 
 	/// <summary>  Luxembourg Convertible Franc </summary>
-	LUC = 989,
+	LUC,
 	/// <summary>  Luxembourg Franc </summary>
-	LUF = 442,
+	LUF,
 	/// <summary>  Luxembourg Financial Franc </summary>
-	LUL = 988,
+	LUL,
 
 	/// <summary>  Latvian Lats </summary>
-	LVL = 428,
+	LVL,
 	/// <summary>  Latvian Rublis </summary>
-	LVR = 428,
+	LVR,
 
 	/// <summary>  Malagasy Franc </summary>
-	MGF = 450,
+	MGF,
 	/// <summary>  Malian Franc </summary>
-	MLF = 466,
+	MLF,
 
 	/// <summary>  Mauritanian Ouguiya </summary>
-	MRO = 478,
+	MRO,
 
 	/// <summary>  Maltese Lira </summary>
-	MTL = 470,
+	MTL,
 	/// <summary>  Maltese Pound </summary>
-	MTP = 470,
+	MTP,
 
 	/// <summary>  Maldivian Rupee </summary>
-	MVQ = 462,
+	MVQ,
 
 	/// <summary>  Mexican Peso </summary>
-	MXP = 484,
+	MXP,
 
 	/// <summary>  Mozambican Escudo </summary>
-	MZE = 508,
+	MZE,
 	/// <summary>  Mozambican Metical </summary>
-	MZM = 508,
+	MZM,
 
 	/// <summary>  Nicaraguan Cordoba </summary>
-	NIC = 558,
+	NIC,
 
 	/// <summary>  Dutch Guilder </summary>
-	NLG = 528,
+	NLG,
 
 	/// <summary>  Peruvian Old Sol </summary>
-	PEH = 604,
+	PEH,
 	/// <summary>  Peruvian Inti </summary>
-	PEI = 604,
+	PEI,
 	/// <summary>  Peruvian Sol </summary>
-	PES = 604,
+	PES,
 
 	/// <summary>  Polish Zloty </summary>
-	PLZ = 616,
+	PLZ,
 	/// <summary>  Portuguese Escudo </summary>
-	PTE = 620,
+	PTE,
 
 	/// <summary>  Rhodesian Dollar </summary>
-	RHD = 716,
+	RHD,
 
 	/// <summary>  Romanian Leu (Second) </summary>
-	ROK = 642,
+	ROK,
 	/// <summary>  Romanian Leu (Third) </summary>
-	ROL = 642,
+	ROL,
 
 	/// <summary>  Russian Ruble </summary>
-	RUR = 810,
+	RUR,
 
 	/// <summary>  Sudanese Dinar </summary>
-	SDD = 736,
+	SDD,
 	/// <summary>  Sudanese Old Pound </summary>
-	SDP = 736,
+	SDP,
 
 	/// <summary>  Slovenian Tolar </summary>
-	SIT = 705,
+	SIT,
 	/// <summary>  Slovak Koruna </summary>
-	SKK = 703,
+	SKK,
 
 	/// <summary>  Sierra Leonean Leone </summary>
-	SLL = 694,
+	SLL,
 
 	/// <summary>  Surinamese Guilder </summary>
-	SRG = 740,
+	SRG,
 	/// <summary>  Sao Tome and Principe Dobra </summary>
-	STD = 678,
+	STD,
 
 	/// <summary>  Soviet Union Ruble </summary>
-	SUR = 810,
+	SUR,
 	/// <summary>  Tajikistani Ruble </summary>
-	TJR = 762,
+	TJR,
 	/// <summary>  Turkmenistani Manat </summary>
-	TMM = 795,
+	TMM,
 	/// <summary>  Portuguese Timorese Escudo </summary>
-	TPE = 626,
+	TPE,
 	/// <summary>  Turkish Lira </summary>
-	TRL = 792,
+	TRL,
 
 	/// <summary>  Ukrainian Karbovanets </summary>
-	UAK = 804,
+	UAK,
 
 	/// <summary>  Ugandan Shilling </summary>
-	UGS = 800,
+	UGS,
 	/// <summary>  Old Ugandan Shilling </summary>
-	UGW = 800,
+	UGW,
 
 	/// <summary>  US Dollar (Same Day) </summary>
-	USS = 998,
+	USS,
 
 	/// <summary>  Uruguay Peso </summary>
-	UYN = 858,
+	UYN,
 	/// <summary>  Uruguay New Peso </summary>
-	UYP = 858,
+	UYP,
 
 	/// <summary>  Venezuelan Bolivar </summary>
-	VEB = 862,
+	VEB,
 	/// <summary>  Venezuelan Bolivar Fuerte </summary>
-	VEF = 937,
+	VEF,
 
 	/// <summary>  Old Vietnamese Dong </summary>
-	VNC = 704,
+	VNC,
 
 	/// <summary>  European Currency Unit </summary>
-	XEU = 954,
+	XEU,
 
 	/// <summary>  South Yemeni Dinar </summary>
-	YDD = 720,
+	YDD,
 
 	/// <summary>  Yugoslav Dinar </summary>
-	YUD = 890,
+	YUD,
 	/// <summary>  Yugoslav Dinar </summary>
-	YUM = 891,
+	YUM,
 	/// <summary>  Yugoslav Dinar </summary>
-	YUN = 890,
+	YUN,
 
 	/// <summary>  South African Financial Rand </summary>
-	ZAL = 991,
+	ZAL,
 
 	/// <summary>  Zambian Kwacha </summary>
-	ZMK = 894,
+	ZMK,
 
 	/// <summary>  Zairean New Zaire </summary>
-	ZRN = 180,
+	ZRN,
 	/// <summary>  Zairean Zaire </summary>
-	ZRZ = 180,
+	ZRZ,
 
 	/// <summary>  Rhodesian Dollar </summary>
-	ZWC = 716,
+	ZWC,
 	/// <summary>  Zimbabwean Dollar (First) </summary>
-	ZWD = 716,
+	ZWD,
 	/// <summary>  Zimbabwean Dollar (Fourth/Fifth) </summary>
-	ZWL = 932,
+	ZWL,
 	/// <summary>  Zimbabwean Dollar (Second) </summary>
-	ZWN = 942,
+	ZWN,
 	/// <summary>  Zimbabwean Dollar (Third) </summary>
-	ZWR = 935
+	ZWR
 }

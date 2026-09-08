@@ -142,8 +142,8 @@ function App() {
                 setCurrencies(availableCurrencies);
 
                 if (availableCurrencies.length > 0) {
-                    setBaseCurrency(availableCurrencies.includes('USD') ? 'USD' : availableCurrencies[0]);
-                    setQuoteCurrency(availableCurrencies.includes('EUR') ? 'EUR' : availableCurrencies[0]);
+                    setBaseCurrency(availableCurrencies.find(c => c.code === 'USD') ? 'USD' : availableCurrencies[0].code);
+                    setQuoteCurrency(availableCurrencies.find(c => c.code === 'EUR') ? 'EUR' : availableCurrencies[0].code);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -158,13 +158,13 @@ function App() {
 
     const sortedCurrencies = useMemo(() => {
         return [...currencies].sort((a, b) => {
-            const aPriority = PRIORITY_CURRENCIES.indexOf(a);
-            const bPriority = PRIORITY_CURRENCIES.indexOf(b);
+            const aPriority = PRIORITY_CURRENCIES.indexOf(a.code);
+            const bPriority = PRIORITY_CURRENCIES.indexOf(b.code);
 
             if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
             if (aPriority !== -1) return -1;
             if (bPriority !== -1) return 1;
-            return a.localeCompare(b);
+            return a.code.localeCompare(b.code);
         })
     }, [currencies]);
 
@@ -256,7 +256,7 @@ function App() {
                             <label htmlFor="baseCurrency">Base Currency</label>
                                  <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
                                     <option value="" disabled>Select currency</option>
-                                        {sortedCurrencies.map((currency) => ( <option key={currency} value={currency}>{currency}</option> ))}
+                                        {sortedCurrencies.map((currency) => ( <option key={currency.code} value={currency.code}>{currency.code} - {currency.name} {currency.isHistoric ? '(Historic)' : ''}</option> ))}
                                  </select>
                         </div>
             <div className="currency-swap">
@@ -267,8 +267,8 @@ function App() {
               <div className="form-field currency-field">
                 <label htmlFor="quoteCurrency">Quote Currency</label>
                 <select id="quoteCurrency" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)} required>
-                  <option value="" disabled>Select currency</option>
-                  {sortedCurrencies.map((currency) => (<option key={currency} value={currency}>{currency}</option>))}
+                                      <option value="" disabled>Select currency</option>
+                                      {sortedCurrencies.map((currency) => (<option key={currency.code} value={currency.code}>{currency.code} - {currency.name}{currency.isHistoric ? '(Historic)' : ''}</option>))}
                 </select>
               </div>
             </div>

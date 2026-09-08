@@ -1,5 +1,6 @@
 using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Models;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,14 +38,14 @@ public class QuotesController : ControllerBase {
 
 	[Route("available-currencies", Name = "AvailableCurrencies")]
 	[HttpGet]
-	public ActionResult<List<string>> GetAvailableCurrencies() {
-		var currencies = Enum.GetNames<ECurrencyISO>()
-														.OrderBy(o => o)
-														.ToList();
-		var result = Ok(currencies);
-		return result;
+	public async Task<ActionResult<List<CurrencyModel>>> GetAvailableCurrencies() {
+		var currencies = await _service.GetCurrenciesAsync();
+		return Ok(currencies);
+
 	}
 
+
+	/// <summary> Returns Zacarias picture a audio file </summary>
 	[Route("zaca-media", Name = "ZacaMedia")]
 	[HttpGet]
 	public ActionResult GetZacaMedia() {
@@ -55,6 +56,7 @@ public class QuotesController : ControllerBase {
 		return result;
 	}
 
+	/// <summary> Returns the current hosting environment name </summary>
 	[HttpGet("environment")]
 	public IActionResult GetEnvironment([FromServices] IWebHostEnvironment environment) {
 		return Ok(new { environment = environment.EnvironmentName });

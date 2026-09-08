@@ -54,4 +54,9 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context.ExchangeRates.AddRange(newRates);
 		await _context.SaveChangesAsync(ct);
 	}
+
+	public async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesAsync(CancellationToken ct) {
+		return await _context.Currencies.AsNoTracking()
+															.ToListAsync(ct);
+	}
 }
