@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
@@ -12,13 +12,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class AFAProvider : CentralBankProviderBase {
 	private readonly ILogger<AFAProvider> _logger;
-	public AFAProvider(HttpClient http, IConfiguration configuration, ILogger<AFAProvider> logger) : base(http, configuration) {
+	public AFAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AFAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "AFA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
@@ -33,7 +31,7 @@ public sealed class AFAProvider : CentralBankProviderBase {
 		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
 		var currencyIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
 		lines = lines.Skip(1)
-						.Where(w => w.Contains(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase))
+						.Where(w => w.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase))
 						.ToArray();
 		foreach (var line in lines) {
 			var cols = TextUtils.SplitCsv(line);
@@ -43,9 +41,10 @@ public sealed class AFAProvider : CentralBankProviderBase {
 
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
 
-				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 		return rates;
 	}
 }
+

@@ -13,7 +13,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context = context;
 	}
 
-	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		return await _context.ExchangeRates.AsNoTracking()
 																	.Where(x => (x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency ||
 																													x.BaseCurrency == quoteCurrency && x.QuoteCurrency == baseCurrency) &&

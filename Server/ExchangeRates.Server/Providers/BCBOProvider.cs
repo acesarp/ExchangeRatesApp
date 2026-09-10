@@ -1,8 +1,9 @@
-using ExchangeRates.Domain.Enums;
 
 namespace ExchangeRates.Server.Providers;
 
 using ExcelDataReader;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -13,13 +14,11 @@ using System.Globalization;
 public sealed class BCBOProvider : CentralBankProviderBase {
 	private readonly ILogger<BCBOProvider> _logger;
 
-	public BCBOProvider(HttpClient http, IConfiguration configuration, ILogger<BCBOProvider> logger) : base(http, configuration) {
+	public BCBOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBOProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCBO";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate.Year == DateTime.UtcNow.Year && toDate.Year == DateTime.UtcNow.Year) {
 			return await FetchCurrentYearAsync(quoteCurrency, fromDate, toDate, ct);
 		}
@@ -41,7 +40,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 	/// <param name="toDate"></param>
 	/// <param name="ct"></param>
 	/// <returns>A read-only list of exchange rate results.</returns>
-	private async Task<IReadOnlyList<ExchangeRateResult>> FetchCurrentYearAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	private async Task<IReadOnlyList<ExchangeRateResult>> FetchCurrentYearAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -63,7 +62,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 				var rate = ExtractRate(reader, quoteCurrency);
 				if (rate.HasValue) {
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate.Value, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate.Value, Bank.BankCode));
 				}
 			}
 			catch (OperationCanceledException ex) when (ct.IsCancellationRequested) {
@@ -137,20 +136,20 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, ECurrencyISO.USD, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Bank.Code, "USD", rate, Bank.BankCode));
 			}
 		}
 		return results.OrderBy(x => x.Date).ToList();
 	}
 
-	private static decimal? ExtractRate(IExcelDataReader reader, ECurrencyISO quoteCurrency) {
-		var requestedCode = quoteCurrency.ToString();
+	private static decimal? ExtractRate(IExcelDataReader reader, string quoteCurrency) {
+		var requestedCode = quoteCurrency;
 
 		while (reader.Read()) {
 			var countryOrConcept = GetString(reader, 0);
-			var code = GetString(reader, 2);
+			var Bank.Code = GetString(reader, 2);
 
-			if (!string.Equals(code, requestedCode, StringComparison.OrdinalIgnoreCase)) {
+			if (!string.Equals(Bank.Code, requestedCode, StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 

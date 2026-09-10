@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -11,13 +12,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBRBProvider : CentralBankProviderBase {
 	private readonly ILogger<NBRBProvider> _logger;
 
-	public NBRBProvider(HttpClient http, IConfiguration configuration, ILogger<NBRBProvider> logger) : base(http, configuration) {
+	public NBRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "NBRB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var rates = new List<ExchangeRateResult>();
 
 		// NBRB API returns only the latest rate, so we fetch for a specific date
@@ -37,7 +36,7 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 
 				
 					
-				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch {
 				// Skip days with no data
@@ -48,3 +47,4 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 		return rates;
 	}
 }
+

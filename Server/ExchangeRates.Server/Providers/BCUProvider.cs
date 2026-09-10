@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text;
@@ -12,14 +13,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCUProvider : CentralBankProviderBase {
 	private readonly ILogger<BCUProvider> _logger;
 
-	public BCUProvider(HttpClient http, IConfiguration configuration, ILogger<BCUProvider> logger) : base(http, configuration) {
+	public BCUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCUProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCU";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency != ECurrencyISO.USD) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != "USD") {
 			return [];
 		}
 
@@ -56,7 +55,7 @@ public sealed class BCUProvider : CentralBankProviderBase {
 				foreach (var item in document.Descendants().Where(e => e.Name.LocalName.Equals("datoscotizaciones", StringComparison.OrdinalIgnoreCase))) {
 					var nombre = item.Elements().FirstOrDefault(e => e.Name.LocalName.Equals("Nombre", StringComparison.OrdinalIgnoreCase))?.Value;
 
-					if (nombre is null || !nombre.Contains(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					if (nombre is null || !nombre.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -66,9 +65,9 @@ public sealed class BCUProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					
-						
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+
+
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {
@@ -79,3 +78,4 @@ public sealed class BCUProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

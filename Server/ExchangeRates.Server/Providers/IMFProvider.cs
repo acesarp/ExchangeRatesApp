@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -7,6 +8,7 @@ using Microsoft.Playwright;
 using Newtonsoft.Json;
 
 using System.Globalization;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -15,11 +17,9 @@ namespace ExchangeRates.Server.Providers;
 public sealed class IMFProvider : CentralBankProviderBase {
 	private readonly ILogger<IMFProvider> _logger;
 
-	public IMFProvider(HttpClient http, IConfiguration configuration, ILogger<IMFProvider> logger) : base(http, configuration) {
+	public IMFProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<IMFProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "IMF";
 
 	/// <summary>
 	/// Fetches exchange rate data from the IMF API for the specified quote currency and date range.
@@ -29,7 +29,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	/// <param name="toDate">The end date of the range.</param>
 	/// <param name="ct">The cancellation token.</param>
 	/// <returns></returns>
-	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchMQAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchMQAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		const string context = "dataflow";
 		const string agencyID = "IMF.STA";
 		const string resourceID = "ER";
@@ -67,7 +67,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	/// <param name="toDate">The end date of the range.</param>
 	/// <param name="ct">The cancellation token.</param>
 	/// <returns>A list of exchange rate results.</returns>
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var results = new List<ExchangeRateResult>();
 		if (!CurrencyCountryMap.CurrencyNames.TryGetValue(quoteCurrency, out var currencyName)) {
@@ -144,7 +144,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 							continue;
 						}
 
-						results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+						results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 					}
 				}
 			}

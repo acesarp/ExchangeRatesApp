@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class NBKRProvider : CentralBankProviderBase {
 	private readonly ILogger<NBKRProvider> _logger;
-	public NBKRProvider(HttpClient http, IConfiguration configuration, ILogger<NBKRProvider> logger) : base(http, configuration) {
+	public NBKRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBKRProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "NBKR";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var xml = await Http.GetStringAsync(Url, ct);
 			var xdoc = XDocument.Parse(xml);
@@ -32,7 +31,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var currencyNode = xdoc.Descendants("Currency").FirstOrDefault(c => string.Equals(c.Attribute("ISOCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
 
 			if (currencyNode is null) {
@@ -52,7 +51,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 				nominal = parsedNominal;
 			}
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, value / nominal, Code));
+			results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, value / nominal, Bank.BankCode));
 			return results;
 		}
 		catch (Exception ex) {
@@ -61,3 +60,4 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 		}
 	}
 }
+

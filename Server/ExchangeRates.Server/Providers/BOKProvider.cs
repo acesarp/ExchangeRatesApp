@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text.Json;
@@ -6,11 +6,7 @@ using System.Text.Json;
 namespace ExchangeRates.Server.Providers;
 
 public sealed class BOKProvider : CentralBankProviderBase {
-	public BOKProvider(HttpClient http, IConfiguration configuration) : base(http, configuration) { }
-
-	public override string Code => "BOK";
-	public override string Name => "Bank of Korea";
-	public override string NativeCurrency => "KRW";
+	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank) : base(http, configuration, bank) { }
 
 	private static readonly Dictionary<string, (string ItemCode, decimal Unit)> Currencies = new(StringComparer.OrdinalIgnoreCase) {
 		["USD"] = ("0000001", 1m),
@@ -20,13 +16,13 @@ public sealed class BOKProvider : CentralBankProviderBase {
 		["CNY"] = ("0000053", 1m)
 	};
 
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
-			throw new InvalidOperationException($"Missing CentralBanks:{Code}:ApiKey configuration.");
+			throw new InvalidOperationException($"Missing CentralBanks:{Bank.Currency.Code}:ApiKey configuration.");
 		}
 
-		var day = date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+		var day = fromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var (currency, info) in Currencies) {
@@ -46,7 +42,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, currency, "KRW", value / info.Unit, Code));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, value / info.Unit, Bank.BankCode));
 		}
 
 		return rates;

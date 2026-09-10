@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -11,14 +12,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class SBIProvider : CentralBankProviderBase {
 	private readonly ILogger<SBIProvider> _logger;
 
-	public SBIProvider(HttpClient http, IConfiguration configuration, ILogger<SBIProvider> logger) : base(http, configuration) {
+	public SBIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBIProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "SBI";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var uri = $"{Url}?currBase={currencyCode}&dateFrom={fromDate:yyyy-MM-dd}&dateTo={toDate:yyyy-MM-dd}";
 			var xml = await Http.GetStringAsync(uri, ct);
 			var xdoc = XDocument.Parse(xml);
@@ -42,7 +41,7 @@ public sealed class SBIProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -53,3 +52,4 @@ public sealed class SBIProvider : CentralBankProviderBase {
 		}
 	}
 }
+

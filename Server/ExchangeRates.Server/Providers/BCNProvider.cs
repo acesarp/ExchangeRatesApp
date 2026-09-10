@@ -1,8 +1,9 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -12,14 +13,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCNProvider : CentralBankProviderBase {
 	private readonly ILogger<BCNProvider> _logger;
 
-	public BCNProvider(HttpClient http, IConfiguration configuration, ILogger<BCNProvider> logger) : base(http, configuration) {
+	public BCNProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCNProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCN";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency != ECurrencyISO.USD) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != "USD") {
 			return [];
 		}
 
@@ -55,7 +54,7 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);
@@ -65,3 +64,4 @@ public sealed class BCNProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

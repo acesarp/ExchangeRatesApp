@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,14 +11,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class SARBProvider : CentralBankProviderBase {
 	private readonly ILogger<SARBProvider> _logger;
 
-	public SARBProvider(HttpClient http, IConfiguration configuration, ILogger<SARBProvider> logger) : base(http, configuration) {
+	public SARBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SARBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "SARB";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var uri = $"{Url}?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}&currency={currencyCode}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -45,7 +44,7 @@ public sealed class SARBProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -56,3 +55,4 @@ public sealed class SARBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

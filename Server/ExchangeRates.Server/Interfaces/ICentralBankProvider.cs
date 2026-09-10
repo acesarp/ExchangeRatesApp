@@ -1,20 +1,20 @@
-﻿using ExchangeRates.Domain.Enums;
-
-namespace ExchangeRates.Server.Interfaces;
+﻿namespace ExchangeRates.Server.Interfaces;
 
 public interface ICentralBankProvider {
-	string Code { get; }
-	string BankName { get; }
-	ECurrencyISO NativeCurrency { get; }
-	string CountryOfOrigin { get; }
+
 	List<string> HistoricCurrencies { get; }
-	ECurrencyISO PivotCurrency { get; }
+	string PivotCurrency { get; }
+	string BankCode { get; set; }
+	string NativeCurrencyCode { get; set; }
+	string BankName { get; set; }
+	string? CountryOfOrigin { get; set; }
+	int? Priority { get; set; }
 
 	/// <summary>
 	/// Retrieves exchange rates for the specified date.
 	/// Uses the current UTC date when no date is provided.
 	/// </summary>
-	Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
-	IReadOnlySet<ECurrencyISO> SupportedCurrencies { get; }
-	bool Supports(ECurrencyISO currency);
+	Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
+	IReadOnlySet<string> SupportedCurrencies { get; }
+	bool Supports(string currency);
 }

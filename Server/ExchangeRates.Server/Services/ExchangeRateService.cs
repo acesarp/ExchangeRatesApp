@@ -1,6 +1,4 @@
-﻿using ExchangeRates.Domain.Constants;
-using ExchangeRates.Domain.Enums;
-using ExchangeRates.Domain.Interfaces;
+﻿using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Mappers;
@@ -15,7 +13,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	private readonly ILogger<ExchangeRateService> _logger;
 	private readonly IExchangeRateRepository _repository;
 	private readonly CentralBankProviderFactory _providerFactory;
-	private readonly ECurrencyISO _pivotCurrency;
+	private readonly string _pivotCurrency;
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
@@ -35,7 +33,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// <param name="ct">The cancellation token.</param>
 	/// <returns>A list of exchange rate results.</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
 			throw new ArgumentException("fromDate cannot be greater than toDate.");
 		}
@@ -86,23 +84,23 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range. <br />
 	/// The direction of the exchange rate is not considered; if the provider's native currency is the quote currency, the inverse of the rate will be returned.<br />
 	/// </summary>
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetDirectRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetDirectRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var provider = FindProvider(baseCurrency, quoteCurrency);
 
 		if (provider == null) {
 			return Array.Empty<ExchangeRateResult>();
 		}
 
-		var localQuoteCurrency = (provider.NativeCurrency == quoteCurrency) ? baseCurrency : quoteCurrency;
+		var localQuoteCurrency = (provider.NativeCurrencyCode == quoteCurrency) ? baseCurrency : quoteCurrency;
 
-		_logger.LogDebug("Direct provider {Code} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.Code, baseCurrency, quoteCurrency, provider.NativeCurrency);
+		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.Code, baseCurrency, quoteCurrency, provider.NativeCurrency);
 
 		var rates = await provider.GetRatesAsync(localQuoteCurrency, fromDate, toDate, ct);
 
-		rates = rates.Select(x => new ExchangeRateResult(x.Date, provider.NativeCurrency, localQuoteCurrency, x.Rate, x.Provider))
+		rates = rates.Select(x => new ExchangeRateResult(x.Date, provider.NativeCurrencyCode, localQuoteCurrency, x.Rate, x.Provider))
 							.OrderBy(x => x.Date)
 							.ToList();
-		if (provider.NativeCurrency == quoteCurrency) {
+		if (provider.NativeCurrencyCode == quoteCurrency) {
 			return OrientRates(rates, baseCurrency, quoteCurrency);
 		}
 
@@ -112,7 +110,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// <summary>
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range using triangulation through the pivot currency.
 	/// </summary>
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var baseToPivot = await GetDirectRatesAsync(baseCurrency, _pivotCurrency, fromDate, toDate, ct);
 		var pivotToQuote = await GetDirectRatesAsync(_pivotCurrency, quoteCurrency, fromDate, toDate, ct);
 
@@ -141,19 +139,19 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// - Exchange rates are considered bidirectional;  <br />
 	/// - Exchange rate direction is not guaranteed; the provider may support either currency as its native currency. <br />
 	/// </summary>
-	private ICentralBankProvider? FindProvider(ECurrencyISO currency1, ECurrencyISO currency2) {
+	private ICentralBankProvider? FindProvider(string currency1, string currency2) {
 
 		var preferredProvider = _providerFactory.GetPreferredProviders()
-																			.FirstOrDefault(p => (p.NativeCurrency == currency1 && p.SupportedCurrencies.Contains(currency2)) ||
-																									(p.NativeCurrency == currency2 && p.SupportedCurrencies.Contains(currency1)));
+																			.FirstOrDefault(p => (p.NativeCurrencyCode == currency1 && p.SupportedCurrencies.Contains(currency2)) ||
+																									(p.NativeCurrencyCode == currency2 && p.SupportedCurrencies.Contains(currency1)));
 
 		return preferredProvider ?? _providerFactory.GetAllProviders()
-																				.FirstOrDefault(p => (p.NativeCurrency == currency1 && p.SupportedCurrencies.Contains(currency2)) ||
-																											(p.NativeCurrency == currency2 && p.SupportedCurrencies.Contains(currency1)));
+																				.FirstOrDefault(p => (p.NativeCurrencyCode == currency1 && p.SupportedCurrencies.Contains(currency2)) ||
+																											(p.NativeCurrencyCode == currency2 && p.SupportedCurrencies.Contains(currency1)));
 	}
 
 
-	private static IReadOnlyList<ExchangeRateResult> OrientRates(IReadOnlyList<ExchangeRateResult> canonicalRates, ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency) {
+	private static IReadOnlyList<ExchangeRateResult> OrientRates(IReadOnlyList<ExchangeRateResult> canonicalRates, string baseCurrency, string quoteCurrency) {
 		if (canonicalRates.Count == 0 ||
 			(canonicalRates[0].BaseCurrency == baseCurrency && canonicalRates[0].QuoteCurrency == quoteCurrency)) {
 			return canonicalRates;
@@ -198,7 +196,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
 		var centralBanks = await _repository.GetCentralBanksAsync(ct);
-		return centralBanks.Select(x => new CentralBankModel(x.Code, x.BankName, x.CountryOfOrigin, x.Currency.Code, x.CurrencyId, x.Priority))
+		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.Currency.Code, x.CurrencyId, x.Priority))
 										.ToList();
 	}
 }

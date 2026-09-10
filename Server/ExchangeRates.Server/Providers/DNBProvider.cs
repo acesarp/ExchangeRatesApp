@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class DNBProvider : CentralBankProviderBase {
 	private readonly ILogger<DNBProvider> _logger;
-	public DNBProvider(HttpClient http, IConfiguration configuration, ILogger<DNBProvider> logger) : base(http, configuration) {
+	public DNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DNBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "DNB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		var uri = $"{Url}/DNVALD/CSV?VALUTA={quoteCurrency}&KURSTYPE=100&Tid={fromDate:yyyy-MM-dd}-{toDate:yyyy-MM-dd}";
@@ -40,7 +39,7 @@ public sealed class DNBProvider : CentralBankProviderBase {
 
 			rate /= 100m;
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return results;

@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text.Json;
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
 	private readonly ILogger<HKMAProvider> _logger;
-	public HKMAProvider(HttpClient http, IConfiguration configuration, ILogger<HKMAProvider> logger) : base(http, configuration) {
+	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "HKMA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 		var offset = 0;
 
@@ -52,9 +51,9 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+
+
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			var datasize = result.GetProperty("datasize").GetInt32();
@@ -68,8 +67,8 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 		return results;
 	}
 
-	private static string GetCurrencyProperty(ECurrencyISO currency) => currency switch {
-		ECurrencyISO.XDR => "special_drawing_rights",
-		_ => currency.ToString().ToLowerInvariant()
+	private static string GetCurrencyProperty(string currency) => currency switch {
+		"XDR" => "special_drawing_rights",
+		_ => currency.ToLowerInvariant()
 	};
 }

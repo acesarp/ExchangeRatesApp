@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
 
@@ -10,12 +11,10 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBEProvider : CentralBankProviderBase {
 	private readonly ILogger<CBEProvider> _logger;
 
-	public CBEProvider(HttpClient http, IConfiguration configuration, ILogger<CBEProvider> logger) : base(http, configuration) {
+	public CBEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBEProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBE";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";
 			var json = await Http.GetStringAsync(uri, ct);
@@ -29,12 +28,12 @@ public sealed class CBEProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var item in items.EnumerateArray()) {
-				var code = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
+				var BankCode = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -52,9 +51,9 @@ public sealed class CBEProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+
+
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
 			}
 
 			return results;
@@ -65,3 +64,4 @@ public sealed class CBEProvider : CentralBankProviderBase {
 		}
 	}
 }
+

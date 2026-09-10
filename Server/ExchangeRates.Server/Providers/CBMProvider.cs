@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,12 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class CBMProvider : CentralBankProviderBase {
 	private readonly ILogger<CBMProvider> _logger;
-	public CBMProvider(HttpClient http, IConfiguration configuration, ILogger<CBMProvider> logger) : base(http, configuration) {
+	public CBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBMProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBM";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -25,7 +24,7 @@ public sealed class CBMProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			if (!rates.TryGetProperty(currencyCode, out var rateProp) || rateProp.ValueKind != JsonValueKind.String
 				|| !decimal.TryParse(rateProp.GetString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
@@ -39,7 +38,7 @@ public sealed class CBMProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			return results;
 		}
 		catch (Exception ex) {
@@ -48,3 +47,4 @@ public sealed class CBMProvider : CentralBankProviderBase {
 		}
 	}
 }
+

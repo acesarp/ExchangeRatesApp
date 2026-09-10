@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Domain.Enums;
+﻿using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 
@@ -13,39 +13,44 @@ namespace ExchangeRates.Server.Providers;
 /// for retrieving and parsing exchange rate data from central bank sources.
 /// </summary>
 public abstract class CentralBankProviderBase : ICentralBankProvider {
-	protected CentralBankProviderBase(HttpClient http, IConfiguration configuration) {
+	protected CentralBankProviderBase(HttpClient http, IConfiguration configuration, CentralBankEntity bank) {
 		Http = http;
 		Configuration = configuration;
+		Bank = bank;
 	}
 
 	protected HttpClient Http { get; }
 	protected IConfiguration Configuration { get; }
+	protected CentralBankEntity Bank { get; }
+	public string BankCode => Bank.BankCode;
+	public string NativeCurrencyCode => Bank.Currency.Code;
+	public string BankName => Bank.BankName;
+	public string? CountryOfOrigin => Bank.CountryOfOrigin;
+	public int? Priority => Bank.Priority;
 
-	protected string Url => Configuration[$"CentralBanks:{Code}:Url"] ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:Url configuration.");
+	protected string Url => Configuration[$"CentralBanks:{Bank.BankCode}:Url"] ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:Url configuration.");
 
-	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Code}:HistoricalUrl"];
+	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Bank.BankCode}:HistoricalUrl"];
 
-	protected string? ApiKey => Configuration[$"ProviderKeys:{Code}"];
+	protected string? ApiKey => Configuration[$"ProviderKeys:{Bank.BankCode}"];
 
-	public abstract string Code { get; }
-	public ECurrencyISO PivotCurrency { get => Configuration.GetSection($"CentralBanks:{Code}:Priority")?.Value?.Trim().ToECurrency() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:Priority configuration."); }
-	public string BankName { get => Configuration.GetSection($"CentralBanks:{Code}:BankName")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:BankName configuration."); }
-	public ECurrencyISO NativeCurrency { get => Configuration.GetSection($"CentralBanks:{Code}:NativeCurrency")?.Value?.Trim().ToECurrency() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:NativeCurrency configuration."); }
-	public string CountryOfOrigin { get => Configuration.GetSection($"CentralBanks:{Code}:CountryOfOrigin")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:CountryOfOrigin configuration."); }
-	public List<string> HistoricCurrencies { get => Configuration.GetSection($"CentralBanks:{Code}:HistoricCurrencies").Get<List<string>>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:HistoricCurrencies configuration."); }
-	public IReadOnlySet<ECurrencyISO> SupportedCurrencies {
+	public string PivotCurrency { get => Configuration.GetSection($"CentralBanks:{Bank.BankCode}:Priority")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:Priority configuration."); }
+	public List<string> HistoricCurrencies { get => Configuration.GetSection($"CentralBanks:{Bank.BankCode}:HistoricCurrencies").Get<List<string>>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:HistoricCurrencies configuration."); }
+	public IReadOnlySet<string> SupportedCurrencies {
 		get {
-			var currencies = Configuration.GetSection($"CentralBanks:{Code}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Code}:SupportedCurrencies configuration.");
+			var currencies = Configuration.GetSection($"CentralBanks:{Bank.BankCode}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:SupportedCurrencies configuration.");
 			return currencies.Select(x => x.ToECurrency()).ToHashSet();
 		}
 	}
 
-	public bool Supports(ECurrencyISO currency) {
-		return currency == NativeCurrency || SupportedCurrencies.Contains(currency);
+
+
+	public bool Supports(string currency) {
+		return currency == Bank.BankCode || SupportedCurrencies.Contains(currency);
 	}
 
 	/// <inheritdoc/>
-	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		return FetchAsync(currency, fromDate, toDate, ct);
 	}
@@ -54,10 +59,10 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	/// Retrieves and parses exchange rate data directly from the central bank source.
 	/// Provider-specific implementations should override this method.
 	/// </summary>
+	/// <param name="quoteCurrency"></param>
 	/// <param name="fromDate"></param>
-	/// <param name="ct"></param>
-	/// <returns>IReadOnlyList&lt;ExchangeRate&gt;</returns>
-	protected abstract Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
+	/// <param name="toDate"></param>
+	protected abstract Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
 
 	protected static decimal GetDecimal(JsonElement element, string propertyName) {
 		if (!element.TryGetProperty(propertyName, out var property)) {

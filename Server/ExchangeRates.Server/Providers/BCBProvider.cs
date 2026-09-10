@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
 
@@ -10,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCBProvider : CentralBankProviderBase {
 	private readonly ILogger<BCBProvider> _logger;
 
-	public BCBProvider(HttpClient http, IConfiguration configuration, ILogger<BCBProvider> logger) : base(http, configuration) {
+	public BCBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var rates = new List<ExchangeRateResult>();
 
 		var url = $"{Url.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
@@ -43,7 +41,7 @@ public sealed class BCBProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, NativeCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, Bank.Currency.Code, rate, Bank.BankCode));
 		}
 
 		return rates;

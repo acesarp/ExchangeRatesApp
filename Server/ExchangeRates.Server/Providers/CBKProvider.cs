@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,12 +11,10 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBKProvider : CentralBankProviderBase {
 	private readonly ILogger<CBKProvider> _logger;
 
-	public CBKProvider(HttpClient http, IConfiguration configuration, ILogger<CBKProvider> logger) : base(http, configuration) {
+	public CBKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBKProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBK";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			using var content = new FormUrlEncodedContent(new Dictionary<string, string> {
 				["action"] = "get_indicative_fx_rates"
@@ -38,7 +37,7 @@ public sealed class CBKProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
 			if (today < fromDate || today > toDate) {
@@ -64,7 +63,7 @@ public sealed class CBKProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 
@@ -76,3 +75,4 @@ public sealed class CBKProvider : CentralBankProviderBase {
 		}
 	}
 }
+

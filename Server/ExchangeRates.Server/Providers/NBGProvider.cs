@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,15 +10,13 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class NBGProvider : CentralBankProviderBase {
 	private readonly ILogger<NBGProvider> _logger;
-	public NBGProvider(HttpClient http, IConfiguration configuration, ILogger<NBGProvider> logger) : base(http, configuration) {
+	public NBGProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBGProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "NBG";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var results = new List<ExchangeRateResult>();
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 				var uri = $"{Url}{currencyCode}?date={date:yyyy-MM-dd}";
@@ -45,7 +44,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / quantity, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / quantity, Bank.BankCode));
 			}
 
 			return results;
@@ -56,3 +55,4 @@ public sealed class NBGProvider : CentralBankProviderBase {
 		}
 	}
 }
+

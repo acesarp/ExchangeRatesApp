@@ -1,4 +1,5 @@
-﻿using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -12,12 +13,10 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUAEProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUAEProvider> _logger;
 
-	public CBUAEProvider(HttpClient http, IConfiguration configuration, ILogger<CBUAEProvider> logger) : base(http, configuration) {
+	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBUAE";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (!CurrencyCountryMap.CurrencyNames.TryGetValue(quoteCurrency, out var currencyName)) {
 			_logger.LogDebug("Currency {Currency} is not supported by CBUAE.", quoteCurrency);
@@ -37,7 +36,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 		return results;
 	}
 
-	private async Task<ExchangeRateResult?> FetchDateAsync(DateOnly date, ECurrencyISO quoteCurrency, string currencyName, CancellationToken ct) {
+	private async Task<ExchangeRateResult?> FetchDateAsync(DateOnly date, string quoteCurrency, string currencyName, CancellationToken ct) {
 
 		var url = $"{Url.TrimEnd('/')}/GetExchangeRateAllCurrencyDate?dateTime={date:yyyy-MM-dd}";
 
@@ -83,7 +82,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			return new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code);
+			return new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode);
 		}
 
 		return null;
@@ -98,87 +97,87 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 				.Split(' ', StringSplitOptions.RemoveEmptyEntries));
 	}
 
-	private static readonly IReadOnlyDictionary<string, ECurrencyISO> CurrencyMap = new Dictionary<string, ECurrencyISO>(StringComparer.OrdinalIgnoreCase) {
-		["دولار امريكي"] = ECurrencyISO.USD,
-		["بيسو ارجنتيني"] = ECurrencyISO.ARS,
-		["دولار استرالي"] = ECurrencyISO.AUD,
-		["تاكا بنغلاديشية"] = ECurrencyISO.BDT,
-		["دينار بحريني"] = ECurrencyISO.BHD,
-		["دولار بروناي"] = ECurrencyISO.BND,
-		["ريال برازيلي"] = ECurrencyISO.BRL,
-		["بولا بوتسواني"] = ECurrencyISO.BWP,
-		["روبل بلاروسي"] = ECurrencyISO.BYN,
-		["دولار كندي"] = ECurrencyISO.CAD,
-		["فرنك سويسري"] = ECurrencyISO.CHF,
-		["بيزو تشيلي"] = ECurrencyISO.CLP,
+	private static readonly IReadOnlyDictionary<string, string> CurrencyMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+		["دولار امريكي"] = "USD",
+		["بيسو ارجنتيني"] = "ARS",
+		["دولار استرالي"] = "AUD",
+		["تاكا بنغلاديشية"] = "BDT",
+		["دينار بحريني"] = "BHD",
+		["دولار بروناي"] = "BND",
+		["ريال برازيلي"] = "BRL",
+		["بولا بوتسواني"] = "BWP",
+		["روبل بلاروسي"] = "BYN",
+		["دولار كندي"] = "CAD",
+		["فرنك سويسري"] = "CHF",
+		["بيزو تشيلي"] = "CLP",
 
 		// Offshore Chinese Yuan (CNH). Use CNY if CNH does not exist in ECurrencyISO.
-		["يوان صيني - الخارج"] = ECurrencyISO.CNY,
-		["يوان صيني"] = ECurrencyISO.CNY,
+		["يوان صيني - الخارج"] = "CNY",
+		["يوان صيني"] = "CNY",
 
-		["بيزو كولومبي"] = ECurrencyISO.COP,
-		["كرونة تشيكية"] = ECurrencyISO.CZK,
-		["كرون دانماركي"] = ECurrencyISO.DKK,
-		["دينار جزائري"] = ECurrencyISO.DZD,
-		["جينيه مصري"] = ECurrencyISO.EGP,
-		["يورو"] = ECurrencyISO.EUR,
-		["جنيه استرليني"] = ECurrencyISO.GBP,
-		["دولار هونج كونج"] = ECurrencyISO.HKD,
-		["فورنت هنغاري"] = ECurrencyISO.HUF,
-		["روبية اندونيسية"] = ECurrencyISO.IDR,
-		["روبية هندية"] = ECurrencyISO.INR,
-		["كرونة آيسلندية"] = ECurrencyISO.ISK,
-		["دينار أردني"] = ECurrencyISO.JOD,
-		["ين ياباني"] = ECurrencyISO.JPY,
-		["شلن كيني"] = ECurrencyISO.KES,
-		["ون كوري"] = ECurrencyISO.KRW,
-		["دينار كويتي"] = ECurrencyISO.KWD,
-		["تينغ كازاخستاني"] = ECurrencyISO.KZT,
-		["ليرة لبنانية"] = ECurrencyISO.LBP,
-		["روبية سريلانكي"] = ECurrencyISO.LKR,
-		["درهم مغربي"] = ECurrencyISO.MAD,
-		["دينار مقدوني"] = ECurrencyISO.MKD,
-		["بيسو مكسيكي"] = ECurrencyISO.MXN,
-		["رينغيت ماليزي"] = ECurrencyISO.MYR,
-		["نيرا نيجيري"] = ECurrencyISO.NGN,
-		["كرون نرويجي"] = ECurrencyISO.NOK,
-		["دولار نيوزيلندي"] = ECurrencyISO.NZD,
-		["ريال عماني"] = ECurrencyISO.OMR,
-		["سول بيروفي"] = ECurrencyISO.PEN,
-		["بيسو فلبيني"] = ECurrencyISO.PHP,
-		["روبية باكستانية"] = ECurrencyISO.PKR,
-		["زلوتي بولندي"] = ECurrencyISO.PLN,
-		["ريال قطري"] = ECurrencyISO.QAR,
-		["دينار صربي"] = ECurrencyISO.RSD,
-		["روبل روسي"] = ECurrencyISO.RUB,
-		["ريال سعودي"] = ECurrencyISO.SAR,
-		["دينار سوداني"] = ECurrencyISO.SDG,
-		["كرونة سويدية"] = ECurrencyISO.SEK,
-		["دولار سنغافوري"] = ECurrencyISO.SGD,
-		["بات تايلندي"] = ECurrencyISO.THB,
-		["دينار تونسي"] = ECurrencyISO.TND,
-		["ليرة تركية"] = ECurrencyISO.TRY,
-		["دولار تريندادي"] = ECurrencyISO.TTD,
-		["دولار تايواني"] = ECurrencyISO.TWD,
-		["شلن تنزاني"] = ECurrencyISO.TZS,
-		["شلن اوغندي"] = ECurrencyISO.UGX,
-		["دونغ فيتنامي"] = ECurrencyISO.VND,
-		["ريال يمني"] = ECurrencyISO.YER,
-		["راند جنوب أفريقي"] = ECurrencyISO.ZAR,
-		["كواشا زامبي"] = ECurrencyISO.ZMW,
-		["مانات أذربيجاني"] = ECurrencyISO.AZN,
-		["ليف بلغاري"] = ECurrencyISO.BGN,
-		["بر إثيوبي"] = ECurrencyISO.ETB,
-		["دينار عراقي"] = ECurrencyISO.IQD,
-		["شيكل اسرائيلي"] = ECurrencyISO.ILS,
-		["دينار ليبي"] = ECurrencyISO.LYD,
-		["روبي موريشي"] = ECurrencyISO.MUR,
-		["روبية نيبالية"] = ECurrencyISO.NPR,
-		["ليو روماني"] = ECurrencyISO.RON,
-		["ليرة سورية"] = ECurrencyISO.SYP,
-		["منات تركمانستاني"] = ECurrencyISO.TMT,
-		["سوم أوزبكستاني"] = ECurrencyISO.UZS,
-		["ريال ايراني"] = ECurrencyISO.IRR
+		["بيزو كولومبي"] = "COP",
+		["كرونة تشيكية"] = "CZK",
+		["كرون دانماركي"] = "DKK",
+		["دينار جزائري"] = "DZD",
+		["جينيه مصري"] = "EGP",
+		["يورو"] = "EUR",
+		["جنيه استرليني"] = "GBP",
+		["دولار هونج كونج"] = "HKD",
+		["فورنت هنغاري"] = "HUF",
+		["روبية اندونيسية"] = "IDR",
+		["روبية هندية"] = "INR",
+		["كرونة آيسلندية"] = "ISK",
+		["دينار أردني"] = "JOD",
+		["ين ياباني"] = "JPY",
+		["شلن كيني"] = "KES",
+		["ون كوري"] = "KRW",
+		["دينار كويتي"] = "KWD",
+		["تينغ كازاخستاني"] = "KZT",
+		["ليرة لبنانية"] = "LBP",
+		["روبية سريلانكي"] = "LKR",
+		["درهم مغربي"] = "MAD",
+		["دينار مقدوني"] = "MKD",
+		["بيسو مكسيكي"] = "MXN",
+		["رينغيت ماليزي"] = "MYR",
+		["نيرا نيجيري"] = "NGN",
+		["كرون نرويجي"] = "NOK",
+		["دولار نيوزيلندي"] = "NZD",
+		["ريال عماني"] = "OMR",
+		["سول بيروفي"] = "PEN",
+		["بيسو فلبيني"] = "PHP",
+		["روبية باكستانية"] = "PKR",
+		["زلوتي بولندي"] = "PLN",
+		["ريال قطري"] = "QAR",
+		["دينار صربي"] = "RSD",
+		["روبل روسي"] = "RUB",
+		["ريال سعودي"] = "SAR",
+		["دينار سوداني"] = "SDG",
+		["كرونة سويدية"] = "SEK",
+		["دولار سنغافوري"] = "SGD",
+		["بات تايلندي"] = "THB",
+		["دينار تونسي"] = "TND",
+		["ليرة تركية"] = "TRY",
+		["دولار تريندادي"] = "TTD",
+		["دولار تايواني"] = "TWD",
+		["شلن تنزاني"] = "TZS",
+		["شلن اوغندي"] = "UGX",
+		["دونغ فيتنامي"] = "VND",
+		["ريال يمني"] = "YER",
+		["راند جنوب أفريقي"] = "ZAR",
+		["كواشا زامبي"] = "ZMW",
+		["مانات أذربيجاني"] = "AZN",
+		["ليف بلغاري"] = "BGN",
+		["بر إثيوبي"] = "ETB",
+		["دينار عراقي"] = "IQD",
+		["شيكل اسرائيلي"] = "ILS",
+		["دينار ليبي"] = "LYD",
+		["روبي موريشي"] = "MUR",
+		["روبية نيبالية"] = "NPR",
+		["ليو روماني"] = "RON",
+		["ليرة سورية"] = "SYP",
+		["منات تركمانستاني"] = "TMT",
+		["سوم أوزبكستاني"] = "UZS",
+		["ريال ايراني"] = "IRR"
 	};
 
 }

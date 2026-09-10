@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class TCMBProvider : CentralBankProviderBase {
 	private readonly ILogger<TCMBProvider> _logger;
-	public TCMBProvider(HttpClient http, IConfiguration configuration, ILogger<TCMBProvider> logger) : base(http, configuration) {
+	public TCMBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<TCMBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "TCMB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
 		var xml = await Http.GetStringAsync(url, ct);
 
@@ -23,12 +22,12 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var node in doc.Descendants("Currency")) {
-			var code = node.Attribute("CurrencyCode")?.Value;
+			var Bank.Code = node.Attribute("CurrencyCode")?.Value;
 			var unitText = node.Element("Unit")?.Value;
 			var forexBuyingText = node.Element("ForexBuying")?.Value;
 			var forexSellingText = node.Element("ForexSelling")?.Value;
 
-			if (string.IsNullOrWhiteSpace(code) ||
+			if (string.IsNullOrWhiteSpace(Bank.Code) ||
 				!decimal.TryParse(unitText, NumberStyles.Any, CultureInfo.InvariantCulture, out var unit) ||
 				unit <= 0) {
 				continue;
@@ -41,9 +40,10 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			if (mid > 0) {
 
-				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
+				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, mid / unit, Bank.Code));
 			}
 		}
 		return rates;
 	}
 }
+

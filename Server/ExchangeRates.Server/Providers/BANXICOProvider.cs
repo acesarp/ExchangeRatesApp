@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text.Json;
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
 	private readonly ILogger<BANXICOProvider> _logger;
-	public BANXICOProvider(HttpClient http, IConfiguration configuration, ILogger<BANXICOProvider> logger) : base(http, configuration) {
+	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BANXICO";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BANXICO:ApiKey.");
 		}
@@ -46,6 +45,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, rate, Code)];
+		return [new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode)];
 	}
 }
+

@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -13,13 +14,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BIProvider : CentralBankProviderBase {
 	private readonly ILogger<BIProvider> _logger;
 
-	public BIProvider(HttpClient http, IConfiguration configuration, ILogger<BIProvider> logger) : base(http, configuration) {
+	public BIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BIProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BI";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
@@ -40,7 +39,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate.Value, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate.Value, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BI rate for {Date}", date);
@@ -50,7 +49,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 		return results;
 	}
 
-	private static decimal? ExtractRate(string html, ECurrencyISO quoteCurrency) {
+	private static decimal? ExtractRate(string html, string quoteCurrency) {
 		var document = new HtmlDocument();
 		document.LoadHtml(html);
 
@@ -60,7 +59,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 			return null;
 		}
 
-		var currencyCode = quoteCurrency.ToString();
+		var currencyCode = quoteCurrency;
 
 		foreach (var row in rows) {
 			var cells = row.SelectNodes("./td");
@@ -89,4 +88,5 @@ public sealed class BIProvider : CentralBankProviderBase {
 		return null;
 	}
 }
+
 

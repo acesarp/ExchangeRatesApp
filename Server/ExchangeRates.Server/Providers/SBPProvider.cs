@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -7,13 +8,12 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class SBPProvider : CentralBankProviderBase {
 	private readonly ILogger<SBPProvider> _logger;
-	public SBPProvider(HttpClient http, IConfiguration configuration, ILogger<SBPProvider> logger) : base(http, configuration) {
+	public SBPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "SBP";
-	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		_logger.LogWarning("SBP source is an XLSX file; parsing not supported.");
 		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);
 	}
 }
+

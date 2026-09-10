@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BDPProvider : CentralBankProviderBase {
 	private readonly ILogger<BDPProvider> _logger;
 
-	public BDPProvider(HttpClient http, IConfiguration configuration, ILogger<BDPProvider> logger) : base(http, configuration) {
+	public BDPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BDP";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -44,7 +43,7 @@ public sealed class BDPProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -55,3 +54,4 @@ public sealed class BDPProvider : CentralBankProviderBase {
 		}
 	}
 }
+

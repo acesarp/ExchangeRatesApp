@@ -1,8 +1,9 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -11,14 +12,12 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class MNBProvider : CentralBankProviderBase {
 	private readonly ILogger<MNBProvider> _logger;
-	public MNBProvider(HttpClient http, IConfiguration configuration, ILogger<MNBProvider> logger) : base(http, configuration) {
+	public MNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MNBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "MNB";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var envelope = $"""
 				<?xml version="1.0" encoding="utf-8"?>
 				<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
@@ -80,7 +79,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / unit, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / unit, Bank.BankCode));
 			}
 
 			return results;
@@ -91,3 +90,4 @@ public sealed class MNBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

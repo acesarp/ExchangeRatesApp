@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text.Json;
@@ -10,23 +11,21 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class FREDProvider : CentralBankProviderBase {
 	private readonly ILogger<FREDProvider> _logger;
-	public FREDProvider(HttpClient http, IConfiguration configuration, ILogger<FREDProvider> logger) : base(http, configuration) {
+	public FREDProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FREDProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 		Series = Configuration.GetSection("CentralBanks:FRED:SupportedCurrencies").Get<List<FREDProviderCurrencyConfiguration>>();
 	}
 
-	public override string Code => "FRED";
-
 	private readonly List<FREDProviderCurrencyConfiguration> Series;
 
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var series = Series.FirstOrDefault(s => s.Currency == quoteCurrency);
 		if (series == default) {
 			_logger.LogWarning("FRED series not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
 
-		var apiKey = Configuration[$"ProviderKeys:{Code}"];
+		var apiKey = Configuration[$"ProviderKeys:{Bank.BankCode}"];
 
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("FRED API key is not configured.");
@@ -61,7 +60,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 				rate = 1m / rate;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;
@@ -69,7 +68,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 }
 
 public class FREDProviderCurrencyConfiguration {
-	public ECurrencyISO Currency { get; set; }
+	public string Currency { get; set; }
 	public string SeriesId { get; set; } = string.Empty;
 	public bool Invert { get; set; }
 }

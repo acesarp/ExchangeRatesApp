@@ -15,6 +15,7 @@ public static class CentralBankProviderRegistration {
 		services.AddTransient<ICentralBankProvider, BCBProvider>();
 		services.AddTransient<ICentralBankProvider, BCBOProvider>();
 		services.AddTransient<ICentralBankProvider, BCCProvider>();
+		services.AddTransient<ICentralBankProvider, BOKProvider>();
 		services.AddTransient<ICentralBankProvider, SNBProvider>();
 		services.AddTransient<ICentralBankProvider, BCCRProvider>();
 		services.AddTransient<ICentralBankProvider, BCEAOProvider>();

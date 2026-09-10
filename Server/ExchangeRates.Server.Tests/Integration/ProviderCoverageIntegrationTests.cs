@@ -1,7 +1,4 @@
-using System.Reflection;
-
 using ExchangeRates.Domain.Entities;
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Infrastructure;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
@@ -9,6 +6,8 @@ using ExchangeRates.Server.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using System.Reflection;
 
 using Xunit;
 using Xunit.Abstractions;
@@ -68,16 +67,16 @@ public sealed class ProviderCoverageIntegrationTests {
 		var missingProviders = new List<string>();
 
 		foreach (CurrencyEntity currency in currencies) {
-			if (string.Equals(currency.Code, ECurrencyISO.USD.ToString(), StringComparison.OrdinalIgnoreCase)) {
+			if (string.Equals(currency.Code, "USD", StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 
-			if (!Enum.TryParse(currency.Code, true, out ECurrencyISO quoteCurrency)) {
+			if (string.IsNullOrEmpty(currency.Code)) {
 				missingProviders.Add($"{currency.Code} - {currency.Name}");
 				continue;
 			}
 
-			var provider = (ICentralBankProvider?)findProviderMethod.Invoke(service, [ECurrencyISO.USD, quoteCurrency]);
+			var provider = (ICentralBankProvider?)findProviderMethod.Invoke(service, new object[] { "USD", currency.Code });
 			if (provider is null) {
 				missingProviders.Add($"{currency.Code} - {currency.Name}");
 			}

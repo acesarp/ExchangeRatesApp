@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,12 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BANREPProvider : CentralBankProviderBase {
 	private readonly ILogger<BANREPProvider> _logger;
-	public BANREPProvider(HttpClient http, IConfiguration configuration, ILogger<BANREPProvider> logger) : base(http, configuration) {
+	public BANREPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANREPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "BANREP";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?$where=vigenciadesde >= '{fromDate}T00:00:00.000' AND vigenciadesde < '{toDate}T00:00:00.000'";
 
@@ -34,6 +33,7 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, rate, Code)];
+		return [new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode)];
 	}
 }
+

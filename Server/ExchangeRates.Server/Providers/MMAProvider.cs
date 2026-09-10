@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,12 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class MMAProvider : CentralBankProviderBase {
 	private readonly ILogger<MMAProvider> _logger;
-	public MMAProvider(HttpClient http, IConfiguration configuration, ILogger<MMAProvider> logger) : base(http, configuration) {
+	public MMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MMAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "MMA";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -27,12 +26,12 @@ public sealed class MMAProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var item in items.EnumerateArray()) {
-				var code = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
+				var Bank.Code = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -51,7 +50,7 @@ public sealed class MMAProvider : CentralBankProviderBase {
 				}
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
 			}
 
 			return results;
@@ -62,3 +61,4 @@ public sealed class MMAProvider : CentralBankProviderBase {
 		}
 	}
 }
+

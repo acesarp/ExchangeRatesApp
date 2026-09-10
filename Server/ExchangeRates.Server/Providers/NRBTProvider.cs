@@ -1,6 +1,6 @@
 using ExcelDataReader;
 
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 
@@ -12,13 +12,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NRBTProvider : CentralBankProviderBase {
 	private readonly ILogger<NRBTProvider> _logger;
 
-	public NRBTProvider(HttpClient http, IConfiguration configuration, ILogger<NRBTProvider> logger) : base(http, configuration) {
+	public NRBTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NRBTProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "NRBT";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -53,7 +51,7 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 						for (var col = 1; col < reader.FieldCount; col++) {
 							var header = reader.GetValue(col)?.ToString()?.Trim();
 
-							if (string.Equals(header, quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+							if (string.Equals(header, quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 								quoteColumn = col;
 								break;
 							}
@@ -78,17 +76,17 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 
 					results.Add(new ExchangeRateResult(
 						Date: date,
-						BaseCurrency: ECurrencyISO.TOP,
+						BaseCurrency: "TOP",
 						QuoteCurrency: quoteCurrency,
 						Rate: rate,
-						Provider: Code
+						Provider: Bank.BankCode
 					));
 				}
 			}
 			while (reader.NextResult());
 		}
 		catch (Exception ex) {
-			_logger.LogError(ex, "[{Provider}] Error fetching exchange rates", Code);
+			_logger.LogError(ex, "[{Provider}] Error fetching exchange rates", Bank.BankCode);
 		}
 
 		return results.OrderBy(x => x.Date)

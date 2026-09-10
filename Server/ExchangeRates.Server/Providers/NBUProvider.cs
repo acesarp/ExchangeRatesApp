@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server;
 using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Providers;
@@ -12,13 +12,11 @@ using System.Text.Json;
 public sealed class NBUProvider : CentralBankProviderBase {
 	private readonly ILogger<NBUProvider> _logger;
 
-	public NBUProvider(HttpClient http, IConfiguration configuration, ILogger<NBUProvider> logger) : base(http, configuration) {
+	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "NBU";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url =
 			$"{Url}?start={fromDate:yyyyMMdd}" +
 			$"&end={toDate:yyyyMMdd}" +
@@ -31,10 +29,10 @@ public sealed class NBUProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
-			var code = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
+			var Bank.BankCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
 			var dateText = row.TryGetProperty("exchangedate", out var d) ? d.GetString() : null;
 
-			if (string.IsNullOrWhiteSpace(code) ||
+			if (string.IsNullOrWhiteSpace(Bank.BankCode) ||
 				string.IsNullOrWhiteSpace(dateText) ||
 				!DateOnly.TryParseExact(dateText, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
@@ -47,9 +45,9 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
-				
-					
-				rates.Add(new ExchangeRateResult(date, NativeCurrency, code.ToECurrency(), rate, Code));
+
+
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, Bank.BankCode, rate, Bank.BankCode));
 			}
 		}
 

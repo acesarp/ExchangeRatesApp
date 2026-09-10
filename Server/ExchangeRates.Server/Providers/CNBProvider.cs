@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,16 +11,14 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CNBProvider : CentralBankProviderBase {
 	private readonly ILogger<CNBProvider> _logger;
 
-	public CNBProvider(HttpClient http, IConfiguration configuration, ILogger<CNBProvider> logger) : base(http, configuration) {
+	public CNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CNBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "CNB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var results = new List<ExchangeRateResult>();
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			for (var year = fromDate.Year; year <= toDate.Year; year++) {
 				var uri = $"{Url}?year={year}";
@@ -31,9 +30,9 @@ public sealed class CNBProvider : CentralBankProviderBase {
 				}
 
 				foreach (var item in rates.EnumerateArray()) {
-					var code = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
+					var Bank.Code = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
 
-					if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+					if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -55,7 +54,7 @@ public sealed class CNBProvider : CentralBankProviderBase {
 
 					
 						
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / amount, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / amount, Bank.Code));
 				}
 			}
 
@@ -67,3 +66,4 @@ public sealed class CNBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

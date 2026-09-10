@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BNAProvider : CentralBankProviderBase {
 	private readonly ILogger<BNAProvider> _logger;
 
-	public BNAProvider(HttpClient http, IConfiguration configuration, ILogger<BNAProvider> logger) : base(http, configuration) {
+	public BNAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BNA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -36,7 +35,7 @@ public sealed class BNAProvider : CentralBankProviderBase {
 			}
 
 			foreach (var item in items.EnumerateArray()) {
-				if (!item.TryGetProperty("currencySymbol", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+				if (!item.TryGetProperty("currencySymbol", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -48,7 +47,7 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -59,3 +58,4 @@ public sealed class BNAProvider : CentralBankProviderBase {
 		}
 	}
 }
+

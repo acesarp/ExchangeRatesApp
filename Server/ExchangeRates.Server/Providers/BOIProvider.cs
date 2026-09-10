@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,18 +11,16 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BOIProvider : CentralBankProviderBase {
 	private readonly ILogger<BOIProvider> _logger;
-	public BOIProvider(HttpClient http, IConfiguration configuration, ILogger<BOIProvider> logger) : base(http, configuration) {
+	public BOIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOIProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "BOI";
 	/// 
 	/// <summary>
 	/// Bank of Israel.
 	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
 	/// </summary>
 
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
 								$"&startperiod={fromDate:yyyy-MM-dd}" +
@@ -77,8 +76,9 @@ public sealed class BOIProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 		return rates;
 	}
 }
+

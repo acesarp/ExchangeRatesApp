@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,14 +11,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBProvider : CentralBankProviderBase {
 	private readonly ILogger<NBProvider> _logger;
 
-	public NBProvider(HttpClient http, IConfiguration configuration, ILogger<NBProvider> logger) : base(http, configuration) {
+	public NBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "NB";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var uri = Url.Replace("NOK", currencyCode) + $"?format=sdmx-json&startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}";
 			using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 			request.Headers.TryAddWithoutValidation("Accept", "application/vnd.sdmx.data+json;version=1.0.0");
@@ -84,7 +83,7 @@ public sealed class NBProvider : CentralBankProviderBase {
 						rate = rateElement.GetDecimal();
 					}
 
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 
@@ -96,3 +95,4 @@ public sealed class NBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

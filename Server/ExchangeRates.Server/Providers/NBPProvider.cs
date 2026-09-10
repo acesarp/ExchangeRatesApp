@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBPProvider : CentralBankProviderBase {
 	private readonly ILogger<NBPProvider> _logger;
 
-	public NBPProvider(HttpClient http, IConfiguration configuration, ILogger<NBPProvider> logger) : base(http, configuration) {
+	public NBPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "NBP";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
 		using var response = await Http.GetAsync(url, ct);
 
@@ -31,15 +30,16 @@ public sealed class NBPProvider : CentralBankProviderBase {
 		var table = doc.RootElement[0];
 
 		foreach (var row in table.GetProperty("rates").EnumerateArray()) {
-			var code = row.GetProperty("code").GetString();
+			var Bank.Code = row.GetProperty("Bank.BankCode").GetString();
 			var rate = GetDecimal(row, "mid");
 
-			if (!string.IsNullOrWhiteSpace(code) && rate > 0) {
+			if (!string.IsNullOrWhiteSpace(Bank.Code) && rate > 0) {
 				
 					
-				rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, Enum.Parse<ECurrencyISO>(code!), rate, Code));
+				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, Enum.Parse<ECurrencyISO>(Bank.Code!), rate, Bank.Code));
 			}
 		}
 		return rates;
 	}
 }
+

@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,12 +11,10 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBNProvider : CentralBankProviderBase {
 	private readonly ILogger<CBNProvider> _logger;
 
-	public CBNProvider(HttpClient http, IConfiguration configuration, ILogger<CBNProvider> logger) : base(http, configuration) {
+	public CBNProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBNProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBN";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -28,7 +27,7 @@ public sealed class CBNProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
 			if (today < fromDate || today > toDate) {
@@ -36,9 +35,9 @@ public sealed class CBNProvider : CentralBankProviderBase {
 			}
 
 			foreach (var item in items.EnumerateArray()) {
-				var code = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
+				var Bank.Code = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -50,7 +49,7 @@ public sealed class CBNProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
 			}
 
 			return results;
@@ -61,3 +60,4 @@ public sealed class CBNProvider : CentralBankProviderBase {
 		}
 	}
 }
+

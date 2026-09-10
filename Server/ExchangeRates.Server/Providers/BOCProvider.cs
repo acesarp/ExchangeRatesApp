@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,14 +11,12 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BOCProvider : CentralBankProviderBase {
 	private readonly ILogger<BOCProvider> _logger;
-	public BOCProvider(HttpClient http, IConfiguration configuration, ILogger<BOCProvider> logger) : base(http, configuration) {
+	public BOCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOCProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BOC";
-
 	/// <inheritdoc/>
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
@@ -38,9 +37,10 @@ public sealed class BOCProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;
 	}
 }
+

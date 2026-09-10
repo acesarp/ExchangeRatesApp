@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUProvider> _logger;
 
-	public CBUProvider(HttpClient http, IConfiguration configuration, ILogger<CBUProvider> logger) : base(http, configuration) {
+	public CBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "CBU";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var json = await Http.GetStringAsync(Url, ct);
 			using var doc = JsonDocument.Parse(json);
@@ -27,12 +26,12 @@ public sealed class CBUProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var item in doc.RootElement.EnumerateArray()) {
-				var code = item.TryGetProperty("Ccy", out var c) ? c.GetString() : null;
+				var Bank.Code = item.TryGetProperty("Ccy", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -54,7 +53,7 @@ public sealed class CBUProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / nominal, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / nominal, Bank.Code));
 			}
 
 			return results;
@@ -65,3 +64,4 @@ public sealed class CBUProvider : CentralBankProviderBase {
 		}
 	}
 }
+

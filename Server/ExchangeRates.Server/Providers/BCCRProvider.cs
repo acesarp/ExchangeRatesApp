@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,15 +11,13 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
 	private readonly ILogger<BCCRProvider> _logger;
-	public BCCRProvider(HttpClient http, IConfiguration configuration, ILogger<BCCRProvider> logger) : base(http, configuration) {
+	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 	private string Token { get; set; }
 	private string NameParameter { get; set; }
 	private string Email { get; set; }
-
-	public override string Code => "BCCR";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		Token = Configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
 		NameParameter = Configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
 		Email = Configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
@@ -52,9 +51,10 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 
 
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, NativeCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, Bank.Currency.Code, rate, Bank.BankCode));
 		}
 
 		return rates;
 	}
 }
+

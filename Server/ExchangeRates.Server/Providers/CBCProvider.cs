@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class CBCProvider : CentralBankProviderBase {
 	private readonly ILogger<CBCProvider> _logger;
-	public CBCProvider(HttpClient http, IConfiguration configuration, ILogger<CBCProvider> logger) : base(http, configuration) {
+	public CBCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBCProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "CBC";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency != ECurrencyISO.USD) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != "USD") {
 			return [];
 		}
 
@@ -54,7 +53,7 @@ public sealed class CBCProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -65,3 +64,4 @@ public sealed class CBCProvider : CentralBankProviderBase {
 		}
 	}
 }
+

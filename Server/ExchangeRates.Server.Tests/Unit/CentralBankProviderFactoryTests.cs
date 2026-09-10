@@ -1,4 +1,3 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Tests.Fixtures;
@@ -20,8 +19,8 @@ public class CentralBankProviderFactoryTests {
 		var services = new ServiceCollection()
 			.AddLogging(builder => builder.AddConsole());
 
-		var provider1 = MockDataBuilder.CreateTestProvider("ECB", ECurrencyISO.EUR);
-		var provider2 = MockDataBuilder.CreateTestProvider("FED", ECurrencyISO.USD);
+		var provider1 = MockDataBuilder.CreateTestProvider("ECB", "EUR");
+		var provider2 = MockDataBuilder.CreateTestProvider("FED", "USD");
 
 		services.AddSingleton<ICentralBankProvider>(provider1);
 		services.AddSingleton<ICentralBankProvider>(provider2);
@@ -95,15 +94,15 @@ public class CentralBankProviderFactoryTests {
 		var serviceProvider = services.BuildServiceProvider();
 		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
 		// Act & Assert
-		var provider = MockDataBuilder.CreateTestProvider("TEST", ECurrencyISO.USD);
-		provider.Supports(ECurrencyISO.USD).Should().BeTrue();
-		provider.Supports(ECurrencyISO.EUR).Should().BeTrue();
+		var provider = MockDataBuilder.CreateTestProvider("TEST", "USD");
+		provider.Supports("USD").Should().BeTrue();
+		provider.Supports("EUR").Should().BeTrue();
 	}
 
 	[Fact]
 	public void Get_WithRegisteredProvider_ReturnsProviderWithoutConcreteRegistration() {
 		// Arrange
-		var provider = MockDataBuilder.CreateTestProvider("ECB", ECurrencyISO.EUR);
+		var provider = MockDataBuilder.CreateTestProvider("ECB", "EUR");
 		var services = new ServiceCollection()
 			.AddLogging()
 			.AddSingleton<ICentralBankProvider>(provider)

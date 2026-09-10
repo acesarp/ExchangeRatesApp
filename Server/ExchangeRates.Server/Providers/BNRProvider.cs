@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -11,13 +12,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BNRProvider : CentralBankProviderBase {
 	private readonly ILogger<BNRProvider> _logger;
 
-	public BNRProvider(HttpClient http, IConfiguration configuration, ILogger<BNRProvider> logger) : base(http, configuration) {
+	public BNRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNRProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BNR";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
@@ -35,7 +34,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 				foreach (var rateElement in document.Descendants().Where(e => e.Name.LocalName == "Rate")) {
 					var currencyAttr = rateElement.Attribute("currency")?.Value;
 
-					if (currencyAttr is null || !currencyAttr.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					if (currencyAttr is null || !currencyAttr.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -48,7 +47,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 					
 						
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate / multiplier, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / multiplier, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {
@@ -59,3 +58,4 @@ public sealed class BNRProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

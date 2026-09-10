@@ -1,8 +1,9 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -12,19 +13,17 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBAProvider : CentralBankProviderBase {
 	private readonly ILogger<CBAProvider> _logger;
 
-	public CBAProvider(HttpClient http, IConfiguration configuration, ILogger<CBAProvider> logger) : base(http, configuration) {
+	public CBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "CBA";
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-
-		if (quoteCurrency == NativeCurrency) {
+		if (quoteCurrency == Bank.Currency.Code) {
 			return [];
 		}
 
-		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != NativeCurrency)
+		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.Currency.Code)
 																															.Select(c => c.ToString()));
 
 		var soap = $"""
@@ -71,9 +70,10 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), NativeCurrency, rate / amount, Code));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), Bank.Currency.Code, rate / amount, Bank.BankCode));
 		}
 
 		return rates;
 	}
 }
+

@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCEAOProvider : CentralBankProviderBase {
 	private readonly ILogger<BCEAOProvider> _logger;
 
-	public BCEAOProvider(HttpClient http, IConfiguration configuration, ILogger<BCEAOProvider> logger) : base(http, configuration) {
+	public BCEAOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCEAOProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCEAO";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
@@ -33,7 +32,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 				}
 
 				foreach (var item in items.EnumerateArray()) {
-					if (!item.TryGetProperty("devise", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					if (!item.TryGetProperty("devise", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -43,7 +42,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {
@@ -54,3 +53,4 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

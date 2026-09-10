@@ -1,9 +1,11 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
 using System.Globalization;
 using System.Net;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -11,13 +13,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCPProvider : CentralBankProviderBase {
 	private readonly ILogger<BCPProvider> _logger;
-	public BCPProvider(HttpClient http, IConfiguration configuration, ILogger<BCPProvider> logger) : base(http, configuration) {
+	public BCPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCP";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		for (var year = fromDate.Year; year <= toDate.Year; year++) {
@@ -41,7 +41,7 @@ public sealed class BCPProvider : CentralBankProviderBase {
 	/// </summary>
 	/// <param name="html"></param>
 	/// <returns></returns>
-	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, ECurrencyISO quoteCurrency, int year) {
+	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, string quoteCurrency, int year) {
 
 		var document = new HtmlDocument();
 		document.LoadHtml(html);
@@ -74,7 +74,7 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 				if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal rate)) {
 
-					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), NativeCurrency, quoteCurrency, rate, Code));
+					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 		}

@@ -1,4 +1,3 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
@@ -48,9 +47,9 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_NoDataInRange_ReturnsEmpty() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.EUR;
-		var provider = new TestCentralBankProvider("TEST", "Test", ECurrencyISO.USD, new[] { from, to }, new());
+		var from = "USD";
+		var to = "EUR";
+		var provider = new TestCentralBankProvider("TEST", "Test", "USD", new[] { from, to }, new());
 		_providers.Add(provider);
 
 		// Act
@@ -63,18 +62,18 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_SparseData_MayReturnResults() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.EUR;
+		var from = "USD";
+		var to = "EUR";
 		var fromDate = new DateOnly(2024, 1, 1);
 		var toDate = new DateOnly(2024, 1, 10);
 
-		var rates = new Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal> {
+		var rates = new Dictionary<(string, string, DateOnly), decimal> {
 			{ (from, to, new DateOnly(2024, 1, 2)), 0.92m },
 			{ (from, to, new DateOnly(2024, 1, 5)), 0.93m },
 			{ (from, to, new DateOnly(2024, 1, 8)), 0.91m }
 		};
 
-		var provider = new TestCentralBankProvider("TEST", "Test", ECurrencyISO.USD, new[] { from, to }, rates);
+		var provider = new TestCentralBankProvider("TEST", "Test", "USD", new[] { from, to }, rates);
 		_providers.Add(provider);
 
 		// Act
@@ -89,8 +88,8 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_LargeDateRange_Completes() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.USD;
+		var from = "USD";
+		var to = "USD";
 		var fromDate = new DateOnly(2023, 1, 1);
 		var toDate = new DateOnly(2023, 12, 31);
 
@@ -109,19 +108,19 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_Symmetric_Rates_Valid() {
 		// Arrange
-		var from = ECurrencyISO.EUR;
-		var to = ECurrencyISO.USD;
+		var from = "EUR";
+		var to = "USD";
 		var date = new DateOnly(2024, 1, 1);
 
-		var rates = new Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal> {
-			{ (ECurrencyISO.USD, ECurrencyISO.EUR, date), 0.92m }
+		var rates = new Dictionary<(string, string, DateOnly), decimal> {
+			{ ("USD", "EUR", date), 0.92m }
 		};
 
 		var provider = new TestCentralBankProvider(
 			"TEST",
 			"Test",
-			ECurrencyISO.USD,
-			new[] { ECurrencyISO.USD, ECurrencyISO.EUR },
+			"USD",
+			new[] { "USD", "EUR" },
 			rates);
 		_providers.Add(provider);
 
@@ -137,8 +136,8 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_HistoricalDate_MayNotHaveData() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.EUR;
+		var from = "USD";
+		var to = "EUR";
 		var pastDate = new DateOnly(2020, 1, 1);
 
 		// Act
@@ -153,8 +152,8 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[Fact]
 	public async Task GetRatesAsync_WithValidData_Completes() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.USD;
+		var from = "USD";
+		var to = "USD";
 
 		// Act
 		var result = await _service.GetRatesAsync(from, to, DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow));
@@ -171,8 +170,8 @@ public class ExchangeRateServiceEdgeCaseTests {
 	[InlineData("USD", "JPY")]
 	public async Task GetRatesAsync_ValidPairs_ReturnResults(string from, string to) {
 		// Arrange
-		var fromCurrency = Enum.Parse<ECurrencyISO>(from);
-		var toCurrency = Enum.Parse<ECurrencyISO>(to);
+		var fromCurrency = from;
+		var toCurrency = to;
 		var date = DateOnly.FromDateTime(DateTime.UtcNow);
 
 		// Act

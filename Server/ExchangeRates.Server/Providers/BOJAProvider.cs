@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,19 +11,17 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOJAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOJAProvider> _logger;
 
-	public BOJAProvider(HttpClient http, IConfiguration configuration, ILogger<BOJAProvider> logger) : base(http, configuration) {
+	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BOJA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			using var content = new FormUrlEncodedContent(new Dictionary<string, string> {
 				["action"] = "get_exchange_rates",
 				["from"] = fromDate.ToString("yyyy-MM-dd"),
 				["to"] = toDate.ToString("yyyy-MM-dd"),
-				["currency"] = quoteCurrency.ToString()
+				["currency"] = quoteCurrency
 			});
 
 			using var response = await Http.PostAsync(Url, content, ct);
@@ -59,7 +58,7 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -70,3 +69,4 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 		}
 	}
 }
+

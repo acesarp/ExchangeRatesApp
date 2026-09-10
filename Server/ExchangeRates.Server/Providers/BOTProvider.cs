@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOTProvider : CentralBankProviderBase {
 	private readonly ILogger<BOTProvider> _logger;
 
-	public BOTProvider(HttpClient http, IConfiguration configuration, ILogger<BOTProvider> logger) : base(http, configuration) {
+	public BOTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BOT";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;
 
 		if (string.IsNullOrWhiteSpace(apiKey)) {
@@ -61,7 +60,7 @@ public sealed class BOTProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -72,3 +71,4 @@ public sealed class BOTProvider : CentralBankProviderBase {
 		}
 	}
 }
+

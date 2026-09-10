@@ -1,9 +1,10 @@
-using ExchangeRates.Domain.Enums;
 
 using HtmlAgilityPack;
 
 using System.Globalization;
 using System.Net;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -13,13 +14,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOTAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOTAProvider> _logger;
 
-	public BOTAProvider(HttpClient http, IConfiguration configuration, ILogger<BOTAProvider> logger) : base(http, configuration) {
+	public BOTAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BOTA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			using var response = await Http.GetAsync(Url, ct);
 
@@ -38,7 +37,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var row in rows) {
 				var cells = row.SelectNodes("./td");
@@ -65,7 +64,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -76,3 +75,4 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 		}
 	}
 }
+

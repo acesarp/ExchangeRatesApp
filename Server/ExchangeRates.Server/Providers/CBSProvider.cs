@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -7,13 +8,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class CBSProvider : CentralBankProviderBase {
 	private readonly ILogger<CBSProvider> _logger;
-	public CBSProvider(HttpClient http, IConfiguration configuration, ILogger<CBSProvider> logger) : base(http, configuration) {
+	public CBSProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBSProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "CBS";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var html = await Http.GetStringAsync(Url, ct);
 			var doc = new HtmlAgilityPack.HtmlDocument();
@@ -26,7 +25,7 @@ public sealed class CBSProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 			var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
 			if (today < fromDate || today > toDate) {
@@ -52,7 +51,7 @@ public sealed class CBSProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 
@@ -64,3 +63,4 @@ public sealed class CBSProvider : CentralBankProviderBase {
 		}
 	}
 }
+

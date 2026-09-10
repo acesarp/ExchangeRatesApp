@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -9,12 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class NRBProvider : CentralBankProviderBase {
 	private readonly ILogger<NRBProvider> _logger;
-	public NRBProvider(HttpClient http, IConfiguration configuration, ILogger<NRBProvider> logger) : base(http, configuration) {
+	public NRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NRBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "NRB";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?page=1&from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}&per_page=100";
 			var json = await Http.GetStringAsync(uri, ct);
@@ -26,7 +25,7 @@ public sealed class NRBProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var item in payload.EnumerateArray()) {
 				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
@@ -55,7 +54,7 @@ public sealed class NRBProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, sell / unit, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, sell / unit, Bank.BankCode));
 				}
 			}
 
@@ -67,3 +66,4 @@ public sealed class NRBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

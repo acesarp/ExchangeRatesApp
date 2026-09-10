@@ -40,12 +40,12 @@ public sealed class ExchangeRatesDbContext : DbContext {
 
 			entity.HasKey(x => x.Id);
 
-			entity.Property(x => x.Code).HasMaxLength(50).IsRequired();
+			entity.Property(x => x.BankCode).HasMaxLength(50).IsRequired();
 			entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
 			entity.Property(x => x.IsActive).IsRequired();
 			entity.Property(x => x.CreatedAtUtc).IsRequired();
 			entity.Property(x => x.CountryOfOrigin).HasMaxLength(100).IsRequired(false);
-			entity.HasIndex(x => x.Code).IsUnique();
+			entity.HasIndex(x => x.BankCode).IsUnique();
 
 			entity.HasIndex(x => x.Priority)
 				.IsUnique()

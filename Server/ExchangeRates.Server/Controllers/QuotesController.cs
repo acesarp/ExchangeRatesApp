@@ -19,7 +19,7 @@ public class QuotesController : ControllerBase {
 
 	[Route("exchange-rates", Name = "ExchangeRates")]
 	[HttpGet]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(ECurrencyISO baseCurrency, ECurrencyISO quoteCurrency, DateOnly? fromDate, DateOnly? toDate) {
+	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(string baseCurrency, string quoteCurrency, DateOnly? fromDate, DateOnly? toDate) {
 		_logger.LogInformation($"GetRate request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);

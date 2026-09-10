@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
@@ -10,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BBKProvider : CentralBankProviderBase {
 	private readonly ILogger<BBKProvider> _logger;
-	public BBKProvider(HttpClient http, IConfiguration configuration, ILogger<BBKProvider> logger) : base(http, configuration) {
+	public BBKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BBKProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BBK";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
@@ -58,10 +56,11 @@ public sealed class BBKProvider : CentralBankProviderBase {
 
 
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Bank.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;
 	}
 
 }
+

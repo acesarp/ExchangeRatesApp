@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -12,18 +13,16 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOEProvider : CentralBankProviderBase {
 	private readonly ILogger<BOEProvider> _logger;
 	private readonly Dictionary<string, string> _series;
-	public BOEProvider(HttpClient http, IConfiguration configuration, ILogger<BOEProvider> logger) : base(http, configuration) {
+	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
-		_series = configuration.GetSection($"CentralBanks:{Code}:Series")
+		_series = configuration.GetSection($"CentralBanks:{Bank.BankCode}:Series")
 											.GetChildren()
 											.ToDictionary(x => x.Key, x => x.Value!, StringComparer.OrdinalIgnoreCase);
 	}
 
-	public override string Code => "BOE";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (!_series.TryGetValue(quoteCurrency.ToString(), out var quoteCode)) {
-			_logger.LogWarning("Series code not found for quote currency: {QuoteCurrency}", quoteCurrency);
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (!_series.TryGetValue(quoteCurrency, out var quoteCode)) {
+			_logger.LogWarning("Series Bank.BankCode not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
 
@@ -58,8 +57,9 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, 1m / rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, 1m / rate, Bank.BankCode));
 		}
 		return rates;
 	}
 }
+

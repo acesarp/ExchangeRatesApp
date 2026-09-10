@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
 
@@ -9,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BAMProvider : CentralBankProviderBase {
 	private readonly ILogger<BAMProvider> _logger;
-	public BAMProvider(HttpClient http, IConfiguration configuration, ILogger<BAMProvider> logger) : base(http, configuration) {
+	public BAMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BAMProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BAM";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var apiKey = ApiKey;
 		if (string.IsNullOrWhiteSpace(apiKey)) {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
@@ -34,8 +33,8 @@ public sealed class BAMProvider : CentralBankProviderBase {
 		Console.WriteLine(rawJson);
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
-			var code = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
-			if (string.IsNullOrWhiteSpace(code)) {
+			var Bank.Code = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
+			if (string.IsNullOrWhiteSpace(Bank.Code)) {
 				continue;
 			}
 
@@ -53,8 +52,9 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, NativeCurrency, quoteCurrency, mid / unit, Code));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, mid / unit, Bank.Code));
 		}
 		return rates;
 	}
 }
+

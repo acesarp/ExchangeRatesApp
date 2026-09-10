@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server;
 using ExchangeRates.Server.Providers;
 
@@ -8,18 +8,16 @@ using System.Text.Json;
 public sealed class BDIProvider : CentralBankProviderBase {
 	private readonly ILogger<BDIProvider> _logger;
 
-	public BDIProvider(HttpClient http, IConfiguration configuration, ILogger<BDIProvider> logger) : base(http, configuration) {
+	public BDIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDIProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BDI";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
 			throw new ArgumentException("fromDate cannot be greater than toDate.");
 		}
 
-		if (quoteCurrency == NativeCurrency) {
+		if (quoteCurrency == Bank.Currency.Code) {
 			return [];
 		}
 
@@ -27,7 +25,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			$"?startDate={fromDate:yyyy-MM-dd}" +
 			$"&endDate={toDate:yyyy-MM-dd}" +
 			$"&baseCurrencyIsoCode={quoteCurrency}" +
-			$"&currencyIsoCode={NativeCurrency}" +
+			$"&currencyIsoCode={Bank.Currency.Code}" +
 			$"&lang=en";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -54,7 +52,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

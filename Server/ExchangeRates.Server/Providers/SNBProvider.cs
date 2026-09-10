@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Globalization;
 using System.Text.Json;
@@ -11,16 +12,14 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class SNBProvider : CentralBankProviderBase {
 	private readonly ILogger<SNBProvider> _logger;
-	private Dictionary<ECurrencyISO, (string SeriesCode, decimal Units)>? _series;
+	private Dictionary<string, (string SeriesCode, decimal Units)>? _series;
 
-	public SNBProvider(HttpClient http, IConfiguration configuration, ILogger<SNBProvider> logger) : base(http, configuration) {
+	public SNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SNBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "SNB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency == NativeCurrency) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency == Bank.Currency.Code) {
 			return [];
 		}
 
@@ -67,17 +66,17 @@ public sealed class SNBProvider : CentralBankProviderBase {
 				// We store CHF -> quoteCurrency.
 				var rate = seriesInfo.Units / value;
 
-				
-					
 
-				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+
+
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 
 		return rates;
 	}
 
-	private async Task<IReadOnlyDictionary<ECurrencyISO, (string SeriesCode, decimal Units)>> GetSeriesAsync(CancellationToken ct) {
+	private async Task<IReadOnlyDictionary<string, (string SeriesCode, decimal Units)>> GetSeriesAsync(CancellationToken ct) {
 		if (_series is not null) {
 			return _series;
 		}
@@ -105,7 +104,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 		return _series;
 	}
 
-	private static void ExtractSeries(JsonElement items, Dictionary<ECurrencyISO, (string SeriesCode, decimal Units)> series) {
+	private static void ExtractSeries(JsonElement items, Dictionary<string, (string SeriesCode, decimal Units)> series) {
 		foreach (var item in items.EnumerateArray()) {
 			if (item.TryGetProperty("dimensionItems", out var children)) {
 				ExtractSeries(children, series);
@@ -125,12 +124,12 @@ public sealed class SNBProvider : CentralBankProviderBase {
 			var match = Regex.Match(seriesCode, @"^([A-Z]{3})(\d+)$");
 
 			if (!match.Success ||
-				!Enum.TryParse<ECurrencyISO>(match.Groups[1].Value, out var currency) ||
+				string.IsNullOrWhiteSpace(match.Groups[1].Value) ||
 				!decimal.TryParse(match.Groups[2].Value, CultureInfo.InvariantCulture, out var units)) {
 				continue;
 			}
 
-			series[currency] = (seriesCode, units);
+			series[match.Groups[1].Value] = (seriesCode, units);
 		}
 	}
 }

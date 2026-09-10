@@ -3,7 +3,7 @@ namespace ExchangeRates.Domain.Enums;
 /// <summary>
 /// Current ISO 4217 currencies
 /// </summary>
-public enum ECurrencyISO {
+public enum ECurrencyISO_ {
 
 	//------------------ Major currencies ---------------//
 

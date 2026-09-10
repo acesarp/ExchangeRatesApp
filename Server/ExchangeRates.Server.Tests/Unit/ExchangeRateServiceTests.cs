@@ -1,4 +1,3 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
@@ -52,8 +51,8 @@ public class ExchangeRateServiceTests {
 	[Fact]
 	public async Task GetRatesAsync_SameCurrency_ReturnsIdentity() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.USD;
+		var from = "USD";
+		var to = "USD";
 		var date = DateOnly.FromDateTime(DateTime.UtcNow);
 
 		// Act
@@ -71,15 +70,15 @@ public class ExchangeRateServiceTests {
 	[Fact]
 	public async Task GetRatesAsync_WithProvider_ReturnsResult() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.EUR;
+		var from = "USD";
+		var to = "EUR";
 		var date = DateOnly.FromDateTime(DateTime.UtcNow);
 
-		var rates = new Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal> {
+		var rates = new Dictionary<(string, string, DateOnly), decimal> {
 			{ (from, to, date), 0.92m }
 		};
 
-		var provider = new TestCentralBankProvider("TEST", "Test Provider", ECurrencyISO.USD, new[] { from, to }, rates);
+		var provider = new TestCentralBankProvider("TEST", "Test Provider", "USD", new[] { from, to }, rates);
 		_providers.Add(provider);
 
 		// Act - will either find direct or return fixed
@@ -94,8 +93,8 @@ public class ExchangeRateServiceTests {
 	[Fact]
 	public async Task GetRatesAsync_FixedRateConfigured_MayReturnFixedOrEmpty() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.EUR;
+		var from = "USD";
+		var to = "EUR";
 		var date = DateOnly.FromDateTime(DateTime.UtcNow);
 
 		// EUR is configured as fixed at 0.92 in config
@@ -111,8 +110,8 @@ public class ExchangeRateServiceTests {
 	[Fact]
 	public async Task GetRatesAsync_DateRange_ReturnsResults() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.USD;
+		var from = "USD";
+		var to = "USD";
 		var fromDate = new DateOnly(2024, 1, 1);
 		var toDate = new DateOnly(2024, 1, 5);
 
@@ -131,8 +130,8 @@ public class ExchangeRateServiceTests {
 	[Fact]
 	public async Task GetRatesAsync_NoProviderAndNoFixed_ReturnsEmpty() {
 		// Arrange
-		var from = ECurrencyISO.USD;
-		var to = ECurrencyISO.GBP; // Not configured as fixed
+		var from = "USD";
+		var to = "GBP"; // Not configured as fixed
 		var date = DateOnly.FromDateTime(DateTime.UtcNow);
 
 		// No providers added

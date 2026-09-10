@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
@@ -10,13 +10,11 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
 	private readonly ILogger<ECBProvider> _logger;
-	public ECBProvider(HttpClient http, IConfiguration configuration, ILogger<ECBProvider> logger) : base(http, configuration) {
+	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "ECB";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}/D.{quoteCurrency}.EUR.SP00.A?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		_logger.LogDebug("ECB request: {Url}", url);
@@ -59,7 +57,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates.OrderBy(x => x.Date)
@@ -67,7 +65,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 	}
 
 
-	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync_OLD(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync_OLD(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 
@@ -83,7 +81,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
 		var currencyIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
 		lines = lines.Skip(1)
-							.Where(w => w.Contains(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase))
+							.Where(w => w.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase))
 							.ToArray();
 		foreach (var line in lines) {
 			var cols = TextUtils.SplitCsv(line);
@@ -94,9 +92,10 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
 
 
-				rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 		return rates;
 	}
 }
+

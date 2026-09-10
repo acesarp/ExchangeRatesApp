@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,12 +11,10 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOBProvider : CentralBankProviderBase {
 	private readonly ILogger<BOBProvider> _logger;
 
-	public BOBProvider(HttpClient http, IConfiguration configuration, ILogger<BOBProvider> logger) : base(http, configuration) {
+	public BOBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOBProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "BOB";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var csv = await Http.GetStringAsync(Url, ct);
 			var results = new List<ExchangeRateResult>();
@@ -26,7 +25,7 @@ public sealed class BOBProvider : CentralBankProviderBase {
 			}
 
 			var headers = lines[0].Split(',').Select(h => h.Trim().Trim('"')).ToArray();
-			var currencyIndex = Array.FindIndex(headers, h => h.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase));
+			var currencyIndex = Array.FindIndex(headers, h => h.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase));
 			var dateIndex = Array.FindIndex(headers, h => h.Contains("date", StringComparison.OrdinalIgnoreCase));
 
 			if (currencyIndex < 0 || dateIndex < 0) {
@@ -50,7 +49,7 @@ public sealed class BOBProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -61,3 +60,4 @@ public sealed class BOBProvider : CentralBankProviderBase {
 		}
 	}
 }
+

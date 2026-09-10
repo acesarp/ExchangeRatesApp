@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,14 +11,12 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCRAProvider : CentralBankProviderBase {
 	private readonly ILogger<BCRAProvider> _logger;
 
-	public BCRAProvider(HttpClient http, IConfiguration configuration, ILogger<BCRAProvider> logger) : base(http, configuration) {
+	public BCRAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCRAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCRA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency != ECurrencyISO.USD) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		if (quoteCurrency != "USD") {
 			return [];
 		}
 
@@ -34,7 +33,7 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 				}
 
 				foreach (var item in detalle.EnumerateArray()) {
-					if (!item.TryGetProperty("codigoMoneda", out var codeProp) || !codeProp.GetString()!.Equals(quoteCurrency.ToString(), StringComparison.OrdinalIgnoreCase)) {
+					if (!item.TryGetProperty("codigoMoneda", out var codeProp) || !codeProp.GetString()!.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -46,7 +45,7 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 
 
 
-					results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {
@@ -57,3 +56,4 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

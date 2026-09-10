@@ -1,7 +1,8 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Globalization;
 using System.Xml.Linq;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -11,22 +12,20 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBTProvider : CentralBankProviderBase {
 	private readonly ILogger<NBTProvider> _logger;
 
-	public NBTProvider(HttpClient http, IConfiguration configuration, ILogger<NBTProvider> logger) : base(http, configuration) {
+	public NBTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBTProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "NBT";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var results = new List<ExchangeRateResult>();
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 				var uri = $"{Url}?date={date:yyyy-MM-dd}";
 				var xml = await Http.GetStringAsync(uri, ct);
 				var xdoc = XDocument.Parse(xml);
 
-				var currencyNode = xdoc.Descendants("currency").FirstOrDefault(c => string.Equals(c.Element("code")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
+				var currencyNode = xdoc.Descendants("currency").FirstOrDefault(c => string.Equals(c.Element("Bank.BankCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
 
 				if (currencyNode is null) {
 					continue;
@@ -45,7 +44,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 					nominal = parsedNominal;
 				}
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, value / nominal, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, value / nominal, Bank.BankCode));
 			}
 
 			return results;
@@ -56,3 +55,4 @@ public sealed class NBTProvider : CentralBankProviderBase {
 		}
 	}
 }
+

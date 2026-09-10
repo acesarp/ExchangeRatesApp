@@ -5,7 +5,7 @@ namespace ExchangeRates.Domain.Constants;
 /// <summary>
 /// Defines a priority order for canonical currencies based on their global significance and usage
 /// </summary>
-public static class CanonicalCurrencyPriority {
+public static class CanonicalCurrencyPriority_ {
 	public static readonly ECurrencyISO[] CanonicalCurrencies = [
 	// Tier 1 — Global major currencies
 	ECurrencyISO.USD,
@@ -328,7 +328,7 @@ public static class CanonicalCurrencyPriority {
 	/// <param name="currency1">The first currency.</param>
 	/// <param name="currency2">The second currency.</param>
 	/// <returns>A tuple containing the base and quote currencies in canonical order.</returns>
-	public static (ECurrencyISO Base, ECurrencyISO Quote) GetCanonicalPair(ECurrencyISO currency1, ECurrencyISO currency2) {
+	public static (string Base, string Quote) GetCanonicalPair(string currency1, string currency2) {
 		var priority1 = GetPriority(currency1);
 		var priority2 = GetPriority(currency2);
 
@@ -344,5 +344,5 @@ public static class CanonicalCurrencyPriority {
 	private static readonly IReadOnlyDictionary<ECurrencyISO, int> CanonicalPriority = CanonicalCurrencies.Select((currency, index) => (currency, index))
 																																										.ToDictionary(x => x.currency, x => x.index);
 
-	public static int GetPriority(ECurrencyISO currency) => CanonicalPriority.TryGetValue(currency, out var priority) ? priority : int.MaxValue;
+	public static int GetPriority(string currency) => CanonicalPriority.TryGetValue(currency, out var priority) ? priority : int.MaxValue;
 }

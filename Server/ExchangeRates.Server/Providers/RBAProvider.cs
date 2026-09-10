@@ -1,8 +1,9 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
 using System.Net;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -12,14 +13,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class RBAProvider : CentralBankProviderBase {
 	private readonly ILogger<RBAProvider> _logger;
 
-	public RBAProvider(HttpClient http, IConfiguration configuration, ILogger<RBAProvider> logger) : base(http, configuration) {
+	public RBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBAProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-
-	public override string Code => "RBA";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		using var request = new HttpRequestMessage(HttpMethod.Get, Url);
 
 		request.Version = HttpVersion.Version11;
@@ -76,7 +74,7 @@ public sealed class RBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 		return rates;
 	}

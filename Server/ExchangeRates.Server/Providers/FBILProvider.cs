@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -13,13 +14,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class FBILProvider : CentralBankProviderBase {
 	private readonly ILogger<FBILProvider> _logger;
 
-	public FBILProvider(HttpClient http, IConfiguration configuration, ILogger<FBILProvider> logger) : base(http, configuration) {
+	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "FBIL";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var uri = $"{Url}?fromDate={fromDate:dd-MM-yyyy}&toDate={toDate:dd-MM-yyyy}";
 		using var response = await Http.GetAsync(uri, ct);
 		response.EnsureSuccessStatusCode();
@@ -28,7 +27,7 @@ public sealed class FBILProvider : CentralBankProviderBase {
 		return ExtractTable(html, quoteCurrency, fromDate, toDate);
 	}
 
-	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate) {
+	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, string quoteCurrency, DateOnly fromDate, DateOnly toDate) {
 		var document = new HtmlDocument();
 		document.LoadHtml(html);
 
@@ -70,28 +69,28 @@ public sealed class FBILProvider : CentralBankProviderBase {
 
 			rate /= unitMultiplier;
 
-			results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+			results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return results;
 	}
 
-	private static bool TryGetCurrency(string currencyPair, out ECurrencyISO currency, out decimal multiplier) {
+	private static bool TryGetCurrency(string currencyPair, out string currency, out decimal multiplier) {
 		currency = default;
 		multiplier = 1m;
 
 		return currencyPair switch {
-			"INR / 1 USD" => Set(ECurrencyISO.USD, 1m, out currency, out multiplier),
-			"INR / 1 GBP" => Set(ECurrencyISO.GBP, 1m, out currency, out multiplier),
-			"INR / 1 EUR" => Set(ECurrencyISO.EUR, 1m, out currency, out multiplier),
-			"INR / 100 JPY" => Set(ECurrencyISO.JPY, 100m, out currency, out multiplier),
-			"INR / 1 AED" => Set(ECurrencyISO.AED, 1m, out currency, out multiplier),
-			"INR / 10000 IDR" => Set(ECurrencyISO.IDR, 10_000m, out currency, out multiplier),
+			"INR / 1 USD" => Set("USD", 1m, out currency, out multiplier),
+			"INR / 1 GBP" => Set("GBP", 1m, out currency, out multiplier),
+			"INR / 1 EUR" => Set("EUR", 1m, out currency, out multiplier),
+			"INR / 100 JPY" => Set("JPY", 100m, out currency, out multiplier),
+			"INR / 1 AED" => Set("AED", 1m, out currency, out multiplier),
+			"INR / 10000 IDR" => Set("IDR", 10_000m, out currency, out multiplier),
 			_ => false
 		};
 	}
 
-	private static bool Set(ECurrencyISO value, decimal valueMultiplier, out ECurrencyISO currency, out decimal multiplier) {
+	private static bool Set(string value, decimal valueMultiplier, out string currency, out decimal multiplier) {
 		currency = value;
 		multiplier = valueMultiplier;
 		return true;

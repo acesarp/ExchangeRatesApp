@@ -1,6 +1,7 @@
-using ExchangeRates.Domain.Enums;
 
 using System.Text.Json;
+
+using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BNMProvider : CentralBankProviderBase {
 	private readonly ILogger<BNMProvider> _logger;
 
-	public BNMProvider(HttpClient http, IConfiguration configuration, ILogger<BNMProvider> logger) : base(http, configuration) {
+	public BNMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNMProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BNM";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
@@ -56,7 +55,7 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BNM rate for {Date}", date);
@@ -66,3 +65,4 @@ public sealed class BNMProvider : CentralBankProviderBase {
 		return results;
 	}
 }
+

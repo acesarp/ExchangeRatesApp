@@ -12,7 +12,7 @@ public static class ExtensionMethods {
 		return Enum.Parse<T>(text, ignoreCase: true);
 	}
 
-	public static ECurrencyISO ToECurrency(this string text) {
+	public static string ToECurrency(this string text) {
 		if (text.Equals("SDR", StringComparison.OrdinalIgnoreCase)) { // special case
 			return ECurrencyISO.XDR;
 		}

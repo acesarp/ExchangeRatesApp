@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;
 
@@ -13,13 +14,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCTProvider : CentralBankProviderBase {
 	private readonly ILogger<BCTProvider> _logger;
 
-	public BCTProvider(HttpClient http, IConfiguration configuration, ILogger<BCTProvider> logger) : base(http, configuration) {
+	public BCTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCTProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BCT";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var uri = $"{Url}?date_debut={fromDate:dd/MM/yyyy}&date_fin={toDate:dd/MM/yyyy}";
 			using var response = await Http.GetAsync(uri, ct);
@@ -39,7 +38,7 @@ public sealed class BCTProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var row in rows) {
 				var cells = row.SelectNodes("./td");
@@ -68,7 +67,7 @@ public sealed class BCTProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
@@ -79,3 +78,4 @@ public sealed class BCTProvider : CentralBankProviderBase {
 		}
 	}
 }
+

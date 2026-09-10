@@ -1,4 +1,4 @@
-using ExchangeRates.Domain.Enums;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Interfaces;
 
 namespace ExchangeRates.Server.Tests.Fixtures;
@@ -7,46 +7,52 @@ namespace ExchangeRates.Server.Tests.Fixtures;
 /// Test provider that implements ICentralBankProvider for testing
 /// </summary>
 public sealed class TestCentralBankProvider : ICentralBankProvider {
-	private readonly Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal> _rates;
-	private readonly HashSet<ECurrencyISO> _supported;
+	private readonly Dictionary<(string, string, DateOnly), decimal> _rates;
+	private readonly HashSet<string> _supported;
+	public IReadOnlySet<string> SupportedCurrencies { get; }
 
-	public string Code { get; }
-	public IReadOnlySet<ECurrencyISO> SupportedCurrencies { get; }
-	public bool InverseProvider { get; set; }
+	public string BankName { get; set; } = "Bank name";
 
-	public string BankName => "Bank name";
+	public string NativeCurrencyCode { get; set; } = "EUR";
+	public int CurrencyId => 1;
 
-	public ECurrencyISO NativeCurrency => ECurrencyISO.EUR;
-
-	public string CountryOfOrigin => "Test country";
+	public string CountryOfOrigin { get; set; } = "Test country";
 
 	public List<string> HistoricCurrencies => new();
 
-	public ECurrencyISO PivotCurrency => ECurrencyISO.USD;
+	public string PivotCurrency => "USD";
+
+	public string BankCode { get; set; } = "EUB";
+
+	public int? Priority { get; set; } = 1;
+
+	protected CentralBankEntity Bank => new CentralBankEntity(BankCode, BankName, CountryOfOrigin, CurrencyId, true, DateTime.UtcNow);
 
 	public TestCentralBankProvider(
 		string code,
 		string name,
-		ECurrencyISO nativeCurrency,
-		IEnumerable<ECurrencyISO> supportedCurrencies,
-		Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal>? rates = null) {
-		Code = code;
-		_supported = new HashSet<ECurrencyISO>(supportedCurrencies);
+		string nativeCurrency,
+		IEnumerable<string> supportedCurrencies,
+		Dictionary<(string, string, DateOnly), decimal>? rates = null) {
+		BankCode = code;
+		BankName = name;
+		NativeCurrencyCode = nativeCurrency;
+		_supported = new HashSet<string>(supportedCurrencies);
 		SupportedCurrencies = _supported;
-		_rates = rates ?? new Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal>();
+		_rates = rates ?? new Dictionary<(string, string, DateOnly), decimal>();
 	}
 
-	public bool Supports(ECurrencyISO currency) => _supported.Contains(currency);
+	public bool Supports(string currency) => _supported.Contains(currency);
 
-	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(ECurrencyISO currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
+	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct = default) {
 
 		var result = new List<ExchangeRateResult>();
 		var currentDate = fromDate;
 
 		while (currentDate <= toDate) {
-			var key = (NativeCurrency, currency, currentDate);
+			var key = (NativeCurrencyCode, currency, currentDate);
 			if (_rates.TryGetValue(key, out var rate)) {
-				result.Add(new ExchangeRateResult(currentDate, NativeCurrency, currency, rate, Code));
+				result.Add(new ExchangeRateResult(currentDate, NativeCurrencyCode, currency, rate, BankCode));
 			}
 			currentDate = currentDate.AddDays(1);
 		}
@@ -60,8 +66,8 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 /// </summary>
 public static class MockDataBuilder {
 	public static ExchangeRateResult CreateRate(
-		ECurrencyISO from = ECurrencyISO.USD,
-		ECurrencyISO to = ECurrencyISO.EUR,
+		string from = "USD",
+		string to = "EUR",
 		decimal rate = 0.92m,
 		string? providerCode = null,
 		DateOnly? date = null) {
@@ -74,8 +80,8 @@ public static class MockDataBuilder {
 	}
 
 	public static List<ExchangeRateResult> CreateRateRange(
-		ECurrencyISO from,
-		ECurrencyISO to,
+		string from,
+		string to,
 		decimal startRate,
 		int dayCount,
 		DateOnly? startDate = null,
@@ -99,10 +105,10 @@ public static class MockDataBuilder {
 
 	public static TestCentralBankProvider CreateTestProvider(
 		string code = "TEST",
-		ECurrencyISO nativeCurrency = ECurrencyISO.USD,
-		ECurrencyISO[]? supportedCurrencies = null,
-		Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal>? rates = null) {
-		var currencies = supportedCurrencies ?? new[] { ECurrencyISO.USD, ECurrencyISO.EUR, ECurrencyISO.JPY };
+		string nativeCurrency = "USD",
+		string[]? supportedCurrencies = null,
+		Dictionary<(string, string, DateOnly), decimal>? rates = null) {
+		var currencies = supportedCurrencies ?? new[] { "USD", "EUR", "JPY" };
 		return new TestCentralBankProvider(
 			code,
 			$"Test Central Bank {code}",
@@ -111,9 +117,9 @@ public static class MockDataBuilder {
 			rates);
 	}
 
-	public static Dictionary<(ECurrencyISO, ECurrencyISO, DateOnly), decimal> CreateRateDictionary(
-		ECurrencyISO from,
-		ECurrencyISO to,
+	public static Dictionary<(string, string, DateOnly), decimal> CreateRateDictionary(
+		string from,
+		string to,
 		decimal rate,
 		DateOnly? date = null) {
 		var d = date ?? DateOnly.FromDateTime(DateTime.UtcNow);

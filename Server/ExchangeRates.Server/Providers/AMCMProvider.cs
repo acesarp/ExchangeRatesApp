@@ -1,6 +1,8 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
+
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
@@ -8,12 +10,10 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class AMCMProvider : CentralBankProviderBase {
 	private readonly ILogger<AMCMProvider> _logger;
-	public AMCMProvider(HttpClient http, IConfiguration configuration, ILogger<AMCMProvider> logger) : base(http, configuration) {
+	public AMCMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AMCMProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
-
-	public override string Code => "AMCM";
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
 
@@ -25,8 +25,8 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 		}
 
 		foreach (var row in data.EnumerateArray()) {
-			var code = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
-			if (string.IsNullOrWhiteSpace(code)) {
+			var Bank.Code = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
+			if (string.IsNullOrWhiteSpace(Bank.Code)) {
 				continue;
 			}
 
@@ -36,8 +36,9 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, NativeCurrency, value / unit, Code));
+			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.Currency.Code, value / unit, Bank.Code));
 		}
 		return rates;
 	}
 }
+

@@ -1,4 +1,5 @@
-using ExchangeRates.Domain.Enums;
+
+using ExchangeRates.Domain.Entities;
 
 using System.Text.Json;
 
@@ -10,13 +11,11 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BSPProvider : CentralBankProviderBase {
 	private readonly ILogger<BSPProvider> _logger;
 
-	public BSPProvider(HttpClient http, IConfiguration configuration, ILogger<BSPProvider> logger) : base(http, configuration) {
+	public BSPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BSPProvider> logger) : base(http, configuration, bank) {
 		_logger = logger;
 	}
 
-	public override string Code => "BSP";
-
-	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(ECurrencyISO quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			using var request = new HttpRequestMessage(HttpMethod.Get, Url);
 			request.Headers.TryAddWithoutValidation("Accept", "application/json;odata=verbose");
@@ -36,12 +35,12 @@ public sealed class BSPProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var currencyCode = quoteCurrency.ToString();
+			var currencyCode = quoteCurrency;
 
 			foreach (var item in items.EnumerateArray()) {
-				var code = item.TryGetProperty("Currency", out var c) ? c.GetString() : null;
+				var bankCurrencyCode = item.TryGetProperty("Currency", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(bankCurrencyCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -59,9 +58,9 @@ public sealed class BSPProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(date, NativeCurrency, quoteCurrency, rate, Code));
+
+
+				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
 			}
 
 			return results;
@@ -72,3 +71,4 @@ public sealed class BSPProvider : CentralBankProviderBase {
 		}
 	}
 }
+

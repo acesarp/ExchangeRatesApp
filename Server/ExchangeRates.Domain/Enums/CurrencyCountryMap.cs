@@ -316,7 +316,7 @@ public static class CurrencyCountryMap {
 		}
 	}
 
-	public static string GetCountryCode(ECurrencyISO currency) {
+	public static string GetCountryCode(string currency) {
 		if (Map.TryGetValue(currency, out var countryCode)) {
 			return countryCode;
 		}
