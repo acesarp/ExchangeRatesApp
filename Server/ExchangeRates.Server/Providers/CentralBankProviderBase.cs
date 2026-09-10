@@ -1,5 +1,4 @@
 ﻿using ExchangeRates.Domain.Entities;
-using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 
 using System.Globalization;
@@ -39,7 +38,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public IReadOnlySet<string> SupportedCurrencies {
 		get {
 			var currencies = Configuration.GetSection($"CentralBanks:{Bank.BankCode}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:SupportedCurrencies configuration.");
-			return currencies.Select(x => x.ToECurrency()).ToHashSet();
+			return currencies.ToHashSet();
 		}
 	}
 

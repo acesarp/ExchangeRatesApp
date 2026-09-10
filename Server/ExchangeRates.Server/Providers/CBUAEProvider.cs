@@ -18,7 +18,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		if (!CurrencyCountryMap.CurrencyNames.TryGetValue(quoteCurrency, out var currencyName)) {
+		if (!CurrencyMap.TryGetValue(quoteCurrency, out var currencyName)) {
 			_logger.LogDebug("Currency {Currency} is not supported by CBUAE.", quoteCurrency);
 			return [];
 		}

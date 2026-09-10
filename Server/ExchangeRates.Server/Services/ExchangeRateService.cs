@@ -1,6 +1,5 @@
 ﻿using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
-using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Mappers;
 using ExchangeRates.Server.Models;
@@ -21,7 +20,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		_logger = logger;
 		_repository = repository;
 		_providerFactory = providerFactory;
-		_pivotCurrency = configuration["Priority"]?.ToECurrency() ?? throw new InvalidOperationException("Missing Priority configuration.");
+		_pivotCurrency = configuration["Priority"] ?? throw new InvalidOperationException("Missing Priority configuration.");
 	}
 
 

@@ -15,15 +15,14 @@ namespace ExchangeRates.Server.Tests.Integration;
 /// </summary>
 public sealed class ProviderIntegrationTests {
 	private static CentralBankEntity CreateBank(string code) {
-		return new CentralBankEntity {
-			BankCode = code,
-			BankName = code,
-			CountryOfOrigin = string.Empty,
-			CurrencyId = 1,
-			IsActive = true,
-			CreatedAtUtc = DateTime.UtcNow,
-			Currency = new CurrencyEntity(1, code, 0, code, false, 1)
-		};
+		return new CentralBankEntity(
+			code,
+			"Bank name",
+			"USA",
+			1,
+			true,
+			DateTime.UtcNow
+		);
 	}
 
 	[Fact]
