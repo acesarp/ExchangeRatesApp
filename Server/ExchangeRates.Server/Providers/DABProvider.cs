@@ -56,7 +56,7 @@ public sealed class DABProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

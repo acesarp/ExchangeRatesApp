@@ -1,8 +1,8 @@
 
+using ExchangeRates.Domain.Entities;
+
 using System.Globalization;
 using System.Xml.Linq;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -41,7 +41,7 @@ public sealed class SBIProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;

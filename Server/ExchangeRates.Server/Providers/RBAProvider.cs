@@ -1,9 +1,8 @@
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
 using System.Net;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -74,7 +73,7 @@ public sealed class RBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 		return rates;
 	}

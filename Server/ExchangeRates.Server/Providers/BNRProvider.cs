@@ -47,7 +47,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 					
 						
-					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / multiplier, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / multiplier, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {

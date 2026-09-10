@@ -19,7 +19,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
-			throw new InvalidOperationException($"Missing CentralBanks:{Bank.Currency.Code}:ApiKey configuration.");
+			throw new InvalidOperationException($"Missing CentralBanks:{Bank.Currency.CurrencyCode}:ApiKey configuration.");
 		}
 
 		var day = fromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
@@ -42,7 +42,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, value / info.Unit, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, value / info.Unit, Bank.BankCode));
 		}
 
 		return rates;

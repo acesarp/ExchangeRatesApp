@@ -1,7 +1,7 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -52,8 +52,8 @@ public sealed class CNBProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					
-						
+
+
 					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / amount, Bank.Code));
 				}
 			}

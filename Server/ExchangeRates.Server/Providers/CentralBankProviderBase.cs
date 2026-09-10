@@ -23,7 +23,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected IConfiguration Configuration { get; }
 	protected CentralBankEntity Bank { get; }
 	public string BankCode => Bank.BankCode;
-	public string NativeCurrencyCode => Bank.Currency.Code;
+	public string NativeCurrencyCode => Bank.Currency.CurrencyCode;
 	public string BankName => Bank.BankName;
 	public string? CountryOfOrigin => Bank.CountryOfOrigin;
 	public int? Priority => Bank.Priority;
@@ -50,9 +50,9 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	}
 
 	/// <inheritdoc/>
-	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		return FetchAsync(currency, fromDate, toDate, ct);
+		return FetchAsync(quoteCurrency, fromDate, toDate, ct);
 	}
 
 	/// <summary>

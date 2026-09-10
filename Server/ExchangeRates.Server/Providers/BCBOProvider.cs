@@ -62,7 +62,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 				var rate = ExtractRate(reader, quoteCurrency);
 				if (rate.HasValue) {
-					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate.Value, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate.Value, Bank.BankCode));
 				}
 			}
 			catch (OperationCanceledException ex) when (ct.IsCancellationRequested) {

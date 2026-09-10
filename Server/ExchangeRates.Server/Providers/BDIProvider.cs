@@ -17,7 +17,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			throw new ArgumentException("fromDate cannot be greater than toDate.");
 		}
 
-		if (quoteCurrency == Bank.Currency.Code) {
+		if (quoteCurrency == Bank.Currency.CurrencyCode) {
 			return [];
 		}
 
@@ -25,7 +25,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			$"?startDate={fromDate:yyyy-MM-dd}" +
 			$"&endDate={toDate:yyyy-MM-dd}" +
 			$"&baseCurrencyIsoCode={quoteCurrency}" +
-			$"&currencyIsoCode={Bank.Currency.Code}" +
+			$"&currencyIsoCode={Bank.Currency.CurrencyCode}" +
 			$"&lang=en";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -52,7 +52,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

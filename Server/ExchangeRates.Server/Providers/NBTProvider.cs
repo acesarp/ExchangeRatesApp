@@ -1,8 +1,8 @@
 
+using ExchangeRates.Domain.Entities;
+
 using System.Globalization;
 using System.Xml.Linq;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -18,7 +18,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var results = new List<ExchangeRateResult>();
-			var currencyCode = quoteCurrency;
+			var currencyCode = quoteCurrency.Code;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 				var uri = $"{Url}?date={date:yyyy-MM-dd}";
@@ -44,7 +44,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 					nominal = parsedNominal;
 				}
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, value / nominal, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, value / nominal, Bank.BankCode));
 			}
 
 			return results;

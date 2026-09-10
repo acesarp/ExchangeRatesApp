@@ -41,7 +41,7 @@ public sealed class BCBProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, Bank.Currency.Code, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, Bank.Currency.CurrencyCode, rate, Bank.BankCode));
 		}
 
 		return rates;

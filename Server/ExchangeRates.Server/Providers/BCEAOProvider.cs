@@ -42,7 +42,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {

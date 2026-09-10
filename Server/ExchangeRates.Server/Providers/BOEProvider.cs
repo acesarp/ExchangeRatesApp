@@ -57,7 +57,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, 1m / rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, 1m / rate, Bank.BankCode));
 		}
 		return rates;
 	}

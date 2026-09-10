@@ -45,7 +45,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode)];
+		return [new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode)];
 	}
 }
 

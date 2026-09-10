@@ -1,10 +1,10 @@
 
+using ExchangeRates.Domain.Entities;
+
 using HtmlAgilityPack;
 
 using System.Globalization;
 using System.Net;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -52,9 +52,9 @@ public sealed class RBMProvider : CentralBankProviderBase {
 				if (!decimal.TryParse(values[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
-				
-					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+
+
+				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

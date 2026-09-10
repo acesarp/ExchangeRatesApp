@@ -54,7 +54,7 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);

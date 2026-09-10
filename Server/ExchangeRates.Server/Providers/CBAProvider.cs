@@ -19,11 +19,11 @@ public sealed class CBAProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		if (quoteCurrency == Bank.Currency.Code) {
+		if (quoteCurrency == Bank.Currency.CurrencyCode) {
 			return [];
 		}
 
-		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.Currency.Code)
+		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.Currency.CurrencyCode)
 																															.Select(c => c.ToString()));
 
 		var soap = $"""
@@ -70,7 +70,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), Bank.Currency.Code, rate / amount, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), Bank.Currency.CurrencyCode, rate / amount, Bank.BankCode));
 		}
 
 		return rates;

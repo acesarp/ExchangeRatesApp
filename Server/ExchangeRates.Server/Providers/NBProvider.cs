@@ -1,7 +1,7 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -83,7 +83,7 @@ public sealed class NBProvider : CentralBankProviderBase {
 						rate = rateElement.GetDecimal();
 					}
 
-					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 

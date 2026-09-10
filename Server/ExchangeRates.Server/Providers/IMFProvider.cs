@@ -39,7 +39,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 		const string frequency = "M";
 		var fromPeriod = $"{fromDate.Year}-M{fromDate.Month:00}-M{fromDate.Day:00}";
 		var toPeriod = $"{toDate.Year}-M{toDate.Month:00}-M{toDate.Day:00}";
-		var country = CurrencyCountryMap.GetCountryCode(quoteCurrency);
+		var country = quoteCurrency; //WRONG TODO
 		var key = $"{country}.{indicator}.{transformation}.{frequency}";
 
 
@@ -70,7 +70,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var results = new List<ExchangeRateResult>();
-		if (!CurrencyCountryMap.CurrencyNames.TryGetValue(quoteCurrency, out var currencyName)) {
+		if (quoteCurrency is null) {
 			_logger.LogDebug("Currency {Currency} is not supported by IMF.", quoteCurrency);
 			return [];
 		}
@@ -144,7 +144,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 							continue;
 						}
 
-						results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+						results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 					}
 				}
 			}

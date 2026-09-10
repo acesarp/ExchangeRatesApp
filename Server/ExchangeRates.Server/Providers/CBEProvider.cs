@@ -53,7 +53,7 @@ public sealed class CBEProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.Code));
 			}
 
 			return results;

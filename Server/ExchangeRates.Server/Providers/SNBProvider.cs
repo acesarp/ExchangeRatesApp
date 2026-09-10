@@ -19,7 +19,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency == Bank.Currency.Code) {
+		if (quoteCurrency == Bank.Currency.CurrencyCode) {
 			return [];
 		}
 
@@ -69,7 +69,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 

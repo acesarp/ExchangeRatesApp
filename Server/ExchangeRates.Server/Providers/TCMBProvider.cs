@@ -1,7 +1,7 @@
 
-using System.Globalization;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Globalization;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -22,12 +22,12 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var node in doc.Descendants("Currency")) {
-			var Bank.Code = node.Attribute("CurrencyCode")?.Value;
+			var currencyCode = node.Attribute("CurrencyCode")?.Value;
 			var unitText = node.Element("Unit")?.Value;
 			var forexBuyingText = node.Element("ForexBuying")?.Value;
 			var forexSellingText = node.Element("ForexSelling")?.Value;
 
-			if (string.IsNullOrWhiteSpace(Bank.Code) ||
+			if (string.IsNullOrWhiteSpace(currencyCode) ||
 				!decimal.TryParse(unitText, NumberStyles.Any, CultureInfo.InvariantCulture, out var unit) ||
 				unit <= 0) {
 				continue;
@@ -40,7 +40,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			if (mid > 0) {
 
-				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, mid / unit, Bank.Code));
+				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, mid / unit, BankCode));
 			}
 		}
 		return rates;

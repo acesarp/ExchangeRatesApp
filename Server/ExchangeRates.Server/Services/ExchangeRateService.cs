@@ -85,6 +85,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// The direction of the exchange rate is not considered; if the provider's native currency is the quote currency, the inverse of the rate will be returned.<br />
 	/// </summary>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetDirectRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
 		var provider = FindProvider(baseCurrency, quoteCurrency);
 
 		if (provider == null) {
@@ -93,13 +94,14 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 		var localQuoteCurrency = (provider.NativeCurrencyCode == quoteCurrency) ? baseCurrency : quoteCurrency;
 
-		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.Code, baseCurrency, quoteCurrency, provider.NativeCurrency);
+		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrency);
 
 		var rates = await provider.GetRatesAsync(localQuoteCurrency, fromDate, toDate, ct);
 
 		rates = rates.Select(x => new ExchangeRateResult(x.Date, provider.NativeCurrencyCode, localQuoteCurrency, x.Rate, x.Provider))
 							.OrderBy(x => x.Date)
 							.ToList();
+
 		if (provider.NativeCurrencyCode == quoteCurrency) {
 			return OrientRates(rates, baseCurrency, quoteCurrency);
 		}

@@ -60,7 +60,7 @@ public sealed class BOTProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;

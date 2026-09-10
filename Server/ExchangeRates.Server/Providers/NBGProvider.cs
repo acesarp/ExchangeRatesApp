@@ -44,7 +44,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / quantity, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / quantity, Bank.BankCode));
 			}
 
 			return results;

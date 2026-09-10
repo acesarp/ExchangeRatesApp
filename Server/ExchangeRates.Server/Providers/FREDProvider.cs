@@ -60,7 +60,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 				rate = 1m / rate;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

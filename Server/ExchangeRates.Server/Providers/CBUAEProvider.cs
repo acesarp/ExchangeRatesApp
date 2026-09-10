@@ -82,7 +82,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			return new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode);
+			return new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode);
 		}
 
 		return null;

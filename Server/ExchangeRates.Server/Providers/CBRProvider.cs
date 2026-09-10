@@ -53,7 +53,7 @@ public sealed class CBRProvider : CentralBankProviderBase {
 					nominal = parsedNominal;
 				}
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, value / nominal, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, value / nominal, Bank.BankCode));
 			}
 
 			return results;

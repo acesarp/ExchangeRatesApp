@@ -1,9 +1,9 @@
 
+using ExchangeRates.Domain.Entities;
+
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -77,9 +77,9 @@ public sealed class MNBProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / unit, Bank.BankCode));
+
+
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / unit, Bank.BankCode));
 			}
 
 			return results;

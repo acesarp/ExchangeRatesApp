@@ -1,8 +1,8 @@
 
+using ExchangeRates.Domain.Entities;
+
 using System.Globalization;
 using System.Text.Json;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -34,9 +34,9 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate, Bank.BankCode));
+
+
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch {
 				// Skip days with no data
