@@ -61,24 +61,24 @@ public sealed class ProviderCoverageIntegrationTests {
 		var currencies = await dbContext.Currencies
 			.AsNoTracking()
 			.Where(c => c.IsHistoric == isHistoric)
-			.OrderBy(c => c.Code)
+			.OrderBy(c => c.CurrencyCode)
 			.ToListAsync();
 
 		var missingProviders = new List<string>();
 
 		foreach (CurrencyEntity currency in currencies) {
-			if (string.Equals(currency.Code, "USD", StringComparison.OrdinalIgnoreCase)) {
+			if (string.Equals(currency.CurrencyCode, "USD", StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 
-			if (string.IsNullOrEmpty(currency.Code)) {
-				missingProviders.Add($"{currency.Code} - {currency.Name}");
+			if (string.IsNullOrEmpty(currency.CurrencyCode)) {
+				missingProviders.Add($"{currency.CurrencyCode} - {currency.Name}");
 				continue;
 			}
 
-			var provider = (ICentralBankProvider?)findProviderMethod.Invoke(service, new object[] { "USD", currency.Code });
+			var provider = (ICentralBankProvider?)findProviderMethod.Invoke(service, new object[] { "USD", currency.CurrencyCode });
 			if (provider is null) {
-				missingProviders.Add($"{currency.Code} - {currency.Name}");
+				missingProviders.Add($"{currency.CurrencyCode} - {currency.Name}");
 			}
 		}
 

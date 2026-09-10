@@ -56,7 +56,7 @@ public sealed class BBKProvider : CentralBankProviderBase {
 
 
 
-			rates.Add(new ExchangeRateResult(date, Bank.Bank.Code, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.BankCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

@@ -1,6 +1,5 @@
 using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server;
-using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Providers;
 
 using System.Globalization;
@@ -29,10 +28,10 @@ public sealed class NBUProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
-			var Bank.BankCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
+			var bankCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
 			var dateText = row.TryGetProperty("exchangedate", out var d) ? d.GetString() : null;
 
-			if (string.IsNullOrWhiteSpace(Bank.BankCode) ||
+			if (string.IsNullOrWhiteSpace(bankCode) ||
 				string.IsNullOrWhiteSpace(dateText) ||
 				!DateOnly.TryParseExact(dateText, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
@@ -47,7 +46,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			if (rate > 0) {
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.Code, Bank.BankCode, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, BankCode, rate, bankCode));
 			}
 		}
 

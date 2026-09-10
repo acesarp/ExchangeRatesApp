@@ -1,4 +1,5 @@
-﻿using ExchangeRates.Domain.Interfaces;
+﻿using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Server.Extensions;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Mappers;
@@ -14,6 +15,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	private readonly IExchangeRateRepository _repository;
 	private readonly CentralBankProviderFactory _providerFactory;
 	private readonly string _pivotCurrency;
+	private IReadOnlyList<CurrencyEntity>? _currencies;
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
@@ -94,7 +96,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 		var localQuoteCurrency = (provider.NativeCurrencyCode == quoteCurrency) ? baseCurrency : quoteCurrency;
 
-		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrency);
+		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrencyCode);
 
 		var rates = await provider.GetRatesAsync(localQuoteCurrency, fromDate, toDate, ct);
 
@@ -175,30 +177,48 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 
-	private static IReadOnlyList<ExchangeRateResult> OrientToCanonical(IEnumerable<ExchangeRateResult> rates) {
+	private static IReadOnlyList<ExchangeRateResult> OrientToCanonical(
+		IEnumerable<ExchangeRateResult> rates,
+		IReadOnlyList<CurrencyEntity> currencies) {
+
 		return rates
 			.Where(x => x.Rate != 0)
 			.Select(x => {
-				var canonicalPair = CanonicalCurrencyPriority.GetCanonicalPair(x.BaseCurrency, x.QuoteCurrency);
+				var baseCurrency = currencies.First(c => c.CurrencyCode == x.BaseCurrency);
+				var quoteCurrency = currencies.First(c => c.CurrencyCode == x.QuoteCurrency);
 
-				if (x.BaseCurrency == canonicalPair.Base && x.QuoteCurrency == canonicalPair.Quote) {
+				if (baseCurrency.Priority < quoteCurrency.Priority) {
 					return x;
 				}
 
-				return new ExchangeRateResult(x.Date, canonicalPair.Base, canonicalPair.Quote, 1m / x.Rate, x.Provider);
+				return new ExchangeRateResult(
+					x.Date,
+					x.QuoteCurrency,
+					x.BaseCurrency,
+					1m / x.Rate,
+					x.Provider);
 			})
 			.OrderBy(x => x.Date)
 			.ToList();
 	}
 
+	private async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesCachedAsync(CancellationToken ct) {
+		if (_currencies != null) {
+			return _currencies;
+		}
+
+		_currencies = await _repository.GetCurrenciesAsync(ct);
+		return _currencies;
+	}
+
 	public async Task<IReadOnlyList<CurrencyModel>> GetCurrenciesAsync(CancellationToken ct) {
-		var currencies = await _repository.GetCurrenciesAsync(ct);
-		return currencies.Select(x => new CurrencyModel(x.Code, x.NumericCode, x.Name, x.IsHistoric, x.Priority)).ToList();
+		var currencies = await GetCurrenciesCachedAsync(ct);
+		return currencies.Select(x => new CurrencyModel(x.CurrencyCode, x.NumericCode, x.Name, x.IsHistoric, x.Priority)).ToList();
 	}
 
 	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
 		var centralBanks = await _repository.GetCentralBanksAsync(ct);
-		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.Currency.Code, x.CurrencyId, x.Priority))
+		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.Currency.CurrencyCode, x.CurrencyId, x.Priority))
 										.ToList();
 	}
 }

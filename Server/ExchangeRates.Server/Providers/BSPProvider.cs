@@ -60,7 +60,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, BankCode));
 			}
 
 			return results;

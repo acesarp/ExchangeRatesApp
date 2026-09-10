@@ -18,7 +18,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var results = new List<ExchangeRateResult>();
-			var currencyCode = quoteCurrency.Code;
+			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 				var uri = $"{Url}?date={date:yyyy-MM-dd}";

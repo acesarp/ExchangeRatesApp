@@ -33,8 +33,8 @@ public sealed class BAMProvider : CentralBankProviderBase {
 		Console.WriteLine(rawJson);
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
-			var Bank.Code = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
-			if (string.IsNullOrWhiteSpace(Bank.Code)) {
+			var bankCode = row.TryGetProperty("libDevise", out var c) ? c.GetString() : null;
+			if (string.IsNullOrWhiteSpace(bankCode)) {
 				continue;
 			}
 
@@ -52,7 +52,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, quoteCurrency, mid / unit, Bank.Code));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, mid / unit, bankCode));
 		}
 		return rates;
 	}

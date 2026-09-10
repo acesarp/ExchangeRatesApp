@@ -3,8 +3,8 @@
 namespace ExchangeRates.Server.Models;
 
 public sealed class CentralBankModel {
-	public CentralBankModel(string code, string bankName, string countryOfOrigin, string nativeCurrency, int currencyId, int? priority) {
-		Code = code;
+	public CentralBankModel(string bankCode, string bankName, string countryOfOrigin, string nativeCurrency, int currencyId, int? priority) {
+		BankCode = bankCode;
 		BankName = bankName;
 		CountryOfOrigin = countryOfOrigin;
 		NativeCurrency = nativeCurrency;
@@ -12,7 +12,7 @@ public sealed class CentralBankModel {
 		Priority = priority;
 	}
 
-	public string Code { get; }
+	public string BankCode { get; }
 	public string BankName { get; }
 	public string CountryOfOrigin { get; }
 	public string NativeCurrency { get; }

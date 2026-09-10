@@ -4,11 +4,11 @@ public interface ICentralBankProvider {
 
 	List<string> HistoricCurrencies { get; }
 	string PivotCurrency { get; }
-	string BankCode { get; set; }
-	string NativeCurrencyCode { get; set; }
-	string BankName { get; set; }
-	string? CountryOfOrigin { get; set; }
-	int? Priority { get; set; }
+	string BankCode { get; }
+	string NativeCurrencyCode { get; }
+	string BankName { get; }
+	string? CountryOfOrigin { get; }
+	int? Priority { get; }
 
 	/// <summary>
 	/// Retrieves exchange rates for the specified date.

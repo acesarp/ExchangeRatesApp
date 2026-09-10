@@ -1,9 +1,9 @@
 
+using ExchangeRates.Domain.Entities;
+
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
-
-using ExchangeRates.Domain.Entities;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -70,7 +70,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Enum.Parse<ECurrencyISO>(iso), Bank.Currency.CurrencyCode, rate / amount, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), iso, Bank.Currency.CurrencyCode, rate / amount, Bank.BankCode));
 		}
 
 		return rates;

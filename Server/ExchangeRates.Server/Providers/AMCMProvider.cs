@@ -25,8 +25,8 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 		}
 
 		foreach (var row in data.EnumerateArray()) {
-			var Bank.Code = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
-			if (string.IsNullOrWhiteSpace(Bank.Code)) {
+			var bankCode = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
+			if (string.IsNullOrWhiteSpace(bankCode)) {
 				continue;
 			}
 
@@ -36,7 +36,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.Currency.Code, value / unit, Bank.Code));
+			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.Currency.CurrencyCode, value / unit, bankCode));
 		}
 		return rates;
 	}

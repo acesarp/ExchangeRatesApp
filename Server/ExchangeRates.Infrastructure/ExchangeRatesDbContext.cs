@@ -26,12 +26,12 @@ public sealed class ExchangeRatesDbContext : DbContext {
 		modelBuilder.Entity<CurrencyEntity>(entity => {
 			entity.ToTable("Currency");
 			entity.HasKey(x => x.Id);
-			entity.Property(x => x.Code).HasMaxLength(3).IsRequired();
+			entity.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
 			entity.Property(x => x.NumericCode).IsRequired();
 			entity.Property(x => x.Name).HasMaxLength(100).IsRequired();
 			entity.Property(x => x.IsHistoric).IsRequired();
 			entity.Property(x => x.Priority).IsRequired();
-			entity.HasIndex(x => x.Code).IsUnique();
+			entity.HasIndex(x => x.CurrencyCode).IsUnique();
 			entity.HasIndex(x => x.Priority).IsUnique();
 		});
 
@@ -41,7 +41,7 @@ public sealed class ExchangeRatesDbContext : DbContext {
 			entity.HasKey(x => x.Id);
 
 			entity.Property(x => x.BankCode).HasMaxLength(50).IsRequired();
-			entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
+			entity.Property(x => x.BankName).HasMaxLength(255).IsRequired();
 			entity.Property(x => x.IsActive).IsRequired();
 			entity.Property(x => x.CreatedAtUtc).IsRequired();
 			entity.Property(x => x.CountryOfOrigin).HasMaxLength(100).IsRequired(false);

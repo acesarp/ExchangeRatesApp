@@ -33,7 +33,7 @@ public sealed class CBEProvider : CentralBankProviderBase {
 			foreach (var item in items.EnumerateArray()) {
 				var BankCode = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(BankCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -53,7 +53,7 @@ public sealed class CBEProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.Code));
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, BankCode));
 			}
 
 			return results;

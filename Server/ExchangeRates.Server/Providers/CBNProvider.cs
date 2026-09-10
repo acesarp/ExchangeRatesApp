@@ -1,7 +1,7 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -35,9 +35,9 @@ public sealed class CBNProvider : CentralBankProviderBase {
 			}
 
 			foreach (var item in items.EnumerateArray()) {
-				var Bank.Code = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
+				var BankCode = item.TryGetProperty("currency", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(BankCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -47,9 +47,9 @@ public sealed class CBNProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.Code, quoteCurrency, rate, Bank.Code));
+
+
+				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, BankCode));
 			}
 
 			return results;

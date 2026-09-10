@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Constants\" />
     <Folder Include="Views\" />
   </ItemGroup>
 

@@ -1,7 +1,7 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -29,9 +29,9 @@ public sealed class CBUProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			foreach (var item in doc.RootElement.EnumerateArray()) {
-				var Bank.Code = item.TryGetProperty("Ccy", out var c) ? c.GetString() : null;
+				var bankCode = item.TryGetProperty("Ccy", out var c) ? c.GetString() : null;
 
-				if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals(bankCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -51,9 +51,9 @@ public sealed class CBUProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / nominal, Bank.Code));
+
+
+				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / nominal, bankCode));
 			}
 
 			return results;

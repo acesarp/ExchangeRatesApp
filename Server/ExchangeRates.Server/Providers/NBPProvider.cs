@@ -1,7 +1,7 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+
+using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
@@ -30,13 +30,13 @@ public sealed class NBPProvider : CentralBankProviderBase {
 		var table = doc.RootElement[0];
 
 		foreach (var row in table.GetProperty("rates").EnumerateArray()) {
-			var Bank.Code = row.GetProperty("Bank.BankCode").GetString();
+			var bankCode = row.GetProperty("Bank.BankCode").GetString();
 			var rate = GetDecimal(row, "mid");
 
-			if (!string.IsNullOrWhiteSpace(Bank.Code) && rate > 0) {
-				
-					
-				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.Code, Enum.Parse<ECurrencyISO>(Bank.Code!), rate, Bank.Code));
+			if (!string.IsNullOrWhiteSpace(bankCode) && rate > 0) {
+
+
+				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, BankCode!, rate, bankCode));
 			}
 		}
 		return rates;

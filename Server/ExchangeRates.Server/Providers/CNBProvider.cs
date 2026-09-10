@@ -30,9 +30,9 @@ public sealed class CNBProvider : CentralBankProviderBase {
 				}
 
 				foreach (var item in rates.EnumerateArray()) {
-					var Bank.Code = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
+					var bankCode = item.TryGetProperty("currencyCode", out var c) ? c.GetString() : null;
 
-					if (!string.Equals(Bank.Code, currencyCode, StringComparison.OrdinalIgnoreCase)) {
+					if (!string.Equals(bankCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 
@@ -54,7 +54,7 @@ public sealed class CNBProvider : CentralBankProviderBase {
 
 
 
-					results.Add(new ExchangeRateResult(date, Bank.Currency.Code, quoteCurrency, rate / amount, Bank.Code));
+					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / amount, bankCode));
 				}
 			}
 

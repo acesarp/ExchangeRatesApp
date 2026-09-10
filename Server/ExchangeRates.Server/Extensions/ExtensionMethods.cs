@@ -1,6 +1,4 @@
-﻿using ExchangeRates.Domain.Enums;
-
-namespace ExchangeRates.Server.Extensions;
+﻿namespace ExchangeRates.Server.Extensions;
 
 public static class ExtensionMethods {
 
@@ -8,20 +6,4 @@ public static class ExtensionMethods {
 		["CNH"] = "CNY"
 	};
 
-	public static T ToEnum<T>(this string text) where T : struct, Enum {
-		return Enum.Parse<T>(text, ignoreCase: true);
-	}
-
-	public static string ToECurrency(this string text) {
-		if (text.Equals("SDR", StringComparison.OrdinalIgnoreCase)) { // special case
-			return ECurrencyISO.XDR;
-		}
-		var code = text.Trim();
-
-		if (CurrencyAliases.TryGetValue(code, out var normalized)) {
-			code = normalized;
-		}
-
-		return Enum.Parse<ECurrencyISO>(code, ignoreCase: true);
-	}
 }

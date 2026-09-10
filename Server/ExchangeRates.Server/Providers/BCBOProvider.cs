@@ -136,7 +136,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Bank.Code, "USD", rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.BankCode, "USD", rate, Bank.BankCode));
 			}
 		}
 		return results.OrderBy(x => x.Date).ToList();
@@ -147,9 +147,9 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 		while (reader.Read()) {
 			var countryOrConcept = GetString(reader, 0);
-			var Bank.Code = GetString(reader, 2);
+			var BankCode = GetString(reader, 2);
 
-			if (!string.Equals(Bank.Code, requestedCode, StringComparison.OrdinalIgnoreCase)) {
+			if (!string.Equals(BankCode, requestedCode, StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 
