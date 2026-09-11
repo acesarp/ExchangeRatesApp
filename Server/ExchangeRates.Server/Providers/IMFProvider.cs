@@ -24,11 +24,6 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	/// <summary>
 	/// Fetches exchange rate data from the IMF API for the specified quote currency and date range.
 	/// </summary>
-	/// <param name="quoteCurrency">The quote currency.</param>
-	/// <param name="fromDate">The start date of the range.</param>
-	/// <param name="toDate">The end date of the range.</param>
-	/// <param name="ct">The cancellation token.</param>
-	/// <returns></returns>
 	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchMQAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		const string context = "dataflow";
 		const string agencyID = "IMF.STA";
@@ -62,11 +57,6 @@ public sealed class IMFProvider : CentralBankProviderBase {
 	/// <summary>
 	/// Fetches exchange rate data from the IMF API for the specified quote currency and date range.
 	/// </summary>
-	/// <param name="quoteCurrency">The quote currency.</param>
-	/// <param name="fromDate">The start date of the range.</param>
-	/// <param name="toDate">The end date of the range.</param>
-	/// <param name="ct">The cancellation token.</param>
-	/// <returns>A list of exchange rate results.</returns>
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		var results = new List<ExchangeRateResult>();
@@ -121,7 +111,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 
 					var name = Clean(cells[0].InnerText);
 
-					if (!name.Equals(currencyName, StringComparison.OrdinalIgnoreCase)) {
+					if (!name.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 						continue;
 					}
 

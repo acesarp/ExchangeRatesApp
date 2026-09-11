@@ -1,5 +1,4 @@
 ﻿using ExchangeRates.Domain.Entities;
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Domain.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +12,9 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_context = context;
 	}
 
+	/// <summary>
+	/// Retrieve rates for the given base and quote currency from database.
+	/// </summary>>
 	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		return await _context.ExchangeRates.AsNoTracking()
 																	.Where(x => (x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency ||
@@ -28,10 +30,11 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																	.ToListAsync(ct);
 	}
 
-	public async Task AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
+	/// <summary> Add a range of exchange rates to the database. </summary>
+	public async Task<int> AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
 		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrency, x.QuoteCurrency }).ToList();
 		if (items.Count == 0) {
-			return;
+			return 0;
 		}
 
 		var minDate = items.Min(x => x.Date);
@@ -48,17 +51,23 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrency, x.QuoteCurrency))).ToList();
 
 		if (newRates.Count == 0) {
-			return;
+			return 0;
 		}
 
 		_context.ExchangeRates.AddRange(newRates);
-		await _context.SaveChangesAsync(ct);
+		return await _context.SaveChangesAsync(ct);
 	}
 
+	/// <summary>
+	/// Retrieve all available currencies from database.
+	/// </summary>
 	public async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesAsync(CancellationToken ct) {
 		return await _context.Currencies.AsNoTracking().ToListAsync(ct);
 	}
 
+	/// <summary>
+	/// Retrieve all available central banks from database.
+	/// </summary>
 	public async Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct) {
 		return await _context.CentralBanks.AsNoTracking().ToListAsync(ct);
 	}

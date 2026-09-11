@@ -21,7 +21,6 @@ public class Program {
 	public static void Main(string[] args) {
 		try {
 			var builder = WebApplication.CreateBuilder(args);
-
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 
 			SelfLog.Enable(message => Console.Error.WriteLine($"SERILOG SELFLOG: {message}"));
@@ -84,8 +83,7 @@ public class Program {
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
-
-			builder.Services.AddCentralBankProviders();
+			builder.Services.AddScoped<CentralBankProviderFactory>();
 
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();

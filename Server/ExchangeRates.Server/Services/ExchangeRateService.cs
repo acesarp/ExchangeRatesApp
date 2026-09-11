@@ -14,25 +14,30 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	private readonly IExchangeRateRepository _repository;
 	private readonly CentralBankProviderFactory _providerFactory;
 	private readonly string _pivotCurrency;
-	private IReadOnlyList<CurrencyEntity>? _currencies;
+	private IReadOnlyList<CurrencyEntity> _currencies;
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
 		_repository = repository;
 		_providerFactory = providerFactory;
 		_pivotCurrency = configuration["Priority"] ?? throw new InvalidOperationException("Missing Priority configuration.");
+		_init = Init();
+	}
+
+	private readonly Task _init;
+	private async Task Init() {
+		if (_init != null) {
+			await _init;
+		}
+		if (_currencies == null) {
+			_currencies = await _repository.GetCurrenciesAsync(CancellationToken.None);
+		}
 	}
 
 
 	/// <summary>
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range. <br />
 	/// </summary>
-	/// <param name="baseCurrency">The base currency.</param>
-	/// <param name="quoteCurrency">The quote currency.</param>
-	/// <param name="fromDate">The start date of the range.</param>
-	/// <param name="toDate">The end date of the range.</param>
-	/// <param name="ct">The cancellation token.</param>
-	/// <returns>A list of exchange rate results.</returns>
 	/// <exception cref="ArgumentException"></exception>
 	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
@@ -154,7 +159,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 
-	private static IReadOnlyList<ExchangeRateResult> OrientRates(IReadOnlyList<ExchangeRateResult> canonicalRates, string baseCurrency, string quoteCurrency) {
+	private IReadOnlyList<ExchangeRateResult> OrientRates(IReadOnlyList<ExchangeRateResult> canonicalRates, string baseCurrency, string quoteCurrency) {
 		if (canonicalRates.Count == 0 ||
 			(canonicalRates[0].BaseCurrency == baseCurrency && canonicalRates[0].QuoteCurrency == quoteCurrency)) {
 			return canonicalRates;
@@ -176,45 +181,33 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 
-	private static IReadOnlyList<ExchangeRateResult> OrientToCanonical(
-		IEnumerable<ExchangeRateResult> rates,
-		IReadOnlyList<CurrencyEntity> currencies) {
-
+	/// <summary>
+	/// Orients the exchange rates to a canonical form based on the priority of the currencies. <br />
+	/// </summary>
+	private List<ExchangeRateResult> OrientToCanonical(IEnumerable<ExchangeRateResult> rates) {
 		return rates
 			.Where(x => x.Rate != 0)
 			.Select(x => {
-				var baseCurrency = currencies.First(c => c.CurrencyCode == x.BaseCurrency);
-				var quoteCurrency = currencies.First(c => c.CurrencyCode == x.QuoteCurrency);
+				var baseCurrency = _currencies.First(c => c.CurrencyCode == x.BaseCurrency);
+				var quoteCurrency = _currencies.First(c => c.CurrencyCode == x.QuoteCurrency);
 
 				if (baseCurrency.Priority < quoteCurrency.Priority) {
 					return x;
 				}
 
-				return new ExchangeRateResult(
-					x.Date,
-					x.QuoteCurrency,
-					x.BaseCurrency,
-					1m / x.Rate,
-					x.Provider);
+				return new ExchangeRateResult(x.Date, x.QuoteCurrency, x.BaseCurrency, 1m / x.Rate, x.Provider);
 			})
 			.OrderBy(x => x.Date)
 			.ToList();
 	}
 
-	private async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesCachedAsync(CancellationToken ct) {
-		if (_currencies != null) {
-			return _currencies;
-		}
-
-		_currencies = await _repository.GetCurrenciesAsync(ct);
-		return _currencies;
-	}
-
 	public async Task<IReadOnlyList<CurrencyModel>> GetCurrenciesAsync(CancellationToken ct) {
-		var currencies = await GetCurrenciesCachedAsync(ct);
-		return currencies.Select(x => new CurrencyModel(x.CurrencyCode, x.NumericCode, x.Name, x.IsHistoric, x.Priority)).ToList();
+		return _currencies.Select(x => new CurrencyModel(x.CurrencyCode, x.NumericCode, x.Name, x.IsHistoric, x.Priority)).ToList();
 	}
 
+	/// <summary>
+	/// Gets the list of central banks from the repository. <br />
+	/// </summary>
 	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
 		var centralBanks = await _repository.GetCentralBanksAsync(ct);
 		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.Currency.CurrencyCode, x.CurrencyId, x.Priority))
