@@ -10,11 +10,12 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
 	private readonly ILogger<ECBProvider> _logger;
-	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, configuration) {
+	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		quoteCurrency = quoteCurrency.ToUpperInvariant();
 		var url = $"{Url}/D.{quoteCurrency}.EUR.SP00.A?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		_logger.LogDebug("ECB request: {Url}", url);

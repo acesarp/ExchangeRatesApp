@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BDPProvider : CentralBankProviderBase {
 	private readonly ILogger<BDPProvider> _logger;
 
-	public BDPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDPProvider> logger) : base(http, configuration) {
+	public BDPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDPProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

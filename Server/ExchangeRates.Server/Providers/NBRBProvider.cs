@@ -12,7 +12,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBRBProvider : CentralBankProviderBase {
 	private readonly ILogger<NBRBProvider> _logger;
 
-	public NBRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRBProvider> logger) : base(http, configuration) {
+	public NBRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

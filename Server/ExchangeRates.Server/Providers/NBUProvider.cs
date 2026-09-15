@@ -11,7 +11,7 @@ using System.Text.Json;
 public sealed class NBUProvider : CentralBankProviderBase {
 	private readonly ILogger<NBUProvider> _logger;
 
-	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, configuration) {
+	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

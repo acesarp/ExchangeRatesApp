@@ -9,7 +9,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOAProvider> _logger;
 
-	public BOAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOAProvider> logger) : base(http, configuration) {
+	public BOAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

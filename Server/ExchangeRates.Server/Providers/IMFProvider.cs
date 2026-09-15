@@ -1,3 +1,5 @@
+using ExchangeRates.Domain.Entities;
+
 using HtmlAgilityPack;
 
 using Microsoft.Playwright;
@@ -14,7 +16,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class IMFProvider : CentralBankProviderBase {
 	private readonly ILogger<IMFProvider> _logger;
 
-	public IMFProvider(HttpClient http, IConfiguration configuration, ILogger<IMFProvider> logger) : base(http, configuration) {
+	public IMFProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<IMFProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

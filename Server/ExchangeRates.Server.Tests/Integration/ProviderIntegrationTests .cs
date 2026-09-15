@@ -279,7 +279,7 @@ public sealed class ProviderIntegrationTests {
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<IMFProvider>();
 		var bank = CreateBank("IMF");
-		var provider = new IMFProvider(http, GetConfiguration(), logger);
+		var provider = new IMFProvider(http, GetConfiguration(), bank, logger);
 		var fromDate = new DateOnly(2026, 8, 3);
 		var toDate = new DateOnly(2026, 8, 7);
 
@@ -1847,7 +1847,7 @@ public sealed class ProviderIntegrationTests {
 		using var http = new HttpClient();
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 		var logger = loggerFactory.CreateLogger<AFAProvider>();
-		var provider = new AFAProvider(http, GetConfiguration(), logger);
+		var provider = new AFAProvider(http, GetConfiguration(), CreateBank("AFA"), logger);
 		var fromDate = new DateOnly(2026, 8, 10);
 		var toDate = new DateOnly(2026, 8, 14);
 		var rates = await provider.GetRatesAsync("USD", fromDate, toDate, CancellationToken.None);

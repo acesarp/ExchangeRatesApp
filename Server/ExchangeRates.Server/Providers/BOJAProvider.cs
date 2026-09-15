@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOJAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOJAProvider> _logger;
 
-	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, configuration) {
+	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

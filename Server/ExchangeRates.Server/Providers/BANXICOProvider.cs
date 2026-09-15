@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
 	private readonly ILogger<BANXICOProvider> _logger;
-	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, configuration) {
+	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

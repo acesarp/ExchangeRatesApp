@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BAMProvider : CentralBankProviderBase {
 	private readonly ILogger<BAMProvider> _logger;
-	public BAMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BAMProvider> logger) : base(http, configuration) {
+	public BAMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BAMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
 	private readonly ILogger<HKMAProvider> _logger;
-	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, configuration) {
+	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

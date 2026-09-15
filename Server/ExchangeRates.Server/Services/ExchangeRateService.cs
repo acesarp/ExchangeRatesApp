@@ -14,7 +14,6 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	private readonly IExchangeRateRepository _repository;
 	private readonly CentralBankProviderFactory _providerFactory;
 	private readonly string _pivotCurrency;
-	private IReadOnlyList<CurrencyEntity> currencies;
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
@@ -23,7 +22,6 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		_pivotCurrency = configuration["PivotCurrency"] ?? throw new InvalidOperationException("Missing PivotCurrency configuration.");
 
 	}
-
 
 	/// <summary>
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range. <br />
@@ -60,8 +58,16 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 			if (rates.Any()) {
 				_logger.LogInformation("Direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
+
 				var ratesForDbToSave = await OrientToCanonical(rates, ct);
-				await _repository.AddRangeAsync(ratesForDbToSave.Select(ExchangeRateMapper.ToEntity), ct);
+				var currencyEntities = await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct);
+
+				var baseCurrencyId = currencyEntities.First(x => x.CurrencyCode == baseCurrency).Id;
+				var quoteCurrencyId = currencyEntities.First(x => x.CurrencyCode == quoteCurrency).Id;
+
+				var rst = await _repository.AddRangeAsync(ratesForDbToSave.Select(x => ExchangeRateMapper.ToEntity(x, baseCurrencyId, quoteCurrencyId)), ct);
+
+				_logger.LogInformation("Saved {Count} new rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", rst, baseCurrency, quoteCurrency, fromDate, toDate);
 
 				return OrientRates(rates.ToList(), baseCurrency, quoteCurrency);
 			}
@@ -141,7 +147,6 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 
-
 	private IReadOnlyList<ExchangeRateResult> OrientRates(IReadOnlyList<ExchangeRateResult> canonicalRates, string baseCurrency, string quoteCurrency) {
 		if (canonicalRates.Count == 0 ||
 			(canonicalRates[0].BaseCurrency == baseCurrency && canonicalRates[0].QuoteCurrency == quoteCurrency)) {
@@ -167,7 +172,8 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// Orients the exchange rates to a canonical form based on the priority of the currencies. <br />
 	/// </summary>
 	private async Task<List<ExchangeRateResult>> OrientToCanonical(IEnumerable<ExchangeRateResult> rates, CancellationToken ct) {
-
+		var currencyCodes = rates.SelectMany(x => new[] { x.BaseCurrency, x.QuoteCurrency }).Distinct();
+		var currencies = await _repository.GetCurrencyByCodesAsync(currencyCodes, ct);
 
 		return rates.Where(x => x.Rate != 0)
 			.Select(x => {
@@ -185,9 +191,8 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 	public async Task<IReadOnlyList<CurrencyModel>> GetCurrenciesAsync(CancellationToken ct) {
-		if (currencies == null) {
-			currencies = await _repository.GetCurrenciesAsync(ct);
-		}
+		var currencies = await _repository.GetCurrenciesAsync(ct);
+
 		var result = currencies.Select(x => new CurrencyModel(x.CurrencyCode, x.NumericCode, x.Name, x.IsHistoric)).ToList();
 		return result;
 	}
@@ -200,6 +205,5 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.NativeCurrency.CurrencyCode, x.CurrencyId, x.Priority))
 										.ToList();
 	}
-
 
 }

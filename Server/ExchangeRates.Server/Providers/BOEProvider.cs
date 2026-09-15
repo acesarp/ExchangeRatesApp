@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOEProvider : CentralBankProviderBase {
 	private readonly ILogger<BOEProvider> _logger;
 	private readonly Dictionary<string, string> _series;
-	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, configuration) {
+	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 		_series = configuration.GetSection($"CentralBanks:{Bank.BankCode}:Series")
 											.GetChildren()

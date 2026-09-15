@@ -1,3 +1,4 @@
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Utilities;
 
 using System.Globalization;
@@ -11,7 +12,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class AFAProvider : CentralBankProviderBase {
 	private readonly ILogger<AFAProvider> _logger;
-	public AFAProvider(HttpClient http, IConfiguration configuration, ILogger<AFAProvider> logger) : base(http, configuration) {
+	public AFAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AFAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

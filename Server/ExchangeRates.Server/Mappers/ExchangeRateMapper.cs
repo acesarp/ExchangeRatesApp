@@ -3,11 +3,11 @@
 namespace ExchangeRates.Server.Mappers;
 
 public static class ExchangeRateMapper {
-	public static ExchangeRateEntity ToEntity(this ExchangeRateResult result) {
+	public static ExchangeRateEntity ToEntity(this ExchangeRateResult result, int baseCurrencyId, int quoteCurrencyId) {
 		return new ExchangeRateEntity {
 			Date = result.Date,
-			BaseCurrency = new CurrencyEntity(result.BaseCurrency, default, default, default, default),
-			QuoteCurrency = new CurrencyEntity(result.QuoteCurrency, default, default, default, default),
+			BaseCurrencyId = baseCurrencyId,
+			QuoteCurrencyId = quoteCurrencyId,
 			Rate = result.Rate,
 			Provider = result.Provider
 		};

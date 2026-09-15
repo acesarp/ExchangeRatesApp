@@ -8,7 +8,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class SBPProvider : CentralBankProviderBase {
 	private readonly ILogger<SBPProvider> _logger;
-	public SBPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBPProvider> logger) : base(http, configuration) {
+	public SBPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBPProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

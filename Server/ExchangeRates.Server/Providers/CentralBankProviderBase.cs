@@ -12,9 +12,10 @@ namespace ExchangeRates.Server.Providers;
 /// for retrieving and parsing exchange rate data from central bank sources.
 /// </summary>
 public abstract class CentralBankProviderBase : ICentralBankProvider {
-	protected CentralBankProviderBase(HttpClient http, IConfiguration configuration) {
+	protected CentralBankProviderBase(HttpClient http, CentralBankEntity bank, IConfiguration configuration) {
 		Http = http;
 		Configuration = configuration;
+		Bank = bank;
 	}
 
 	protected HttpClient Http { get; }

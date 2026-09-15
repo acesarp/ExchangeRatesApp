@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class FBILProvider : CentralBankProviderBase {
 	private readonly ILogger<FBILProvider> _logger;
 
-	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, configuration) {
+	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

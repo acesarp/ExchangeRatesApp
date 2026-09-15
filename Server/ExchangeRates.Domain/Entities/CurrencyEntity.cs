@@ -4,6 +4,12 @@ public sealed class CurrencyEntity {
 	public CurrencyEntity() {
 
 	}
+	public CurrencyEntity(int id) {
+		Id = id;
+	}
+	public CurrencyEntity(string currencyCode) {
+		CurrencyCode = currencyCode;
+	}
 	public CurrencyEntity(string currencyCode, short numericCode, string name, bool isHistoric, int priority) {
 		CurrencyCode = currencyCode;
 		NumericCode = numericCode;

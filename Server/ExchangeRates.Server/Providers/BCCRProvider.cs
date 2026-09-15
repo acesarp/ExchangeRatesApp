@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
 	private readonly ILogger<BCCRProvider> _logger;
-	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, configuration) {
+	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	private string Token { get; set; }

@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCEAOProvider : CentralBankProviderBase {
 	private readonly ILogger<BCEAOProvider> _logger;
 
-	public BCEAOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCEAOProvider> logger) : base(http, configuration) {
+	public BCEAOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCEAOProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

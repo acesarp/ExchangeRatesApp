@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class MMAProvider : CentralBankProviderBase {
 	private readonly ILogger<MMAProvider> _logger;
-	public MMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MMAProvider> logger) : base(http, configuration) {
+	public MMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MMAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

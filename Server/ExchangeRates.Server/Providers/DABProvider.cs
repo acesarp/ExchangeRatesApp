@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class DABProvider : CentralBankProviderBase {
 	private readonly ILogger<DABProvider> _logger;
-	public DABProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DABProvider> logger) : base(http, configuration) {
+	public DABProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DABProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

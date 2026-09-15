@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCPProvider : CentralBankProviderBase {
 	private readonly ILogger<BCPProvider> _logger;
-	public BCPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCPProvider> logger) : base(http, configuration) {
+	public BCPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCPProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

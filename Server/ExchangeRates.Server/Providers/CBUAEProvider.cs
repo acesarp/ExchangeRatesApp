@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUAEProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUAEProvider> _logger;
 
-	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, configuration) {
+	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

@@ -13,6 +13,10 @@ public static class DateRangeHelper {
 		DateOnly? rangeStart = null;
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) {
+				continue;
+			}
+
 			if (!existing.Contains(date)) {
 				rangeStart ??= date;
 				continue;

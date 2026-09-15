@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class NBEProvider : CentralBankProviderBase {
 	private readonly ILogger<NBEProvider> _logger;
-	public NBEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBEProvider> logger) : base(http, configuration) {
+	public NBEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBEProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

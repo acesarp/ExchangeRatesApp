@@ -14,7 +14,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 	private readonly ILogger<SNBProvider> _logger;
 	private Dictionary<string, (string SeriesCode, decimal Units)>? _series;
 
-	public SNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SNBProvider> logger) : base(http, configuration) {
+	public SNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SNBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

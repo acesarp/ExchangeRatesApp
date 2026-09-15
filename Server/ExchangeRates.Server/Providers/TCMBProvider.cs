@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class TCMBProvider : CentralBankProviderBase {
 	private readonly ILogger<TCMBProvider> _logger;
-	public TCMBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<TCMBProvider> logger) : base(http, configuration) {
+	public TCMBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<TCMBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

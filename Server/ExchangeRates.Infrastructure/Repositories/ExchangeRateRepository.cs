@@ -2,56 +2,64 @@
 using ExchangeRates.Domain.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ExchangeRates.Infrastructure.Repositories;
 
 public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	private readonly ExchangeRatesDbContext _context;
+	private readonly ILogger<ExchangeRateRepository> _logger;
 
-	public ExchangeRateRepository(ExchangeRatesDbContext context) {
+	public ExchangeRateRepository(ExchangeRatesDbContext context, ILogger<ExchangeRateRepository> logger) {
 		_context = context;
+		_logger = logger;
 	}
 
 	/// <summary>
 	/// Retrieve rates for the given base and quote currency from database.
 	/// </summary>>
 	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrencyCode, string quoteCurrencyCode, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		baseCurrencyCode = baseCurrencyCode.ToUpperInvariant();
+		quoteCurrencyCode = quoteCurrencyCode.ToUpperInvariant();
 		return await _context.ExchangeRates.AsNoTracking()
 																	.Where(x => (x.BaseCurrency.CurrencyCode == baseCurrencyCode && x.QuoteCurrency.CurrencyCode == quoteCurrencyCode ||
 																													x.BaseCurrency.CurrencyCode == quoteCurrencyCode && x.QuoteCurrency.CurrencyCode == baseCurrencyCode) &&
 																										x.Date >= fromDate && x.Date <= toDate)
-																	.Select(s => new ExchangeRateEntity {
-																		Date = s.Date,
-																		BaseCurrency = s.BaseCurrency,
-																		QuoteCurrency = s.QuoteCurrency,
-																		Rate = s.Rate
-																	})
+
+																	.Include(x => x.BaseCurrency)
+																	.Include(x => x.QuoteCurrency)
 																	.OrderBy(x => x.Date)
 																	.ToListAsync(ct);
 	}
 
 	/// <summary> Add a range of exchange rates to the database. </summary>
 	public async Task<int> AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
-		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrency, x.QuoteCurrency }).ToList();
+		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrencyId, x.QuoteCurrencyId }).ToList();
 		if (items.Count == 0) {
 			return 0;
 		}
 
 		var minDate = items.Min(x => x.Date);
 		var maxDate = items.Max(x => x.Date);
-		var baseCurrencies = items.Select(x => x.BaseCurrency).Distinct().ToList();
-		var quoteCurrencies = items.Select(x => x.QuoteCurrency).Distinct().ToList();
+		var baseCurrencies = items.Select(x => x.BaseCurrencyId).Distinct().ToList();
+		var quoteCurrencies = items.Select(x => x.QuoteCurrencyId).Distinct().ToList();
 
 		var existing = await _context.ExchangeRates.AsNoTracking()
-			.Where(x => x.Date >= minDate && x.Date <= maxDate && baseCurrencies.Contains(x.BaseCurrency) && quoteCurrencies.Contains(x.QuoteCurrency))
-			.Select(x => new { x.Date, x.BaseCurrency, x.QuoteCurrency })
+			.Where(x => x.Date >= minDate && x.Date <= maxDate && baseCurrencies.Contains(x.BaseCurrencyId) && quoteCurrencies.Contains(x.QuoteCurrencyId))
+			.Select(x => new { x.Date, x.BaseCurrencyId, x.QuoteCurrencyId })
 			.ToListAsync(ct);
 
-		var existingKeys = existing.Select(x => (x.Date, x.BaseCurrency, x.QuoteCurrency)).ToHashSet();
-		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrency, x.QuoteCurrency))).ToList();
+		var existingKeys = existing.Select(x => (x.Date, x.BaseCurrencyId, x.QuoteCurrencyId)).ToHashSet();
+		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrencyId, x.QuoteCurrencyId))).ToList();
 
 		if (newRates.Count == 0) {
 			return 0;
+		}
+
+		// Set navigation properties to null to avoid EF Core tracking issues
+		foreach (var rate in newRates) {
+			rate.BaseCurrency = null!;
+			rate.QuoteCurrency = null!;
 		}
 
 		_context.ExchangeRates.AddRange(newRates);
@@ -65,6 +73,10 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		return await _context.Currencies.AsNoTracking().ToListAsync(ct);
 	}
 
+	public async Task<IReadOnlyList<CurrencyEntity>> GetCurrencyByCodesAsync(IEnumerable<string> codes, CancellationToken ct) {
+		return await _context.Currencies.AsNoTracking().Where(x => codes.Contains(x.CurrencyCode)).ToListAsync(ct);
+	}
+
 	/// <summary>
 	/// Retrieve all available central banks from database.
 	/// </summary>
@@ -73,19 +85,28 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	}
 
 	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct) {
-		return await _context.CentralBanks.AsNoTracking()
+		currency1 = currency1.ToUpperInvariant();
+		currency2 = currency2.ToUpperInvariant();
+		var query = _context.CentralBanks.AsNoTracking();
+		query = query
+
 																.Include(x => x.NativeCurrency)
 																.Where(x => x.IsActive &&
-				(
-					(x.NativeCurrency.CurrencyCode == currency1 &&
-					 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2))
-					||
-					(x.NativeCurrency.CurrencyCode == currency2 &&
-					 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1))
-				))
-			.OrderBy(x => x.Priority ?? int.MaxValue)
-			.FirstOrDefaultAsync(ct) ??
-			throw new InvalidOperationException($"No provider available for {currency1}/{currency2}.");
+																									((x.NativeCurrency.CurrencyCode == currency1 &&
+																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2))
+																										||
+																										(x.NativeCurrency.CurrencyCode == currency2 &&
+																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1))
+																									)
+																)
+																.OrderBy(x => x.Priority ?? int.MaxValue)
+																.ThenBy(x => x.BankCode);
+		var result = await query.FirstOrDefaultAsync(ct);
+
+		if (result != null) {
+			return result;
+		}
+		throw new InvalidOperationException($"No provider available for {currency1}/{currency2}.");
 	}
 
 }

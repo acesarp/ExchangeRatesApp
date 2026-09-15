@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOJProvider : CentralBankProviderBase {
 	private readonly ILogger<BOJProvider> _logger;
 
-	public BOJProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJProvider> logger) : base(http, configuration) {
+	public BOJProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {

@@ -6,7 +6,10 @@ using System.Text.Json;
 namespace ExchangeRates.Server.Providers;
 
 public sealed class BOKProvider : CentralBankProviderBase {
-	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank) : base(http, configuration) { }
+	private readonly ILogger<BOKProvider> _logger;
+	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOKProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
 
 	private static readonly Dictionary<string, (string ItemCode, decimal Unit)> Currencies = new(StringComparer.OrdinalIgnoreCase) {
 		["USD"] = ("0000001", 1m),

@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUProvider> _logger;
 
-	public CBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUProvider> logger) : base(http, configuration) {
+	public CBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

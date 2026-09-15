@@ -19,20 +19,20 @@ public sealed class ExchangeRateEntity {
 	/// ISO 4217 currency code of the base currency.
 	/// Represents the currency whose value is equal to one unit.
 	/// </summary>
-	public required CurrencyEntity BaseCurrency { get; set; }
+	public CurrencyEntity BaseCurrency { get; set; }
 
 	public int QuoteCurrencyId { get; set; }
 	/// <summary>
 	/// ISO 4217 currency code of the quote currency.
 	/// Represents the currency in which the base currency is expressed.
 	/// </summary>
-	public required CurrencyEntity QuoteCurrency { get; set; }
+	public CurrencyEntity QuoteCurrency { get; set; }
 
 	/// <summary>
 	/// Exchange rate expressed as the amount of quote currency equivalent to one unit of the base currency.
 	/// For example, USD/CAD = 1.37 means 1 USD = 1.37 CAD.
 	/// </summary>
-	public decimal Rate { get; set; }
+	public required decimal Rate { get; set; }
 
 	/// <summary>
 	/// Code identifying the provider from which the exchange rate was obtained.

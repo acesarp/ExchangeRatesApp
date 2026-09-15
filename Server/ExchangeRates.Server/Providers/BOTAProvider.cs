@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOTAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOTAProvider> _logger;
 
-	public BOTAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTAProvider> logger) : base(http, configuration) {
+	public BOTAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 

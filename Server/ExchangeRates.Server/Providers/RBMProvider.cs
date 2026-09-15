@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class RBMProvider : CentralBankProviderBase {
 	private readonly ILogger<RBMProvider> _logger;
-	public RBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBMProvider> logger) : base(http, configuration) {
+	public RBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
