@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCEAOProvider : CentralBankProviderBase {
 	private readonly ILogger<BCEAOProvider> _logger;
 
-	public BCEAOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCEAOProvider> logger) : base(http, configuration, bank) {
+	public BCEAOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCEAOProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -42,7 +42,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {

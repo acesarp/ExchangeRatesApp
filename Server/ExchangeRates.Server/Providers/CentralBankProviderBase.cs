@@ -21,7 +21,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	protected IConfiguration Configuration { get; }
 	protected CentralBankEntity Bank { get; }
 	public string BankCode => Bank.BankCode;
-	public string NativeCurrencyCode => Bank.Currency.CurrencyCode;
+	public string NativeCurrencyCode => Bank.NativeCurrency.CurrencyCode;
 	public string BankName => Bank.BankName;
 	public string? CountryOfOrigin => Bank.CountryOfOrigin;
 	public int? Priority => Bank.Priority;
@@ -49,7 +49,6 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 
 	/// <inheritdoc/>
 	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-
 		return FetchAsync(quoteCurrency, fromDate, toDate, ct);
 	}
 
@@ -57,9 +56,6 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	/// Retrieves and parses exchange rate data directly from the central bank source.
 	/// Provider-specific implementations should override this method.
 	/// </summary>
-	/// <param name="quoteCurrency"></param>
-	/// <param name="fromDate"></param>
-	/// <param name="toDate"></param>
 	protected abstract Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);
 
 	protected static decimal GetDecimal(JsonElement element, string propertyName) {

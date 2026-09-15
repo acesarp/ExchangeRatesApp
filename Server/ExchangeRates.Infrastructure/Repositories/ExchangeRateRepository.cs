@@ -15,10 +15,10 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	/// <summary>
 	/// Retrieve rates for the given base and quote currency from database.
 	/// </summary>>
-	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrencyCode, string quoteCurrencyCode, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		return await _context.ExchangeRates.AsNoTracking()
-																	.Where(x => (x.BaseCurrency == baseCurrency && x.QuoteCurrency == quoteCurrency ||
-																													x.BaseCurrency == quoteCurrency && x.QuoteCurrency == baseCurrency) &&
+																	.Where(x => (x.BaseCurrency.CurrencyCode == baseCurrencyCode && x.QuoteCurrency.CurrencyCode == quoteCurrencyCode ||
+																													x.BaseCurrency.CurrencyCode == quoteCurrencyCode && x.QuoteCurrency.CurrencyCode == baseCurrencyCode) &&
 																										x.Date >= fromDate && x.Date <= toDate)
 																	.Select(s => new ExchangeRateEntity {
 																		Date = s.Date,
@@ -71,4 +71,21 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	public async Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct) {
 		return await _context.CentralBanks.AsNoTracking().ToListAsync(ct);
 	}
+
+	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct) {
+		return await _context.CentralBanks.AsNoTracking()
+																.Include(x => x.NativeCurrency)
+																.Where(x => x.IsActive &&
+				(
+					(x.NativeCurrency.CurrencyCode == currency1 &&
+					 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2))
+					||
+					(x.NativeCurrency.CurrencyCode == currency2 &&
+					 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1))
+				))
+			.OrderBy(x => x.Priority ?? int.MaxValue)
+			.FirstOrDefaultAsync(ct) ??
+			throw new InvalidOperationException($"No provider available for {currency1}/{currency2}.");
+	}
+
 }

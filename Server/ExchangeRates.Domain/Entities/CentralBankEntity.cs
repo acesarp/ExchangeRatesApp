@@ -1,19 +1,22 @@
-﻿namespace ExchangeRates.Domain.Entities;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace ExchangeRates.Domain.Entities;
 
 public sealed class CentralBankEntity {
+	public CentralBankEntity() { }
 
-	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int currencyId, bool isActive, DateTime createdAtUtc) {
+	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int nativeCurrencyId, bool isActive, DateTime createdAtUtc) {
 		BankCode = bankCode;
 		BankName = bankName;
 		CountryOfOrigin = countryOfOrigin;
-		CurrencyId = currencyId;
+		CurrencyId = nativeCurrencyId;
 		IsActive = isActive;
 		CreatedAtUtc = createdAtUtc;
 	}
 
-	/// <summary>
-	/// Internal database identifier for the central bank.
-	/// </summary>
+	/// <summary> Internal database identifier for the central bank </summary>
+	[Key]
 	public int Id { get; set; }
 
 	/// <summary>
@@ -31,9 +34,8 @@ public sealed class CentralBankEntity {
 	/// </summary>
 	public string CountryOfOrigin { get; set; }
 
-	/// <summary>
-	/// Foreign key identifying the bank's native currency.
-	/// </summary>
+	/// <summary> Foreign key identifying the bank's native currency. </summary>
+	[DisplayName("Native Currency Id")]
 	public int CurrencyId { get; set; }
 
 	/// <summary>
@@ -47,7 +49,7 @@ public sealed class CentralBankEntity {
 	public DateTime CreatedAtUtc { get; set; }
 
 	/// <summary>
-	/// Defines the preferred order in which providers are selected.
+	/// Defines the preferred order in which providers are selected.<br />
 	/// A lower value represents a higher provider priority.
 	/// </summary>
 	public int? Priority { get; set; }
@@ -55,5 +57,10 @@ public sealed class CentralBankEntity {
 	/// <summary>
 	/// Navigation property representing the bank's native currency.
 	/// </summary>
-	public CurrencyEntity Currency { get; set; } = null!;
+	public CurrencyEntity NativeCurrency { get; set; } = null!;
+
+	/// <summary>
+	/// Currencies for which this provider can retrieve exchange rates.
+	/// </summary>
+	public ICollection<CentralBankSupportedCurrencyEntity> SupportedCurrencies { get; set; } = new List<CentralBankSupportedCurrencyEntity>();
 }

@@ -13,13 +13,13 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUAEProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUAEProvider> _logger;
 
-	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, configuration, bank) {
+	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (!CurrencyMap.TryGetValue(quoteCurrency, out var currencyName)) {
-			_logger.LogDebug("Currency {Currency} is not supported by CBUAE.", quoteCurrency);
+			_logger.LogDebug("NativeCurrency {NativeCurrency} is not supported by CBUAE.", quoteCurrency);
 			return [];
 		}
 
@@ -82,7 +82,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			return new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode);
+			return new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode);
 		}
 
 		return null;

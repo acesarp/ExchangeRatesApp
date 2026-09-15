@@ -14,19 +14,19 @@ public sealed class SNBProvider : CentralBankProviderBase {
 	private readonly ILogger<SNBProvider> _logger;
 	private Dictionary<string, (string SeriesCode, decimal Units)>? _series;
 
-	public SNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SNBProvider> logger) : base(http, configuration, bank) {
+	public SNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SNBProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency == Bank.Currency.CurrencyCode) {
+		if (quoteCurrency == Bank.NativeCurrency.CurrencyCode) {
 			return [];
 		}
 
 		var series = await GetSeriesAsync(ct);
 
 		if (!series.TryGetValue(quoteCurrency, out var seriesInfo)) {
-			_logger.LogWarning("SNB series not found for currency {Currency}", quoteCurrency);
+			_logger.LogWarning("SNB series not found for currency {NativeCurrency}", quoteCurrency);
 			return [];
 		}
 
@@ -69,7 +69,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 

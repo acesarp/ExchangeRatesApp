@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class NBKRProvider : CentralBankProviderBase {
 	private readonly ILogger<NBKRProvider> _logger;
-	public NBKRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBKRProvider> logger) : base(http, configuration, bank) {
+	public NBKRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBKRProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -32,7 +32,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 			}
 
 			var currencyCode = quoteCurrency;
-			var currencyNode = xdoc.Descendants("Currency").FirstOrDefault(c => string.Equals(c.Attribute("ISOCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
+			var currencyNode = xdoc.Descendants("NativeCurrency").FirstOrDefault(c => string.Equals(c.Attribute("ISOCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
 
 			if (currencyNode is null) {
 				return results;
@@ -51,7 +51,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 				nominal = parsedNominal;
 			}
 
-			results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, value / nominal, Bank.BankCode));
+			results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, value / nominal, Bank.BankCode));
 			return results;
 		}
 		catch (Exception ex) {

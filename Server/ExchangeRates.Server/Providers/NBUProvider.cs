@@ -11,7 +11,7 @@ using System.Text.Json;
 public sealed class NBUProvider : CentralBankProviderBase {
 	private readonly ILogger<NBUProvider> _logger;
 
-	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, configuration, bank) {
+	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -46,7 +46,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			if (rate > 0) {
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, BankCode, rate, bankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, BankCode, rate, bankCode));
 			}
 		}
 

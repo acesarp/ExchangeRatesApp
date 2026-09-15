@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BANREPProvider : CentralBankProviderBase {
 	private readonly ILogger<BANREPProvider> _logger;
-	public BANREPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANREPProvider> logger) : base(http, configuration, bank) {
+	public BANREPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANREPProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
@@ -33,7 +33,7 @@ public sealed class BANREPProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode)];
+		return [new ExchangeRateResult(fromDate, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode)];
 	}
 }
 

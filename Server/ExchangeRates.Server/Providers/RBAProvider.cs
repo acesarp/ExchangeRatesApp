@@ -12,7 +12,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class RBAProvider : CentralBankProviderBase {
 	private readonly ILogger<RBAProvider> _logger;
 
-	public RBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBAProvider> logger) : base(http, configuration, bank) {
+	public RBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -73,7 +73,7 @@ public sealed class RBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 		return rates;
 	}

@@ -1,4 +1,3 @@
-using ExchangeRates.Domain.Enums;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Models;
 
@@ -38,8 +37,8 @@ public class QuotesController : ControllerBase {
 
 	[Route("available-currencies", Name = "AvailableCurrencies")]
 	[HttpGet]
-	public async Task<ActionResult<List<CurrencyModel>>> GetAvailableCurrencies() {
-		var currencies = await _service.GetCurrenciesAsync();
+	public async Task<ActionResult<List<CurrencyModel>>> GetAvailableCurrencies(CancellationToken ct) {
+		var currencies = await _service.GetCurrenciesAsync(ct);
 		return Ok(currencies);
 
 	}

@@ -14,7 +14,7 @@ using System.Globalization;
 public sealed class BCBOProvider : CentralBankProviderBase {
 	private readonly ILogger<BCBOProvider> _logger;
 
-	public BCBOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBOProvider> logger) : base(http, configuration, bank) {
+	public BCBOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBOProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -62,15 +62,15 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 
 				var rate = ExtractRate(reader, quoteCurrency);
 				if (rate.HasValue) {
-					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate.Value, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate.Value, Bank.BankCode));
 				}
 			}
 			catch (OperationCanceledException ex) when (ct.IsCancellationRequested) {
-				_logger.LogInformation(ex, "Operation canceled while retrieving BCBO exchange rate for {Currency} on {Date}", quoteCurrency, date);
+				_logger.LogInformation(ex, "Operation canceled while retrieving BCBO exchange rate for {NativeCurrency} on {Date}", quoteCurrency, date);
 				throw;
 			}
 			catch (Exception ex) {
-				_logger.LogWarning(ex, "Unable to retrieve BCBO exchange rate for {Currency} on {Date}", quoteCurrency, date);
+				_logger.LogWarning(ex, "Unable to retrieve BCBO exchange rate for {NativeCurrency} on {Date}", quoteCurrency, date);
 			}
 		}
 		return results;

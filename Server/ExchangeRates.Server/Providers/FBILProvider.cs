@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class FBILProvider : CentralBankProviderBase {
 	private readonly ILogger<FBILProvider> _logger;
 
-	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, configuration, bank) {
+	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -69,7 +69,7 @@ public sealed class FBILProvider : CentralBankProviderBase {
 
 			rate /= unitMultiplier;
 
-			results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return results;

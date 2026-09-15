@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BAMProvider : CentralBankProviderBase {
 	private readonly ILogger<BAMProvider> _logger;
-	public BAMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BAMProvider> logger) : base(http, configuration, bank) {
+	public BAMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BAMProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -52,7 +52,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, mid / unit, bankCode));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.NativeCurrency.CurrencyCode, quoteCurrency, mid / unit, bankCode));
 		}
 		return rates;
 	}

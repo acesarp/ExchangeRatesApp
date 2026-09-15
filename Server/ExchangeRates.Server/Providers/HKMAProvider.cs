@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
 	private readonly ILogger<HKMAProvider> _logger;
-	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, configuration, bank) {
+	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -53,7 +53,7 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			var datasize = result.GetProperty("datasize").GetInt32();

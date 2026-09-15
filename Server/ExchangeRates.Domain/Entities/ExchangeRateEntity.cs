@@ -7,24 +7,26 @@ public sealed class ExchangeRateEntity {
 	/// <summary>
 	/// Internal database identifier for the exchange rate.
 	/// </summary>
-	public int Id { get; set; }
+	public long Id { get; set; }
 
 	/// <summary>
 	/// Date for which the exchange rate is valid.
 	/// </summary>
-	public DateOnly Date { get; set; }
+	public required DateOnly Date { get; set; }
 
+	public int BaseCurrencyId { get; set; }
 	/// <summary>
 	/// ISO 4217 currency code of the base currency.
 	/// Represents the currency whose value is equal to one unit.
 	/// </summary>
-	public string BaseCurrency { get; set; }
+	public required CurrencyEntity BaseCurrency { get; set; }
 
+	public int QuoteCurrencyId { get; set; }
 	/// <summary>
 	/// ISO 4217 currency code of the quote currency.
 	/// Represents the currency in which the base currency is expressed.
 	/// </summary>
-	public string QuoteCurrency { get; set; }
+	public required CurrencyEntity QuoteCurrency { get; set; }
 
 	/// <summary>
 	/// Exchange rate expressed as the amount of quote currency equivalent to one unit of the base currency.

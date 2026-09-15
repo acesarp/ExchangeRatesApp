@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
 	private readonly ILogger<BANXICOProvider> _logger;
-	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, configuration, bank) {
+	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -45,7 +45,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		return [new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode)];
+		return [new ExchangeRateResult(fromDate, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode)];
 	}
 }
 

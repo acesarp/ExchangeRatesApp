@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCRAProvider : CentralBankProviderBase {
 	private readonly ILogger<BCRAProvider> _logger;
 
-	public BCRAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCRAProvider> logger) : base(http, configuration, bank) {
+	public BCRAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCRAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -45,7 +45,7 @@ public sealed class BCRAProvider : CentralBankProviderBase {
 
 
 
-					results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 			catch (Exception ex) {

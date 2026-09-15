@@ -13,17 +13,17 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBAProvider : CentralBankProviderBase {
 	private readonly ILogger<CBAProvider> _logger;
 
-	public CBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBAProvider> logger) : base(http, configuration, bank) {
+	public CBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		if (quoteCurrency == Bank.Currency.CurrencyCode) {
+		if (quoteCurrency == Bank.NativeCurrency.CurrencyCode) {
 			return [];
 		}
 
-		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.Currency.CurrencyCode)
+		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.NativeCurrency.CurrencyCode)
 																															.Select(c => c.ToString()));
 
 		var soap = $"""
@@ -70,7 +70,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), iso, Bank.Currency.CurrencyCode, rate / amount, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), iso, Bank.NativeCurrency.CurrencyCode, rate / amount, Bank.BankCode));
 		}
 
 		return rates;

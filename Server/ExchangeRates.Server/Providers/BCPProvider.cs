@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCPProvider : CentralBankProviderBase {
 	private readonly ILogger<BCPProvider> _logger;
-	public BCPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCPProvider> logger) : base(http, configuration, bank) {
+	public BCPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCPProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -74,7 +74,7 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 				if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal rate)) {
 
-					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+					rows.Add(new ExchangeRateResult(new DateOnly(year, m, d), Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				}
 			}
 		}

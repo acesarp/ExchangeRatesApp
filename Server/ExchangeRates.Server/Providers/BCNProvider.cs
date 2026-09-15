@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BCNProvider : CentralBankProviderBase {
 	private readonly ILogger<BCNProvider> _logger;
 
-	public BCNProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCNProvider> logger) : base(http, configuration, bank) {
+	public BCNProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCNProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -54,7 +54,7 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);

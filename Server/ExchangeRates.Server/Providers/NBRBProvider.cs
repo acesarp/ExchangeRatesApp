@@ -12,7 +12,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class NBRBProvider : CentralBankProviderBase {
 	private readonly ILogger<NBRBProvider> _logger;
 
-	public NBRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRBProvider> logger) : base(http, configuration, bank) {
+	public NBRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRBProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -36,7 +36,7 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch {
 				// Skip days with no data

@@ -4,15 +4,11 @@ using ExchangeRates.Server.Interfaces;
 namespace ExchangeRates.Server.Providers;
 
 public sealed class CentralBankProviderFactory {
-	private readonly IEnumerable<ICentralBankProvider> _providers;
 	private readonly ILogger<CentralBankProviderFactory> _logger;
-	private readonly IConfiguration _configuration;
 	private readonly IServiceProvider _services;
 	private readonly Dictionary<string, Func<CentralBankEntity, ICentralBankProvider>> _providerFactories;
 
-	public CentralBankProviderFactory(IConfiguration configuration, IEnumerable<ICentralBankProvider> providers, IServiceProvider services, ILogger<CentralBankProviderFactory> logger) {
-		_configuration = configuration;
-		_providers = providers;
+	public CentralBankProviderFactory(IServiceProvider services, ILogger<CentralBankProviderFactory> logger) {
 		_logger = logger;
 		_services = services;
 
@@ -107,40 +103,15 @@ public sealed class CentralBankProviderFactory {
 		};
 	}
 
-	public IEnumerable<ICentralBankProvider> GetAllProviders() {
-		var providers = _providers.ToList();
-		_logger.LogDebug("Resolved {Count} central bank providers", providers.Count);
-		return providers;
+	public ICentralBankProvider GetProvider(CentralBankEntity bank) {
+		if (!_providerFactories.TryGetValue(bank.BankCode, out var factory)) {
+			throw new ArgumentOutOfRangeException(nameof(bank), bank.BankCode, $"Unknown central bank provider '{bank.BankCode}'.");
+		}
+
+		return factory(bank);
 	}
-
-	/// <summary>
-	/// Preferred-provider tier bank list<br />
-	/// Returns the preferred central bank providers.
-	/// </summary>
-	/// <returns></returns>
-	public IEnumerable<ICentralBankProvider> GetPreferredProviders() {
-
-		var providers = _providers.Where(provider => provider.Priority.HasValue)
-													.OrderBy(provider => provider.Priority!.Value)
-													.ToList();
-
-		_logger.LogDebug("Resolved {Count} central bank providers", providers.Count);
-
-		return providers;
-
-	}
-
-	public ICentralBankProvider GetProvider(string providerBankCode) {
-		return GetAllProviders()
-					.FirstOrDefault(provider => string.Equals(provider.BankCode, providerBankCode, StringComparison.OrdinalIgnoreCase)) ??
-																		throw new ArgumentOutOfRangeException(nameof(providerBankCode), providerBankCode, "Unknown central-bank provider.");
-	}
-
-
 
 	private Func<CentralBankEntity, ICentralBankProvider> Create<TProvider>() where TProvider : class, ICentralBankProvider {
-
 		return bank => ActivatorUtilities.CreateInstance<TProvider>(_services, bank);
 	}
-
 }

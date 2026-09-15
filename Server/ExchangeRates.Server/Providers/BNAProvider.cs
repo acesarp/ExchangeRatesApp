@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BNAProvider : CentralBankProviderBase {
 	private readonly ILogger<BNAProvider> _logger;
 
-	public BNAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNAProvider> logger) : base(http, configuration, bank) {
+	public BNAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -47,7 +47,7 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;

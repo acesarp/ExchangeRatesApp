@@ -5,8 +5,8 @@ using System.Globalization;
 namespace ExchangeRates.Server.Providers;
 
 /// <summary>
-/// Autoritat Financera Andorrana (Andorran Financial Authority) - https://www.afa.ad/en/
-/// Andorra has no independent monetary policy and uses the Euro (EUR) as its official currency,
+/// Autoritat Financera Andorrana (Andorran Financial Authority) - https://www.afa.ad/en/ <br />
+/// Andorra has no independent monetary policy and uses the Euro (EUR) as its official currency,<br />
 /// so this provider mirrors the same CSV data endpoint contract as <see cref="ECBProvider"/>.
 /// </summary>
 public sealed class AFAProvider : CentralBankProviderBase {
@@ -30,8 +30,8 @@ public sealed class AFAProvider : CentralBankProviderBase {
 		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
 		var currencyIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
 		lines = lines.Skip(1)
-						.Where(w => w.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase))
-						.ToArray();
+							.Where(w => w.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase))
+							.ToArray();
 		foreach (var line in lines) {
 			var cols = TextUtils.SplitCsv(line);
 			if (dateIndex < 0 || dateIndex >= cols.Count || !DateOnly.TryParse(cols[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
@@ -39,8 +39,7 @@ public sealed class AFAProvider : CentralBankProviderBase {
 			}
 
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
-
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 		return rates;

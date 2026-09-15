@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOEProvider : CentralBankProviderBase {
 	private readonly ILogger<BOEProvider> _logger;
 	private readonly Dictionary<string, string> _series;
-	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, configuration, bank) {
+	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, configuration) {
 		_logger = logger;
 		_series = configuration.GetSection($"CentralBanks:{Bank.BankCode}:Series")
 											.GetChildren()
@@ -57,7 +57,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, 1m / rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, 1m / rate, Bank.BankCode));
 		}
 		return rates;
 	}

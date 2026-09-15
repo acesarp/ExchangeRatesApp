@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOTAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOTAProvider> _logger;
 
-	public BOTAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTAProvider> logger) : base(http, configuration, bank) {
+	public BOTAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -64,7 +64,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;

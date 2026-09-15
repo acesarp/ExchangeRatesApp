@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class DABProvider : CentralBankProviderBase {
 	private readonly ILogger<DABProvider> _logger;
-	public DABProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DABProvider> logger) : base(http, configuration, bank) {
+	public DABProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DABProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -56,7 +56,7 @@ public sealed class DABProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

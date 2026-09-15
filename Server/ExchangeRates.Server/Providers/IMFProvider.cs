@@ -1,6 +1,3 @@
-
-using ExchangeRates.Domain.Entities;
-
 using HtmlAgilityPack;
 
 using Microsoft.Playwright;
@@ -17,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class IMFProvider : CentralBankProviderBase {
 	private readonly ILogger<IMFProvider> _logger;
 
-	public IMFProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<IMFProvider> logger) : base(http, configuration, bank) {
+	public IMFProvider(HttpClient http, IConfiguration configuration, ILogger<IMFProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -61,7 +58,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 
 		var results = new List<ExchangeRateResult>();
 		if (quoteCurrency is null) {
-			_logger.LogDebug("Currency {Currency} is not supported by IMF.", quoteCurrency);
+			_logger.LogDebug("NativeCurrency {NativeCurrency} is not supported by IMF.", quoteCurrency);
 			return [];
 		}
 
@@ -134,7 +131,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 							continue;
 						}
 
-						results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+						results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 					}
 				}
 			}
@@ -151,7 +148,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (!Clean(cells[0].InnerText).Equals("Currency", StringComparison.OrdinalIgnoreCase)) {
+			if (!Clean(cells[0].InnerText).Equals("NativeCurrency", StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 

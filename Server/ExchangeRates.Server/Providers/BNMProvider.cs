@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BNMProvider : CentralBankProviderBase {
 	private readonly ILogger<BNMProvider> _logger;
 
-	public BNMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNMProvider> logger) : base(http, configuration, bank) {
+	public BNMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNMProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -55,7 +55,7 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BNM rate for {Date}", date);

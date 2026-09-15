@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class DNBProvider : CentralBankProviderBase {
 	private readonly ILogger<DNBProvider> _logger;
-	public DNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DNBProvider> logger) : base(http, configuration, bank) {
+	public DNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DNBProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -39,7 +39,7 @@ public sealed class DNBProvider : CentralBankProviderBase {
 
 			rate /= 100m;
 
-			results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return results;

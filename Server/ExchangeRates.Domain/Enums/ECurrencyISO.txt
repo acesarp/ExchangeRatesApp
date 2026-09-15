@@ -658,7 +658,7 @@ public enum ECurrencyISO_ {
 	/// <summary>  Old Vietnamese Dong </summary>
 	VNC,
 
-	/// <summary>  European Currency Unit </summary>
+	/// <summary>  European NativeCurrency Unit </summary>
 	XEU,
 
 	/// <summary>  South Yemeni Dinar </summary>

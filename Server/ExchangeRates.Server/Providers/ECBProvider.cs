@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
 	private readonly ILogger<ECBProvider> _logger;
-	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, configuration, bank) {
+	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -57,7 +57,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates.OrderBy(x => x.Date)
@@ -92,7 +92,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 			if (decimal.TryParse(cols[currencyIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) && rate > 0) {
 
 
-				rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 		}
 		return rates;

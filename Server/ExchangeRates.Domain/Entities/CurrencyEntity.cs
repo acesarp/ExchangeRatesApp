@@ -1,8 +1,10 @@
 ﻿namespace ExchangeRates.Domain.Entities;
 
 public sealed class CurrencyEntity {
-	public CurrencyEntity(int id, string currencyCode, short numericCode, string name, bool isHistoric, int priority) {
-		Id = id;
+	public CurrencyEntity() {
+
+	}
+	public CurrencyEntity(string currencyCode, short numericCode, string name, bool isHistoric, int priority) {
 		CurrencyCode = currencyCode;
 		NumericCode = numericCode;
 		Name = name;
@@ -40,4 +42,6 @@ public sealed class CurrencyEntity {
 	/// A lower value has higher priority and is used as the base currency.
 	/// </summary>
 	public int Priority { get; set; }
+
+	public ICollection<CentralBankSupportedCurrencyEntity> SupportedByCentralBanks { get; set; } = new List<CentralBankSupportedCurrencyEntity>();
 }

@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class FREDProvider : CentralBankProviderBase {
 	private readonly ILogger<FREDProvider> _logger;
-	public FREDProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FREDProvider> logger) : base(http, configuration, bank) {
+	public FREDProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FREDProvider> logger) : base(http, configuration) {
 		_logger = logger;
 		Series = Configuration.GetSection("CentralBanks:FRED:SupportedCurrencies").Get<List<FREDProviderCurrencyConfiguration>>();
 	}
@@ -60,7 +60,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 				rate = 1m / rate;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

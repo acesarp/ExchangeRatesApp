@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class AMCMProvider : CentralBankProviderBase {
 	private readonly ILogger<AMCMProvider> _logger;
-	public AMCMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AMCMProvider> logger) : base(http, configuration, bank) {
+	public AMCMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AMCMProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
@@ -36,7 +36,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.Currency.CurrencyCode, value / unit, bankCode));
+			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.NativeCurrency.CurrencyCode, value / unit, bankCode));
 		}
 		return rates;
 	}

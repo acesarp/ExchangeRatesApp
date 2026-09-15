@@ -13,7 +13,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class MASProvider : CentralBankProviderBase {
 	private readonly ILogger<MASProvider> _logger;
-	public MASProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MASProvider> logger) : base(http, configuration, bank) {
+	public MASProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MASProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
@@ -55,7 +55,7 @@ public sealed class MASProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

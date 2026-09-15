@@ -1,5 +1,4 @@
-﻿using ExchangeRates.Domain.Enums;
-using ExchangeRates.Server.Models;
+﻿using ExchangeRates.Server.Models;
 namespace ExchangeRates.Server.Interfaces;
 
 public interface IExchangeRateService {

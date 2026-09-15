@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class BCCRProvider : CentralBankProviderBase {
 	private readonly ILogger<BCCRProvider> _logger;
-	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, configuration, bank) {
+	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	private string Token { get; set; }
@@ -51,7 +51,7 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 
 
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, Bank.Currency.CurrencyCode, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, Bank.NativeCurrency.CurrencyCode, rate, Bank.BankCode));
 		}
 
 		return rates;

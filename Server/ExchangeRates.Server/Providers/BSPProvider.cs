@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BSPProvider : CentralBankProviderBase {
 	private readonly ILogger<BSPProvider> _logger;
 
-	public BSPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BSPProvider> logger) : base(http, configuration, bank) {
+	public BSPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BSPProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -38,7 +38,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			foreach (var item in items.EnumerateArray()) {
-				var bankCurrencyCode = item.TryGetProperty("Currency", out var c) ? c.GetString() : null;
+				var bankCurrencyCode = item.TryGetProperty("NativeCurrency", out var c) ? c.GetString() : null;
 
 				if (!string.Equals(bankCurrencyCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
@@ -60,7 +60,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, BankCode));
 			}
 
 			return results;

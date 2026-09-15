@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class RBVProvider : CentralBankProviderBase {
 	private readonly ILogger<RBVProvider> _logger;
 
-	public RBVProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBVProvider> logger) : base(http, configuration, bank) {
+	public RBVProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBVProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
@@ -56,7 +56,7 @@ public sealed class RBVProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

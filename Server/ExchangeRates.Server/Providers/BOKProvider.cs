@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace ExchangeRates.Server.Providers;
 
 public sealed class BOKProvider : CentralBankProviderBase {
-	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank) : base(http, configuration, bank) { }
+	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank) : base(http, configuration) { }
 
 	private static readonly Dictionary<string, (string ItemCode, decimal Unit)> Currencies = new(StringComparer.OrdinalIgnoreCase) {
 		["USD"] = ("0000001", 1m),
@@ -19,7 +19,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
-			throw new InvalidOperationException($"Missing CentralBanks:{Bank.Currency.CurrencyCode}:ApiKey configuration.");
+			throw new InvalidOperationException($"Missing CentralBanks:{Bank.NativeCurrency.CurrencyCode}:ApiKey configuration.");
 		}
 
 		var day = fromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
@@ -42,7 +42,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, value / info.Unit, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(fromDate, Bank.NativeCurrency.CurrencyCode, quoteCurrency, value / info.Unit, Bank.BankCode));
 		}
 
 		return rates;

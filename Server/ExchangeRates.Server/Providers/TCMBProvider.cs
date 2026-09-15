@@ -10,7 +10,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class TCMBProvider : CentralBankProviderBase {
 	private readonly ILogger<TCMBProvider> _logger;
-	public TCMBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<TCMBProvider> logger) : base(http, configuration, bank) {
+	public TCMBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<TCMBProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -21,7 +21,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 		var doc = System.Xml.Linq.XDocument.Parse(xml);
 		var rates = new List<ExchangeRateResult>();
 
-		foreach (var node in doc.Descendants("Currency")) {
+		foreach (var node in doc.Descendants("NativeCurrency")) {
 			var currencyCode = node.Attribute("CurrencyCode")?.Value;
 			var unitText = node.Element("Unit")?.Value;
 			var forexBuyingText = node.Element("ForexBuying")?.Value;
@@ -40,7 +40,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 
 			if (mid > 0) {
 
-				rates.Add(new ExchangeRateResult(fromDate, Bank.Currency.CurrencyCode, quoteCurrency, mid / unit, BankCode));
+				rates.Add(new ExchangeRateResult(fromDate, Bank.NativeCurrency.CurrencyCode, quoteCurrency, mid / unit, BankCode));
 			}
 		}
 		return rates;

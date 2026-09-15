@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class CBUProvider : CentralBankProviderBase {
 	private readonly ILogger<CBUProvider> _logger;
 
-	public CBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUProvider> logger) : base(http, configuration, bank) {
+	public CBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -53,7 +53,7 @@ public sealed class CBUProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate / nominal, bankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / nominal, bankCode));
 			}
 
 			return results;

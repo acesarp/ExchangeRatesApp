@@ -14,7 +14,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BIProvider : CentralBankProviderBase {
 	private readonly ILogger<BIProvider> _logger;
 
-	public BIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BIProvider> logger) : base(http, configuration, bank) {
+	public BIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BIProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -39,7 +39,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 
 
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate.Value, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate.Value, Bank.BankCode));
 			}
 			catch (Exception ex) {
 				_logger.LogWarning(ex, "Failed to fetch BI rate for {Date}", date);

@@ -8,7 +8,7 @@ namespace ExchangeRates.Server.Providers;
 /// </summary>
 public sealed class CBSProvider : CentralBankProviderBase {
 	private readonly ILogger<CBSProvider> _logger;
-	public CBSProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBSProvider> logger) : base(http, configuration, bank) {
+	public CBSProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBSProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -51,7 +51,7 @@ public sealed class CBSProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(today, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 				break;
 			}
 

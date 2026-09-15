@@ -1,6 +1,5 @@
-using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Server.Providers;
-using ExchangeRates.Server.Tests.Fixtures;
 
 using FluentAssertions;
 
@@ -13,107 +12,98 @@ using Xunit;
 namespace ExchangeRates.Server.Tests.Unit;
 
 public class CentralBankProviderFactoryTests {
+
 	[Fact]
-	public void GetAll_WithRegisteredProviders_ReturnsAll() {
+	public void GetProvider_WithUnknownBankCode_ThrowsArgumentOutOfRangeException() {
 		// Arrange
-		var services = new ServiceCollection()
-			.AddLogging(builder => builder.AddConsole());
-
-		var provider1 = MockDataBuilder.CreateTestProvider("ECB", "EUR");
-		var provider2 = MockDataBuilder.CreateTestProvider("FED", "USD");
-
-		services.AddSingleton<ICentralBankProvider>(provider1);
-		services.AddSingleton<ICentralBankProvider>(provider2);
-
-		var serviceProvider = services.BuildServiceProvider();
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-		var factory = new CentralBankProviderFactory(configuration, serviceProvider.GetServices<ICentralBankProvider>(), logger);
+		using var serviceProvider = CreateServiceProvider();
+		var factory = CreateFactory(serviceProvider);
+		var bank = CreateBank("INVALID", "USD");
 
 		// Act
-		var result = factory.GetAllProviders();
+		var act = () => factory.GetProvider(bank);
 
 		// Assert
-		result.Should().HaveCountGreaterThanOrEqualTo(2);
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.WithMessage("*Unknown central bank provider 'INVALID'*");
 	}
 
 	[Fact]
-	public void GetAll_NoProviders_ReturnsEmpty() {
+	public void GetProvider_WithRegisteredBankCode_ReturnsCorrectProvider() {
 		// Arrange
-		var services = new ServiceCollection()
-			.AddLogging(builder => builder.AddConsole());
-
-		var serviceProvider = services.BuildServiceProvider();
-		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(configuration, [], logger);
+		using var serviceProvider = CreateServiceProvider();
+		var factory = CreateFactory(serviceProvider);
+		var bank = CreateBank("ECB", "EUR");
 
 		// Act
-		var result = factory.GetAllProviders();
+		var result = factory.GetProvider(bank);
 
 		// Assert
-		result.Should().BeEmpty();
+		result.Should().BeOfType<ECBProvider>();
 	}
 
 	[Fact]
-	public void Get_WithNonExistentCode_Throws() {
+	public void GetProvider_WithLowerCaseBankCode_IsCaseInsensitive() {
 		// Arrange
-		var services = new ServiceCollection()
-			.AddLogging(builder => builder.AddConsole());
-
-		var serviceProvider = services.BuildServiceProvider();
-		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(configuration, [], logger);
-
-		// Act & Assert
-		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("NONEXISTENT"));
-	}
-
-	[Fact]
-	public void Get_WithInvalidCode_ThrowsArgumentOutOfRangeException() {
-		// Arrange
-		var services = new ServiceCollection()
-			.AddLogging(builder => builder.AddConsole());
-
-		var serviceProvider = services.BuildServiceProvider();
-		var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var factory = new CentralBankProviderFactory(configuration, [], logger);
-
-		// Act & Assert
-		Assert.Throws<ArgumentOutOfRangeException>(() => factory.GetProvider("INVALID"));
-	}
-
-	[Fact]
-	public void GetAll_WithRegisteredTesting() {
-		// Arrange
-		var services = new ServiceCollection()
-			.AddLogging(builder => builder.AddConsole());
-
-		var serviceProvider = services.BuildServiceProvider();
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		// Act & Assert
-		var provider = MockDataBuilder.CreateTestProvider("TEST", "USD");
-		provider.Supports("USD").Should().BeTrue();
-		provider.Supports("EUR").Should().BeTrue();
-	}
-
-	[Fact]
-	public void Get_WithRegisteredProvider_ReturnsProviderWithoutConcreteRegistration() {
-		// Arrange
-		var provider = MockDataBuilder.CreateTestProvider("ECB", "EUR");
-		var services = new ServiceCollection()
-			.AddLogging()
-			.AddSingleton<ICentralBankProvider>(provider)
-			.AddTransient<CentralBankProviderFactory>();
-		var serviceProvider = services.BuildServiceProvider();
-		var factory = serviceProvider.GetRequiredService<CentralBankProviderFactory>();
+		using var serviceProvider = CreateServiceProvider();
+		var factory = CreateFactory(serviceProvider);
+		var bank = CreateBank("ecb", "EUR");
 
 		// Act
-		var result = factory.GetProvider("ecb");
+		var result = factory.GetProvider(bank);
 
 		// Assert
-		result.Should().BeSameAs(provider);
+		result.Should().BeOfType<ECBProvider>();
+	}
+
+	[Fact]
+	public void GetProvider_CalledTwice_ReturnsDifferentInstances() {
+		// Arrange
+		using var serviceProvider = CreateServiceProvider();
+		var factory = CreateFactory(serviceProvider);
+		var bank = CreateBank("ECB", "EUR");
+
+		// Act
+		var provider1 = factory.GetProvider(bank);
+		var provider2 = factory.GetProvider(bank);
+
+		// Assert
+		provider1.Should().NotBeSameAs(provider2);
+	}
+
+	private static ServiceProvider CreateServiceProvider() {
+		var configuration = new ConfigurationBuilder()
+			.AddInMemoryCollection(new Dictionary<string, string?> {
+				["CentralBanks:ECB:Url"] = "https://example.com"
+			})
+			.Build();
+
+		var services = new ServiceCollection();
+
+		services.AddLogging();
+		services.AddSingleton<IConfiguration>(configuration);
+		services.AddHttpClient();
+
+		return services.BuildServiceProvider();
+	}
+
+	private static CentralBankProviderFactory CreateFactory(IServiceProvider services) {
+		var logger = services.GetRequiredService<ILogger<CentralBankProviderFactory>>();
+
+		return new CentralBankProviderFactory(services, logger);
+	}
+
+	private static CentralBankEntity CreateBank(string bankCode, string currencyCode) {
+		var currency = new CurrencyEntity(currencyCode, 978, currencyCode, false, 1);
+
+		return new CentralBankEntity(
+			bankCode,
+			$"{bankCode} Test Bank",
+			"Test Country",
+			currency.Id,
+			true,
+			DateTime.UtcNow) {
+			NativeCurrency = currency
+		};
 	}
 }

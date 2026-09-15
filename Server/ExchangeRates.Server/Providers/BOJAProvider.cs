@@ -11,7 +11,7 @@ namespace ExchangeRates.Server.Providers;
 public sealed class BOJAProvider : CentralBankProviderBase {
 	private readonly ILogger<BOJAProvider> _logger;
 
-	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, configuration, bank) {
+	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, configuration) {
 		_logger = logger;
 	}
 
@@ -58,7 +58,7 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 
 				
 					
-				results.Add(new ExchangeRateResult(date, Bank.Currency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 
 			return results;
