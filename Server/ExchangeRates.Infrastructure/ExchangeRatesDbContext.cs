@@ -6,12 +6,12 @@ namespace ExchangeRates.Infrastructure;
 
 public sealed class ExchangeRatesDbContext : DbContext {
 	public ExchangeRatesDbContext(DbContextOptions<ExchangeRatesDbContext> options) : base(options) { }
-
 	public DbSet<ExchangeRateEntity> ExchangeRates => Set<ExchangeRateEntity>();
 	public DbSet<CurrencyEntity> Currencies => Set<CurrencyEntity>();
 	public DbSet<CentralBankEntity> CentralBanks => Set<CentralBankEntity>();
 	public DbSet<FixedExchangeRateEntity> FixedExchangeRates => Set<FixedExchangeRateEntity>();
 	public DbSet<CentralBankSupportedCurrencyEntity> CentralBankSupportedCurrencies => Set<CentralBankSupportedCurrencyEntity>();
+	public DbSet<ExchangeRateUnavailableDateEntity> ExchangeRateUnavailableDates => Set<ExchangeRateUnavailableDateEntity>();
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);
 
@@ -89,6 +89,19 @@ public sealed class ExchangeRatesDbContext : DbContext {
 
 			entity.HasOne(x => x.Currency).WithMany(x => x.SupportedByCentralBanks)
 				.HasForeignKey(x => x.CurrencyId);
+		});
+
+		modelBuilder.Entity<ExchangeRateUnavailableDateEntity>(entity => {
+			entity.ToTable("ExchangeRateUnavailableDate");
+			entity.HasKey(e => e.Id);
+
+			entity.Property(e => e.BaseCurrency).HasMaxLength(3).IsFixedLength().IsRequired();
+			entity.Property(e => e.QuoteCurrency).HasMaxLength(3).IsFixedLength().IsRequired();
+			entity.Property(e => e.UnavailableDate).HasColumnType("date").IsRequired();
+			entity.Property(e => e.CreatedAtUTC).HasColumnType("datetime2").HasDefaultValueSql("SYSUTCDATETIME()").IsRequired();
+
+			entity.HasIndex(e => new { e.CentralBankId, e.BaseCurrency, e.QuoteCurrency, e.UnavailableDate }).IsUnique().HasDatabaseName("UX_ExchangeRateUnavailableDate");
+			entity.HasOne<CentralBankEntity>().WithMany().HasForeignKey(e => e.CentralBankId).OnDelete(DeleteBehavior.Restrict);
 		});
 	}
 }

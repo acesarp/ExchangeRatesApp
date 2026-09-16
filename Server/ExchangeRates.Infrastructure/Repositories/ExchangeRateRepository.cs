@@ -15,9 +15,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		_logger = logger;
 	}
 
-	/// <summary>
-	/// Retrieve rates for the given base and quote currency from database.
-	/// </summary>>
+	/// <summary> Gets the exchange rates from database for the specified base and quote currencies within the given date range </summary>
 	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrencyCode, string quoteCurrencyCode, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		baseCurrencyCode = baseCurrencyCode.ToUpperInvariant();
 		quoteCurrencyCode = quoteCurrencyCode.ToUpperInvariant();
@@ -87,9 +85,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct) {
 		currency1 = currency1.ToUpperInvariant();
 		currency2 = currency2.ToUpperInvariant();
-		var query = _context.CentralBanks.AsNoTracking();
-		query = query
-
+		var query = _context.CentralBanks.AsNoTracking()
 																.Include(x => x.NativeCurrency)
 																.Where(x => x.IsActive &&
 																									((x.NativeCurrency.CurrencyCode == currency1 &&
@@ -109,4 +105,29 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		throw new InvalidOperationException($"No provider available for {currency1}/{currency2}.");
 	}
 
+	/// <summary> Add a range of unavailable dates to the database.<br /> Weekends and holidays when the exchange rate is not available. </summary>
+	public async Task<int> AddUnavailableDatesAsync(IEnumerable<ExchangeRateUnavailableDateEntity> unavailableDates, CancellationToken ct) {
+		var uniqueDates = unavailableDates.DistinctBy(x => new { x.CentralBankId, x.BaseCurrency, x.QuoteCurrency, x.UnavailableDate }).ToList();
+		_context.ExchangeRateUnavailableDates.AddRange(uniqueDates);
+		return await _context.SaveChangesAsync(ct);
+	}
+
+	/// <summary> Get a range of unavailable date entities from the database.<br /> Weekends and holidays when the exchange rate is not available </summary>
+	public async Task<HashSet<ExchangeRateUnavailableDateEntity>> GetUnavailableDateEntitiesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
+		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from &&
+																																							x.UnavailableDate <= to)
+																							.ToHashSetAsync(ct);
+	}
+
+	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
+		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from &&
+																																					x.UnavailableDate <= to)
+																					.Select(x => x.UnavailableDate)
+																					.ToHashSetAsync(ct);
+	}
+
+	public async Task<CentralBankEntity> GetCentralBankAsync(string bankCode, CancellationToken ct) {
+		return await _context.CentralBanks.AsNoTracking()
+																.FirstOrDefaultAsync(x => x.BankCode == bankCode, ct);
+	}
 }

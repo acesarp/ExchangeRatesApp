@@ -23,9 +23,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 	}
 
-	/// <summary>
-	/// Gets the exchange rates for the specified base and quote currencies between the given date range. <br />
-	/// </summary>
+	/// <summary> Gets the exchange rates for the specified base and quote currencies between the given date range </summary>
 	/// <exception cref="ArgumentException"></exception>
 	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
@@ -44,20 +42,45 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		IEnumerable<ExchangeRateResult> rates = new List<ExchangeRateResult>();
 
 		if (canonicalRates?.Count > 0) {
-			rates = canonicalRates.Select(ExchangeRateMapper.ToResult)
-												.ToList();
+			rates = canonicalRates.Select(ExchangeRateMapper.ToResult);
 		}
 
-		var missingRanges = DateRangeHelper.GetMissingRanges(fromDate, toDate, rates.Select(x => x.Date).ToList());
+		var missingDates = DateRangeHelper.GetMissingDates(fromDate, toDate, rates.Select(x => x.Date));
 
-		if (missingRanges.Count > 0) {
-			_logger.LogInformation("Found {Count} missing ranges for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", missingRanges.Count, baseCurrency, quoteCurrency, fromDate, toDate);
+		List<DateOnly> missingDatesFiltered = new List<DateOnly>();
+		if (missingDates.Count > 0) {
+			HashSet<DateOnly> unavailableDatesSet = await _repository.GetUnavailableDatesAsync(missingDates.Min(), missingDates.Max(), ct);
+			missingDatesFiltered = missingDates.Where(x => !unavailableDatesSet.Contains(x)).ToList();
+
+			_logger.LogInformation("All rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
+		}
+
+		if (missingDatesFiltered.Count > 0) {
+			_logger.LogInformation("Found {Count} missing dates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", missingDatesFiltered.Count, baseCurrency, quoteCurrency, fromDate, toDate);
 
 			// If there are missing rates, fetch them from the resolver
 			rates = await GetDirectRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-
+			string bankProviderCode = rates.FirstOrDefault().Provider;
+			var rateDates = rates.Select(x => x.Date).ToHashSet();
 			if (rates.Any()) {
 				_logger.LogInformation("Direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
+
+				var centralBank = await _repository.GetCentralBankAsync(bankProviderCode, ct);
+
+				//Saved unavailable dates to avoid future unnecessary API calls
+				var missingdatesToSave = new List<ExchangeRateUnavailableDateEntity>();
+				for (var from = fromDate; from <= toDate; from = from.AddDays(1)) {
+					if (!rates.Any(w => w.Date == from)) {
+						missingdatesToSave.Add(new ExchangeRateUnavailableDateEntity {
+							CentralBankId = centralBank.Id,
+							BaseCurrency = baseCurrency,
+							QuoteCurrency = quoteCurrency,
+							UnavailableDate = from
+						});
+						_logger.LogInformation("Marking {Date} as unavailable for {BaseCurrency}/{QuoteCurrency}.", from, baseCurrency, quoteCurrency);
+					}
+				}
+				await _repository.AddUnavailableDatesAsync(missingdatesToSave, ct);
 
 				var ratesForDbToSave = await OrientToCanonical(rates, ct);
 				var currencyEntities = await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct);
@@ -83,7 +106,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 
 	/// <summary>
-	/// Gets the exchange rates for the specified base and quote currencies between the given date range. <br />
+	/// Gets the exchange rates from the bank API for the specified base and quote currencies between the given date range. <br />
 	/// The direction of the exchange rate is not considered; if the provider's native currency is the quote currency, the inverse of the rate will be returned.<br />
 	/// </summary>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetDirectRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
@@ -133,17 +156,6 @@ public sealed class ExchangeRateService : IExchangeRateService {
 											.OrderBy(x => x.Date)
 											.ToList();
 		return rates;
-	}
-
-	/// <summary>
-	/// - Finds a provider that supports the given currencies; <br />
-	/// - Exchange rates are considered bidirectional;  <br />
-	/// - Exchange rate direction is not guaranteed; the provider may support either currency as its native currency. <br />
-	/// </summary>
-	private async Task<ICentralBankProvider> FindProviderAsync(string currency1, string currency2, CancellationToken ct) {
-		var bank = await _repository.FindSuitableBankAsync(currency1, currency2, ct);
-
-		return _providerFactory.GetProvider(bank);
 	}
 
 
@@ -198,7 +210,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	}
 
 	/// <summary>
-	/// Gets the list of central banks from the repository. <br />
+	/// Gets the list of central banks from the repository <br />
 	/// </summary>
 	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
 		var centralBanks = await _repository.GetCentralBanksAsync(ct);

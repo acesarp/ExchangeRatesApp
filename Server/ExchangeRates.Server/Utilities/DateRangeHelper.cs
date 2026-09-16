@@ -13,6 +13,10 @@ public static class DateRangeHelper {
 		DateOnly? rangeStart = null;
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			if (date.Day == 18 && date.Month == 4) {
+				Console.WriteLine(date);
+			}
+
 			if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) {
 				continue;
 			}
@@ -29,6 +33,28 @@ public static class DateRangeHelper {
 		}
 		if (rangeStart.HasValue) {
 			missing.Add((rangeStart.Value, toDate));
+		}
+
+		return missing;
+	}
+
+	/// <summary>
+	/// Returns a list of missing dates between fromDate and toDate that are not present in existingDates, excluding weekends.
+	/// </summary>
+	public static IReadOnlyList<DateOnly> GetMissingDates(DateOnly fromDate, DateOnly toDate, IEnumerable<DateOnly> existingDates) {
+		var missing = new List<DateOnly>();
+		var existing = existingDates.Where(x => x >= fromDate && x <= toDate)
+													.ToHashSet();
+
+		// Iterate through the date range and find missing dates
+		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
+			if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) {
+				continue;
+			}
+
+			if (!existing.Contains(date)) {
+				missing.Add(date);
+			}
 		}
 
 		return missing;
