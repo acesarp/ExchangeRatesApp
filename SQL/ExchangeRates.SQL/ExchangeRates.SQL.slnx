@@ -1,0 +1,10 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Default" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="ExchangeRates.SQL.sqlproj" Type="42ea0dbd-9cf1-443e-919e-be9c484e4577" Id="c8f528fd-6901-41eb-83f8-1843050e9afa">
+    <BuildType Solution="Default|*" Project="Release" />
+  </Project>
+</Solution>
