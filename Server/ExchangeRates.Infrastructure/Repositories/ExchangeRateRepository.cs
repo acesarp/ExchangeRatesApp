@@ -19,15 +19,21 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	public async Task<IReadOnlyList<ExchangeRateEntity>> GetRatesAsync(string baseCurrencyCode, string quoteCurrencyCode, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		baseCurrencyCode = baseCurrencyCode.ToUpperInvariant();
 		quoteCurrencyCode = quoteCurrencyCode.ToUpperInvariant();
-		return await _context.ExchangeRates.AsNoTracking()
-																	.Where(x => (x.BaseCurrency.CurrencyCode == baseCurrencyCode && x.QuoteCurrency.CurrencyCode == quoteCurrencyCode ||
-																													x.BaseCurrency.CurrencyCode == quoteCurrencyCode && x.QuoteCurrency.CurrencyCode == baseCurrencyCode) &&
-																										x.Date >= fromDate && x.Date <= toDate)
 
-																	.Include(x => x.BaseCurrency)
-																	.Include(x => x.QuoteCurrency)
-																	.OrderBy(x => x.Date)
-																	.ToListAsync(ct);
+		//filter by base and quote currencie
+		var query = _context.ExchangeRates.AsNoTracking()
+																	.Where(w => (w.BaseCurrency.CurrencyCode == baseCurrencyCode &&
+																										w.QuoteCurrency.CurrencyCode == quoteCurrencyCode) ||
+																										(w.BaseCurrency.CurrencyCode == quoteCurrencyCode &&
+																										w.QuoteCurrency.CurrencyCode == baseCurrencyCode)
+																						);
+		//Filter by date range
+		query = query.Where(w => w.Date >= fromDate && w.Date <= toDate);
+
+		return await query.Include(i => i.BaseCurrency)
+									.Include(i => i.QuoteCurrency)
+									.OrderBy(o => o.Date)
+									.ToListAsync(ct);
 	}
 
 	/// <summary> Add a range of exchange rates to the database. </summary>
@@ -64,9 +70,7 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		return await _context.SaveChangesAsync(ct);
 	}
 
-	/// <summary>
-	/// Retrieve all available currencies from database.
-	/// </summary>
+	/// <summary> Retrieve all available currencies from database </summary>
 	public async Task<IReadOnlyList<CurrencyEntity>> GetCurrenciesAsync(CancellationToken ct) {
 		return await _context.Currencies.AsNoTracking().ToListAsync(ct);
 	}
@@ -79,7 +83,11 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	/// Retrieve all available central banks from database.
 	/// </summary>
 	public async Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct) {
-		return await _context.CentralBanks.AsNoTracking().ToListAsync(ct);
+		return await _context.CentralBanks.AsNoTracking()
+																	.Include(x => x.NativeCurrency)
+																	.Include(x => x.SupportedCurrencies)
+																	.ThenInclude(x => x.Currency)
+																	.ToListAsync(ct);
 	}
 
 	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct) {
@@ -87,6 +95,8 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		currency2 = currency2.ToUpperInvariant();
 		var query = _context.CentralBanks.AsNoTracking()
 																.Include(x => x.NativeCurrency)
+																.Include(x => x.SupportedCurrencies)
+																.ThenInclude(x => x.Currency)
 																.Where(x => x.IsActive &&
 																									((x.NativeCurrency.CurrencyCode == currency1 &&
 																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2))
@@ -114,20 +124,27 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 
 	/// <summary> Get a range of unavailable date entities from the database.<br /> Weekends and holidays when the exchange rate is not available </summary>
 	public async Task<HashSet<ExchangeRateUnavailableDateEntity>> GetUnavailableDateEntitiesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
-		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from &&
-																																							x.UnavailableDate <= to)
+		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from && x.UnavailableDate <= to)
 																							.ToHashSetAsync(ct);
 	}
 
 	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
-		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from &&
-																																					x.UnavailableDate <= to)
-																					.Select(x => x.UnavailableDate)
-																					.ToHashSetAsync(ct);
+		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from && x.UnavailableDate <= to)
+																							.Select(x => x.UnavailableDate)
+																							.ToHashSetAsync(ct);
 	}
 
 	public async Task<CentralBankEntity> GetCentralBankAsync(string bankCode, CancellationToken ct) {
-		return await _context.CentralBanks.AsNoTracking()
-																.FirstOrDefaultAsync(x => x.BankCode == bankCode, ct);
+		var bank = await _context.CentralBanks.AsNoTracking()
+																	.Include(x => x.NativeCurrency)
+																	.Include(x => x.SupportedCurrencies)
+																	.ThenInclude(x => x.Currency)
+																	.FirstOrDefaultAsync(x => x.BankCode == bankCode, ct);
+
+		return bank!;
+	}
+
+	public async Task<PreferredProviderEntity?> GetPreferredProviderAsync(string providerCode, CancellationToken ct) {
+		return await _context.PreferredProviders.AsNoTracking().Include(x => x.CentralBank).FirstOrDefaultAsync(x => x.CentralBank.BankCode == providerCode, ct);
 	}
 }

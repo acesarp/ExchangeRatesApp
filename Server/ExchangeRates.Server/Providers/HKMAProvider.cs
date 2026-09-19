@@ -20,7 +20,7 @@ public sealed class HKMAProvider : CentralBankProviderBase {
 		var offset = 0;
 
 		while (true) {
-			var uri = $"{Url}?offset={offset}";
+			var uri = $"{ApiUrl}?offset={offset}";
 			using var response = await Http.GetAsync(uri, ct);
 			response.EnsureSuccessStatusCode();
 

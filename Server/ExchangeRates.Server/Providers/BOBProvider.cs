@@ -16,7 +16,7 @@ public sealed class BOBProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var csv = await Http.GetStringAsync(Url, ct);
+			var csv = await Http.GetStringAsync(ApiUrl, ct);
 			var results = new List<ExchangeRateResult>();
 			var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

@@ -19,7 +19,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-				var uri = $"{Url}{currencyCode}?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}{currencyCode}?date={date:yyyy-MM-dd}";
 				var json = await Http.GetStringAsync(uri, ct);
 				using var doc = JsonDocument.Parse(json);
 

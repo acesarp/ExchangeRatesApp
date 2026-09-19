@@ -18,7 +18,7 @@ public sealed class SBIProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = $"{Url}?currBase={currencyCode}&dateFrom={fromDate:yyyy-MM-dd}&dateTo={toDate:yyyy-MM-dd}";
+			var uri = $"{ApiUrl}?currBase={currencyCode}&dateFrom={fromDate:yyyy-MM-dd}&dateTo={toDate:yyyy-MM-dd}";
 			var xml = await Http.GetStringAsync(uri, ct);
 			var xdoc = XDocument.Parse(xml);
 

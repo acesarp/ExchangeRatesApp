@@ -24,7 +24,7 @@ public sealed class BOJAProvider : CentralBankProviderBase {
 				["currency"] = quoteCurrency
 			});
 
-			using var response = await Http.PostAsync(Url, content, ct);
+			using var response = await Http.PostAsync(ApiUrl, content, ct);
 
 			if (!response.IsSuccessStatusCode) {
 				return [];

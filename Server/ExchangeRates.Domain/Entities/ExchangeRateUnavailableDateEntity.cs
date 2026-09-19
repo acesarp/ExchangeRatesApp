@@ -10,4 +10,5 @@ public sealed class ExchangeRateUnavailableDateEntity {
 	public string QuoteCurrency { get; set; } = string.Empty;
 	public DateOnly UnavailableDate { get; set; }
 	public DateTime CreatedAtUTC { get; set; }
+	public string? Reason { get; set; }
 }

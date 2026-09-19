@@ -20,7 +20,7 @@ public sealed class BAMProvider : CentralBankProviderBase {
 			throw new InvalidOperationException("Missing CentralBanks:BAM:ApiKey.");
 		}
 
-		var url = $"{Url.TrimEnd('/')}/cours/Version1/api/CoursVirement?date={fromDate:yyyy-MM-dd}T12:30:00";
+		var url = $"{ApiUrl.TrimEnd('/')}/cours/Version1/api/CoursVirement?date={fromDate:yyyy-MM-dd}T12:30:00";
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.TryAddWithoutValidation("Ocp-Apim-Subscription-Key", apiKey);
 

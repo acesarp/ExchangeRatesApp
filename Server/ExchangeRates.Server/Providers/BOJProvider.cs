@@ -20,7 +20,7 @@ public sealed class BOJProvider : CentralBankProviderBase {
 		}
 
 		try {
-			var uri = $"{Url}?Bank.BankCode=FM01&from={fromDate:yyyy-MM}&to={toDate:yyyy-MM}";
+			var uri = $"{ApiUrl}?Bank.BankCode=FM01&from={fromDate:yyyy-MM}&to={toDate:yyyy-MM}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 

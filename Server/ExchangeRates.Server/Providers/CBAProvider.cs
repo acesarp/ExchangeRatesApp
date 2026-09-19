@@ -41,7 +41,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 			</soap:Envelope>
 			""";
 
-		using var request = new HttpRequestMessage(HttpMethod.Post, Url);
+		using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
 		request.Headers.Add("SOAPAction", "\"http://www.cba.am/ExchangeRatesByDateRangeByISO\"");
 		request.Content = new StringContent(soap, Encoding.UTF8, "text/xml");
 

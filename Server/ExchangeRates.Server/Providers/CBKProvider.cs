@@ -20,7 +20,7 @@ public sealed class CBKProvider : CentralBankProviderBase {
 				["action"] = "get_indicative_fx_rates"
 			});
 
-			using var response = await Http.PostAsync(Url, content, ct);
+			using var response = await Http.PostAsync(ApiUrl, content, ct);
 
 			if (!response.IsSuccessStatusCode) {
 				return [];

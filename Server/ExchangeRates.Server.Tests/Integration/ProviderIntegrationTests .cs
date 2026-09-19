@@ -146,6 +146,7 @@ public sealed class ProviderIntegrationTests {
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
 	}
+
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_ThbRates_FromECB_ForDateRange() {
 		using var http = new HttpClient();

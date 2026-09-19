@@ -14,7 +14,7 @@ public sealed class BOAProvider : CentralBankProviderBase {
 	}
 
 	protected override Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		_logger.LogWarning("BOA has no configured Url; unable to fetch rates.");
+		_logger.LogWarning("BOA has no configured ApiUrl; unable to fetch rates.");
 		return Task.FromResult<IReadOnlyList<ExchangeRateResult>>([]);
 	}
 }

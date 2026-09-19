@@ -20,7 +20,7 @@ public sealed class CBSLProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var html = await Http.GetStringAsync(Url, ct);
+			var html = await Http.GetStringAsync(ApiUrl, ct);
 			var document = new HtmlDocument();
 			document.LoadHtml(html);
 

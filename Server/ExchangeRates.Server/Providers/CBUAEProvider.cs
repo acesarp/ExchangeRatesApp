@@ -38,11 +38,11 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 
 	private async Task<ExchangeRateResult?> FetchDateAsync(DateOnly date, string quoteCurrency, string currencyName, CancellationToken ct) {
 
-		var url = $"{Url.TrimEnd('/')}/GetExchangeRateAllCurrencyDate?dateTime={date:yyyy-MM-dd}";
+		var url = $"{ApiUrl.TrimEnd('/')}/GetExchangeRateAllCurrencyDate?dateTime={date:yyyy-MM-dd}";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-		request.Headers.Referrer = new Uri(Url);
+		request.Headers.Referrer = new Uri(ApiUrl);
 		request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
 
 		using var response = await Http.SendAsync(request, ct);

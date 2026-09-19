@@ -17,7 +17,7 @@ public sealed class AFAProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+		var url = $"{ApiUrl}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 		var csv = await Http.GetStringAsync(url, ct);
 		var rates = new List<ExchangeRateResult>();

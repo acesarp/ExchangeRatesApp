@@ -17,7 +17,7 @@ public sealed class NBKProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = $"{Url}?fdate={fromDate:dd.MM.yyyy}&t_date={toDate:dd.MM.yyyy}&ccode={currencyCode}";
+			var uri = $"{ApiUrl}?fdate={fromDate:dd.MM.yyyy}&t_date={toDate:dd.MM.yyyy}&ccode={currencyCode}";
 			var xml = await Http.GetStringAsync(uri, ct);
 			var xdoc = XDocument.Parse(xml);
 

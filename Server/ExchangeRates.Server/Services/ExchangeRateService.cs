@@ -70,12 +70,13 @@ public sealed class ExchangeRateService : IExchangeRateService {
 				//Saved unavailable dates to avoid future unnecessary API calls
 				var missingdatesToSave = new List<ExchangeRateUnavailableDateEntity>();
 				for (var from = fromDate; from <= toDate; from = from.AddDays(1)) {
-					if (!rates.Any(w => w.Date == from)) {
+					if (!rateDates.Contains(from)) {
 						missingdatesToSave.Add(new ExchangeRateUnavailableDateEntity {
 							CentralBankId = centralBank.Id,
 							BaseCurrency = baseCurrency,
 							QuoteCurrency = quoteCurrency,
-							UnavailableDate = from
+							UnavailableDate = from,
+							Reason = from.DayOfWeek == DayOfWeek.Saturday || from.DayOfWeek == DayOfWeek.Sunday ? "Weekend" : "Possible holiday",
 						});
 						_logger.LogInformation("Marking {Date} as unavailable for {BaseCurrency}/{QuoteCurrency}.", from, baseCurrency, quoteCurrency);
 					}
@@ -113,11 +114,16 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 		CentralBankEntity bank = await _repository.FindSuitableBankAsync(baseCurrency, quoteCurrency, ct);
 		ICentralBankProvider provider = _providerFactory.GetProvider(bank);
-
+		if (provider == null) {
+			var message = $"No provider found for {baseCurrency}/{quoteCurrency} - bank: {bank.BankCode}.";
+			var ex = new InvalidOperationException(message);
+			_logger.LogError(ex, message);
+			throw ex;
+		}
 		var nativeCurrencyCode = bank.NativeCurrency.CurrencyCode;
 		var localQuoteCurrency = (provider.NativeCurrencyCode == quoteCurrency) ? baseCurrency : quoteCurrency;
 
-		_logger.LogDebug("Direct provider {BankCode} selected for {baseCurrency}/{quoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrencyCode);
+		_logger.LogDebug("Direct provider {BankCode} selected for {BaseCurrency}/{QuoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrencyCode);
 
 		var rates = await provider.GetRatesAsync(localQuoteCurrency, fromDate, toDate, ct);
 

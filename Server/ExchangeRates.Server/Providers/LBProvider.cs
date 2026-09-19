@@ -17,7 +17,7 @@ public sealed class LBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = $"{Url}?tp=EU&ccy={currencyCode}&dtFrom={fromDate:yyyy-MM-dd}&dtTo={toDate:yyyy-MM-dd}";
+			var uri = $"{ApiUrl}?tp=EU&ccy={currencyCode}&dtFrom={fromDate:yyyy-MM-dd}&dtTo={toDate:yyyy-MM-dd}";
 			var xml = await Http.GetStringAsync(uri, ct);
 			var xdoc = XDocument.Parse(xml);
 

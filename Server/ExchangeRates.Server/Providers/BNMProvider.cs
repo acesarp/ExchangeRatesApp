@@ -20,7 +20,7 @@ public sealed class BNMProvider : CentralBankProviderBase {
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
-				var uri = $"{Url}/{quoteCurrency}?session_time=1200&date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}/{quoteCurrency}?session_time=1200&date={date:yyyy-MM-dd}";
 				using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 				request.Headers.Add("Accept", "application/vnd.BNM.API.v1+json");
 

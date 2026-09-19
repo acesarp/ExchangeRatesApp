@@ -17,7 +17,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var xml = await Http.GetStringAsync(Url, ct);
+			var xml = await Http.GetStringAsync(ApiUrl, ct);
 			var xdoc = XDocument.Parse(xml);
 
 			var results = new List<ExchangeRateResult>();

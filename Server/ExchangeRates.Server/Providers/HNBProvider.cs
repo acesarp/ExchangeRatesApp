@@ -18,7 +18,7 @@ public sealed class HNBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = $"{Url}?currency={currencyCode}&date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}";
+			var uri = $"{ApiUrl}?currency={currencyCode}&date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 

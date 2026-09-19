@@ -22,7 +22,7 @@ public sealed class NBRBProvider : CentralBankProviderBase {
 		// NBRB API returns only the latest rate, so we fetch for a specific date
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
-				var url = $"{Url.TrimEnd('/')}?ondate={date:yyyy-MM-dd}&curcode={quoteCurrency}";
+				var url = $"{ApiUrl.TrimEnd('/')}?ondate={date:yyyy-MM-dd}&curcode={quoteCurrency}";
 				var json = await Http.GetStringAsync(url, ct);
 
 				using var doc = JsonDocument.Parse(json);

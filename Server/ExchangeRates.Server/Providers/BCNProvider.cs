@@ -38,7 +38,7 @@ public sealed class BCNProvider : CentralBankProviderBase {
 					""";
 
 				using var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
-				using var response = await Http.PostAsync(Url, content, ct);
+				using var response = await Http.PostAsync(ApiUrl, content, ct);
 
 				if (!response.IsSuccessStatusCode) {
 					continue;

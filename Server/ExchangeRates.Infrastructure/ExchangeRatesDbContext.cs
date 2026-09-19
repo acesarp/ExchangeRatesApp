@@ -12,6 +12,7 @@ public sealed class ExchangeRatesDbContext : DbContext {
 	public DbSet<FixedExchangeRateEntity> FixedExchangeRates => Set<FixedExchangeRateEntity>();
 	public DbSet<CentralBankSupportedCurrencyEntity> CentralBankSupportedCurrencies => Set<CentralBankSupportedCurrencyEntity>();
 	public DbSet<ExchangeRateUnavailableDateEntity> ExchangeRateUnavailableDates => Set<ExchangeRateUnavailableDateEntity>();
+	public DbSet<PreferredProviderEntity> PreferredProviders => Set<PreferredProviderEntity>();
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);
 
@@ -73,22 +74,18 @@ public sealed class ExchangeRatesDbContext : DbContext {
 			entity.HasIndex(x => x.CurrencyId);
 			entity.HasIndex(x => new { x.CurrencyId, x.ValidFrom, x.ValidTo });
 
-			entity.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			entity.HasOne(x => x.PeggedOnCurrency).WithMany().HasForeignKey(x => x.PeggedOnCurrencyId)
-				.OnDelete(DeleteBehavior.Restrict);
+			entity.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+			entity.HasOne(x => x.PeggedOnCurrency).WithMany().HasForeignKey(x => x.PeggedOnCurrencyId).OnDelete(DeleteBehavior.Restrict);
 		});
 
 		modelBuilder.Entity<CentralBankSupportedCurrencyEntity>(entity => {
 			entity.ToTable("CentralBankSupportedCurrency");
 			entity.HasKey(x => new { x.CentralBankId, x.CurrencyId });
 
-			entity.HasOne(x => x.CentralBank).WithMany(x => x.SupportedCurrencies)
-				.HasForeignKey(x => x.CentralBankId);
+			entity.Property(x => x.ProviderSeriesId).HasMaxLength(50).IsRequired(false);
 
-			entity.HasOne(x => x.Currency).WithMany(x => x.SupportedByCentralBanks)
-				.HasForeignKey(x => x.CurrencyId);
+			entity.HasOne(x => x.CentralBank).WithMany(x => x.SupportedCurrencies).HasForeignKey(x => x.CentralBankId);
+			entity.HasOne(x => x.Currency).WithMany(x => x.SupportedByCentralBanks).HasForeignKey(x => x.CurrencyId);
 		});
 
 		modelBuilder.Entity<ExchangeRateUnavailableDateEntity>(entity => {
@@ -99,9 +96,19 @@ public sealed class ExchangeRatesDbContext : DbContext {
 			entity.Property(e => e.QuoteCurrency).HasMaxLength(3).IsFixedLength().IsRequired();
 			entity.Property(e => e.UnavailableDate).HasColumnType("date").IsRequired();
 			entity.Property(e => e.CreatedAtUTC).HasColumnType("datetime2").HasDefaultValueSql("SYSUTCDATETIME()").IsRequired();
-
+			entity.Property(e => e.Reason).HasMaxLength(124).IsRequired(false);
 			entity.HasIndex(e => new { e.CentralBankId, e.BaseCurrency, e.QuoteCurrency, e.UnavailableDate }).IsUnique().HasDatabaseName("UX_ExchangeRateUnavailableDate");
 			entity.HasOne<CentralBankEntity>().WithMany().HasForeignKey(e => e.CentralBankId).OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<PreferredProviderEntity>(entity => {
+			entity.ToTable("PreferredProvider");
+			entity.HasKey(x => x.Id);
+			entity.HasIndex(x => new { x.CurrencyId, x.CentralBankId }).IsUnique();
+			entity.HasIndex(x => new { x.CurrencyId, x.IsActive, x.Priority });
+
+			entity.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+			entity.HasOne(x => x.CentralBank).WithMany().HasForeignKey(x => x.CentralBankId).OnDelete(DeleteBehavior.Restrict);
 		});
 	}
 }

@@ -31,7 +31,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 			throw new InvalidOperationException("FRED API key is not configured.");
 		}
 
-		var url = $"{Url}" +
+		var url = $"{ApiUrl}" +
 			$"?series_id={series.SeriesId}" +
 			$"&api_key={Uri.EscapeDataString(apiKey)}" +
 			"&file_type=json" +

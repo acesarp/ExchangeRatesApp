@@ -16,9 +16,9 @@ public sealed class ECBProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		quoteCurrency = quoteCurrency.ToUpperInvariant();
-		var url = $"{Url}/D.{quoteCurrency}.EUR.SP00.A?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+		var url = $"{ApiUrl}/D.{quoteCurrency}.EUR.SP00.A?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
-		_logger.LogDebug("ECB request: {Url}", url);
+		_logger.LogDebug("ECB request: {ApiUrl}", url);
 
 		var csv = await Http.GetStringAsync(url, ct);
 
@@ -67,7 +67,7 @@ public sealed class ECBProvider : CentralBankProviderBase {
 
 
 	protected async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync_OLD(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{Url}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+		var url = $"{ApiUrl}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
 
 
 		var csv = await Http.GetStringAsync(url, ct);

@@ -30,7 +30,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var url = $"{Url.TrimEnd('/')}/data/json/en" +
+		var url = $"{ApiUrl.TrimEnd('/')}/data/json/en" +
 			$"?dimSel=D0(M0),D1({seriesInfo.SeriesCode})" +
 			$"&fromDate={fromDate:yyyy-MM}" +
 			$"&toDate={toDate:yyyy-MM}";
@@ -81,7 +81,7 @@ public sealed class SNBProvider : CentralBankProviderBase {
 			return _series;
 		}
 
-		var url = $"{Url.TrimEnd('/')}/dimensions/en";
+		var url = $"{ApiUrl.TrimEnd('/')}/dimensions/en";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 

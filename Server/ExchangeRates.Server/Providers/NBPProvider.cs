@@ -16,7 +16,7 @@ public sealed class NBPProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{Url.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
+		var url = $"{ApiUrl.TrimEnd('/')}/tables/A/{fromDate:yyyy-MM-dd}?format=json";
 		using var response = await Http.GetAsync(url, ct);
 
 		if (response.StatusCode == System.Net.HttpStatusCode.NotFound) {

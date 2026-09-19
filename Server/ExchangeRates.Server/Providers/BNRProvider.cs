@@ -21,7 +21,7 @@ public sealed class BNRProvider : CentralBankProviderBase {
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
-				var uri = $"{Url}/nbrfxrates.xml?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}/nbrfxrates.xml?date={date:yyyy-MM-dd}";
 				using var response = await Http.GetAsync(uri, ct);
 
 				if (!response.IsSuccessStatusCode) {

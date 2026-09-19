@@ -4,14 +4,10 @@ namespace ExchangeRates.Domain.Entities;
 
 public sealed class ExchangeRateEntity {
 
-	/// <summary>
-	/// Internal database identifier for the exchange rate.
-	/// </summary>
+	/// <summary> Internal database identifier for the exchange rate </summary>
 	public long Id { get; set; }
 
-	/// <summary>
-	/// Date for which the exchange rate is valid.
-	/// </summary>
+	/// <summary> Date for which the exchange rate is valid </summary>
 	public required DateOnly Date { get; set; }
 
 	public int BaseCurrencyId { get; set; }

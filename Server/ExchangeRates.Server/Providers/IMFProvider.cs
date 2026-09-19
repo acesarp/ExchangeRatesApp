@@ -37,7 +37,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 		var key = $"{country}.{indicator}.{transformation}.{frequency}";
 
 
-		var uri = $"{Url.TrimEnd('/')}/{context}/{agencyID}/{resourceID}/{version}/{key}" +
+		var uri = $"{ApiUrl.TrimEnd('/')}/{context}/{agencyID}/{resourceID}/{version}/{key}" +
 			$"?c[TIME_PERIOD]=ge:{fromPeriod}%2Ble:{toPeriod}" +
 			"&dimensionAtObservation=TIME_PERIOD" +
 			"&attributes=dsd" +
@@ -67,7 +67,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 		for (var month = new DateOnly(fromDate.Year, fromDate.Month, 1); month <= toDate; month = month.AddMonths(1)) {
 
 			var selectDate = new DateOnly(month.Year, month.Month, DateTime.DaysInMonth(month.Year, month.Month));
-			var url = $"{Url}?SelectDate={selectDate:yyyy-MM-dd}&reportType=CVSDR";
+			var url = $"{ApiUrl}?SelectDate={selectDate:yyyy-MM-dd}&reportType=CVSDR";
 
 			using var playwright = await Playwright.CreateAsync();
 			await using var browser = await playwright.Chromium.LaunchAsync(new() {

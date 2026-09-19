@@ -6,9 +6,7 @@ using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
 
-/// <summary>
-/// Banco de México
-/// </summary>
+/// <summary> Banco de México </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
 	private readonly ILogger<BANXICOProvider> _logger;
 	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, bank, configuration) {
@@ -22,7 +20,7 @@ public sealed class BANXICOProvider : CentralBankProviderBase {
 
 		// Example: USD/MXN FIX exchange rate series.
 		const string seriesId = "SF43718";
-		var url = $"{Url.TrimEnd('/')}/{seriesId}/datos/{fromDate:yyyy-MM-dd}/{toDate:yyyy-MM-dd}";
+		var url = $"{ApiUrl.TrimEnd('/')}/{seriesId}/datos/{fromDate:yyyy-MM-dd}/{toDate:yyyy-MM-dd}";
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
 		request.Headers.Add("Bmx-Token", ApiKey);

@@ -15,7 +15,7 @@ public sealed class MMAProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var json = await Http.GetStringAsync(Url, ct);
+			var json = await Http.GetStringAsync(ApiUrl, ct);
 			using var doc = JsonDocument.Parse(json);
 
 			var results = new List<ExchangeRateResult>();

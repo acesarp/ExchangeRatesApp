@@ -20,7 +20,7 @@ public sealed class BOTAProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			using var response = await Http.GetAsync(Url, ct);
+			using var response = await Http.GetAsync(ApiUrl, ct);
 
 			if (!response.IsSuccessStatusCode) {
 				return [];

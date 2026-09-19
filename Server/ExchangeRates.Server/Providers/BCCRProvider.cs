@@ -23,7 +23,7 @@ public sealed class BCCRProvider : CentralBankProviderBase {
 		Email = Configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
 		const int indicator = 318; // USD reference selling rate
 
-		var url = $"{Url.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +
+		var url = $"{ApiUrl.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +
 			$"?Indicador={indicator}" +
 			$"&FechaInicio={fromDate:dd/MM/yyyy}" +
 			$"&FechaFinal={toDate:dd/MM/yyyy}" +

@@ -18,7 +18,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 	/// <inheritdoc/>
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		var url = $"{Url}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
+		var url = $"{ApiUrl}?start_date={fromDate:yyyy-MM-dd}&end_date={toDate:yyyy-MM-dd}";
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 
 		if (!doc.RootElement.TryGetProperty("observations", out var observations) || observations.GetArrayLength() == 0) {

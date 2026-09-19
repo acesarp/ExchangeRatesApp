@@ -24,7 +24,7 @@ public sealed class BOTProvider : CentralBankProviderBase {
 		}
 
 		try {
-			var uri = $"{Url.TrimEnd('/')}?start_period={fromDate:yyyy-MM-dd}&end_period={toDate:yyyy-MM-dd}&currency={quoteCurrency}";
+			var uri = $"{ApiUrl.TrimEnd('/')}?start_period={fromDate:yyyy-MM-dd}&end_period={toDate:yyyy-MM-dd}&currency={quoteCurrency}";
 			using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 			request.Headers.TryAddWithoutValidation("Ocp-Apim-Subscription-Key", apiKey);
 

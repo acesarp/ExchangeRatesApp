@@ -17,7 +17,7 @@ public sealed class BCBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var rates = new List<ExchangeRateResult>();
 
-		var url = $"{Url.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
+		var url = $"{ApiUrl.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
 			$"?@moeda='{quoteCurrency}'&@dataInicial='{fromDate:MM-dd-yyyy}'&@dataFinalCotacao='{toDate:MM-dd-yyyy}'&$format=json";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));

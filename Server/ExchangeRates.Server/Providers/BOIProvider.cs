@@ -21,7 +21,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 	/// </summary>
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{Url.TrimEnd('/')}/" +
+		var url = $"{ApiUrl.TrimEnd('/')}/" +
 								$"?c%5BDATA_TYPE%5D=OF00" +
 								$"&startperiod={fromDate:yyyy-MM-dd}" +
 								$"&endperiod={toDate:yyyy-MM-dd}" +

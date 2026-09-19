@@ -21,7 +21,7 @@ public sealed class CNBProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			for (var year = fromDate.Year; year <= toDate.Year; year++) {
-				var uri = $"{Url}?year={year}";
+				var uri = $"{ApiUrl}?year={year}";
 				var json = await Http.GetStringAsync(uri, ct);
 				using var doc = JsonDocument.Parse(json);
 

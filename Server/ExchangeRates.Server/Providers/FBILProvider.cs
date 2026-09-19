@@ -8,9 +8,7 @@ using System.Net;
 
 namespace ExchangeRates.Server.Providers;
 
-/// <summary>
-/// Financial Benchmarks India
-/// </summary>
+/// <summary> Financial Benchmarks India </summary>
 public sealed class FBILProvider : CentralBankProviderBase {
 	private readonly ILogger<FBILProvider> _logger;
 
@@ -19,7 +17,7 @@ public sealed class FBILProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var uri = $"{Url}?fromDate={fromDate:dd-MM-yyyy}&toDate={toDate:dd-MM-yyyy}";
+		var uri = $"{ApiUrl}?fromDate={fromDate:dd-MM-yyyy}&toDate={toDate:dd-MM-yyyy}";
 		using var response = await Http.GetAsync(uri, ct);
 		response.EnsureSuccessStatusCode();
 

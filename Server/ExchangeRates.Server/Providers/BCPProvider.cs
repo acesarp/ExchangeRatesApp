@@ -22,7 +22,7 @@ public sealed class BCPProvider : CentralBankProviderBase {
 
 		for (var year = fromDate.Year; year <= toDate.Year; year++) {
 
-			var uri = Url + $"/xls?anho={year}&moneda={quoteCurrency}";
+			var uri = ApiUrl + $"/xls?anho={year}&moneda={quoteCurrency}";
 			var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
 			HttpResponseMessage response = await Http.SendAsync(request, ct);

@@ -22,7 +22,7 @@ public sealed class NRBTProvider : CentralBankProviderBase {
 		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
 		try {
-			using var response = await Http.GetAsync($"{Url}/data/docs/fmarkets/exrates/average_daily_exchange_rates.xlsx", ct);
+			using var response = await Http.GetAsync($"{ApiUrl}/data/docs/fmarkets/exrates/average_daily_exchange_rates.xlsx", ct);
 			response.EnsureSuccessStatusCode();
 
 			await using var stream = await response.Content.ReadAsStreamAsync(ct);

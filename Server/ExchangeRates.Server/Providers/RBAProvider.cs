@@ -17,7 +17,7 @@ public sealed class RBAProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		using var request = new HttpRequestMessage(HttpMethod.Get, Url);
+		using var request = new HttpRequestMessage(HttpMethod.Get, ApiUrl);
 
 		request.Version = HttpVersion.Version11;
 		request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;

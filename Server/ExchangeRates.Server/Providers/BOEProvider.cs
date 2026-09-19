@@ -26,7 +26,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var url = $"{Url}?CodeVer=new&xml.x=yes" +
+		var url = $"{ApiUrl}?CodeVer=new&xml.x=yes" +
 						$"&Datefrom={Uri.EscapeDataString(fromDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
 						$"&Dateto={Uri.EscapeDataString(toDate.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture))}" +
 						$"&SeriesCodes={quoteCode}" +

@@ -17,7 +17,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			using var request = new HttpRequestMessage(HttpMethod.Get, Url);
+			using var request = new HttpRequestMessage(HttpMethod.Get, ApiUrl);
 			request.Headers.TryAddWithoutValidation("Accept", "application/json;odata=verbose");
 
 			using var response = await Http.SendAsync(request, ct);

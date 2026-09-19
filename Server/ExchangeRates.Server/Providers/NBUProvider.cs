@@ -17,7 +17,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var url =
-			$"{Url}?start={fromDate:yyyyMMdd}" +
+			$"{ApiUrl}?start={fromDate:yyyyMMdd}" +
 			$"&end={toDate:yyyyMMdd}" +
 			$"&valcode={currency}" +
 			"&sort=exchangedate" +

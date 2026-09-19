@@ -15,7 +15,7 @@ public sealed class TCMBProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{Url.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
+		var url = $"{ApiUrl.TrimEnd('/')}/{fromDate:yyyyMM}/{toDate:ddMMyyyy}.xml";
 		var xml = await Http.GetStringAsync(url, ct);
 
 		var doc = System.Xml.Linq.XDocument.Parse(xml);

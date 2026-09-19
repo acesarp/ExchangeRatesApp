@@ -23,7 +23,7 @@ public sealed class BIProvider : CentralBankProviderBase {
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
-				var uri = $"{Url}?tanggal={date:dd/MM/yyyy}";
+				var uri = $"{ApiUrl}?tanggal={date:dd/MM/yyyy}";
 				using var response = await Http.GetAsync(uri, ct);
 
 				if (!response.IsSuccessStatusCode) {

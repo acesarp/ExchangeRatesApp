@@ -15,7 +15,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		var url = $"{Url}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
+		var url = $"{ApiUrl}?QueryType=1&Begin={fromDate:yyyyMMdd}&End={toDate:yyyyMMdd}";
 
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 		var rates = new List<ExchangeRateResult>();

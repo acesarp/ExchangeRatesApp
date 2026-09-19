@@ -20,7 +20,7 @@ public sealed class RBProvider : CentralBankProviderBase {
 		}
 
 		try {
-			var uri = $"{Url}?from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
+			var uri = $"{ApiUrl}?from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 

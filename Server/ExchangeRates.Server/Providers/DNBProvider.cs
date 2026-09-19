@@ -17,7 +17,7 @@ public sealed class DNBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		var results = new List<ExchangeRateResult>();
 
-		var uri = $"{Url}/DNVALD/CSV?VALUTA={quoteCurrency}&KURSTYPE=100&Tid={fromDate:yyyy-MM-dd}-{toDate:yyyy-MM-dd}";
+		var uri = $"{ApiUrl}/DNVALD/CSV?VALUTA={quoteCurrency}&KURSTYPE=100&Tid={fromDate:yyyy-MM-dd}-{toDate:yyyy-MM-dd}";
 		using var response = await Http.GetAsync(uri, ct);
 		response.EnsureSuccessStatusCode();
 

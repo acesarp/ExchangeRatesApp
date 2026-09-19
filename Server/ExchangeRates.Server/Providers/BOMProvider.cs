@@ -16,7 +16,7 @@ public sealed class BOMProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var uri = $"{Url}?date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}&Bank.BankCode={quoteCurrency}";
+			var uri = $"{ApiUrl}?date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}&Bank.BankCode={quoteCurrency}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 

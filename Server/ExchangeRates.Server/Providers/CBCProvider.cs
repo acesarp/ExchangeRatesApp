@@ -20,7 +20,7 @@ public sealed class CBCProvider : CentralBankProviderBase {
 		}
 
 		try {
-			var json = await Http.GetStringAsync(Url, ct);
+			var json = await Http.GetStringAsync(ApiUrl, ct);
 			using var doc = JsonDocument.Parse(json);
 
 			var results = new List<ExchangeRateResult>();

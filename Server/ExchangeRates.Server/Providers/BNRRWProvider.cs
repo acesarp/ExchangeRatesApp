@@ -17,7 +17,7 @@ public sealed class BNRRWProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var uri = $"{Url}?currency={quoteCurrency}&from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
+			var uri = $"{ApiUrl}?currency={quoteCurrency}&from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 

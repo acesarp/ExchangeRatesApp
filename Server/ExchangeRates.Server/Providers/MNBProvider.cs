@@ -34,7 +34,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 			using var content = new StringContent(envelope, Encoding.UTF8, "text/xml");
 			content.Headers.Remove("Content-Type");
 			content.Headers.TryAddWithoutValidation("Content-Type", "text/xml; charset=utf-8");
-			using var request = new HttpRequestMessage(HttpMethod.Post, Url) { Content = content };
+			using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl) { Content = content };
 			request.Headers.TryAddWithoutValidation("SOAPAction", "http://www.mnb.hu/webservices/GetExchangeRatesXML");
 
 			using var response = await Http.SendAsync(request, ct);

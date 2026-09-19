@@ -74,7 +74,7 @@ public class CentralBankProviderFactoryTests {
 	private static ServiceProvider CreateServiceProvider() {
 		var configuration = new ConfigurationBuilder()
 			.AddInMemoryCollection(new Dictionary<string, string?> {
-				["CentralBanks:ECB:Url"] = "https://example.com"
+				["CentralBanks:ECB:ApiUrl"] = "https://example.com"
 			})
 			.Build();
 

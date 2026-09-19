@@ -29,7 +29,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var (currency, info) in Currencies) {
-			var url = $"{Url.TrimEnd('/')}/{ApiKey}/json/en/1/10/731Y001/D/{day}/{day}/{info.ItemCode}";
+			var url = $"{ApiUrl.TrimEnd('/')}/{ApiKey}/json/en/1/10/731Y001/D/{day}/{day}/{info.ItemCode}";
 
 			using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 

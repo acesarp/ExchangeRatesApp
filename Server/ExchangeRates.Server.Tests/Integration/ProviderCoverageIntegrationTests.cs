@@ -52,17 +52,14 @@ public sealed class ProviderCoverageIntegrationTests {
 
 		Assert.NotNull(service);
 
-		var findProviderMethod = typeof(ExchangeRateService).GetMethod(
-			"FindProvider",
-			BindingFlags.Instance | BindingFlags.NonPublic);
+		var findProviderMethod = typeof(ExchangeRateService).GetMethod("FindProvider", BindingFlags.Instance | BindingFlags.NonPublic);
 
 		Assert.NotNull(findProviderMethod);
 
-		var currencies = await dbContext.Currencies
-			.AsNoTracking()
-			.Where(c => c.IsHistoric == isHistoric)
-			.OrderBy(c => c.CurrencyCode)
-			.ToListAsync();
+		var currencies = await dbContext.Currencies.AsNoTracking()
+																			.Where(c => c.IsHistoric == isHistoric)
+																			.OrderBy(c => c.CurrencyCode)
+																			.ToListAsync();
 
 		var missingProviders = new List<string>();
 

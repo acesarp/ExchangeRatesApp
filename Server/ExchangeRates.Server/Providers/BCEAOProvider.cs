@@ -20,7 +20,7 @@ public sealed class BCEAOProvider : CentralBankProviderBase {
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
-				var uri = $"{Url}?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}?date={date:yyyy-MM-dd}";
 				var json = await Http.GetStringAsync(uri, ct);
 				using var doc = JsonDocument.Parse(json);
 

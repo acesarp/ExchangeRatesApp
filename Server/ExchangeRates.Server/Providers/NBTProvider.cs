@@ -21,7 +21,7 @@ public sealed class NBTProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-				var uri = $"{Url}?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}?date={date:yyyy-MM-dd}";
 				var xml = await Http.GetStringAsync(uri, ct);
 				var xdoc = XDocument.Parse(xml);
 

@@ -17,7 +17,7 @@ public sealed class NBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = Url.Replace("NOK", currencyCode) + $"?format=sdmx-json&startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}";
+			var uri = ApiUrl.Replace("NOK", currencyCode) + $"?format=sdmx-json&startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}";
 			using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 			request.Headers.TryAddWithoutValidation("Accept", "application/vnd.sdmx.data+json;version=1.0.0");
 

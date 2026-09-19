@@ -49,7 +49,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 			ct.ThrowIfCancellationRequested();
 
 			try {
-				var url = $"{Url}/librerias/indicadores/otras/otras_imprimir2XLS.php?qdd={date.Day}&qmm={date.Month}&qaa={date.Year}";
+				var url = $"{ApiUrl}/librerias/indicadores/otras/otras_imprimir2XLS.php?qdd={date.Day}&qmm={date.Month}&qaa={date.Year}";
 				using var response = await Http.GetAsync(url, ct);
 
 				if (!response.IsSuccessStatusCode) {
@@ -81,7 +81,7 @@ public sealed class BCBOProvider : CentralBankProviderBase {
 		var results = new List<ExchangeRateResult>();
 
 		//Historico
-		var url = $"{Url}/tiposDeCambioHistorico/?anio={year}";
+		var url = $"{ApiUrl}/tiposDeCambioHistorico/?anio={year}";
 
 		var html = await Http.GetStringAsync(url, ct);
 

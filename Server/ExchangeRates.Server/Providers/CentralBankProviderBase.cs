@@ -12,10 +12,27 @@ namespace ExchangeRates.Server.Providers;
 /// for retrieving and parsing exchange rate data from central bank sources.
 /// </summary>
 public abstract class CentralBankProviderBase : ICentralBankProvider {
+	private readonly Lazy<IReadOnlySet<string>> _supportedCurrencies;
+	private readonly Lazy<List<string>> _historicCurrencies;
+	private readonly Lazy<string> _pivotCurrency;
+
 	protected CentralBankProviderBase(HttpClient http, CentralBankEntity bank, IConfiguration configuration) {
 		Http = http;
 		Configuration = configuration;
 		Bank = bank;
+
+		// Initialize lazy-loaded configuration properties to avoid repeated GetSection calls
+		_supportedCurrencies = new Lazy<IReadOnlySet<string>>(() => Bank.SupportedCurrencies.Select(c => c.Currency.CurrencyCode).ToHashSet());
+
+		_historicCurrencies = new Lazy<List<string>>(() =>
+			Configuration.GetSection($"CentralBanks:{Bank.BankCode}:HistoricCurrencies").Get<List<string>>()
+			?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:HistoricCurrencies configuration.")
+		);
+
+		_pivotCurrency = new Lazy<string>(() =>
+			Configuration.GetSection($"CentralBanks:{Bank.BankCode}:Priority")?.Value?.Trim()
+			?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:Priority configuration.")
+		);
 	}
 
 	protected HttpClient Http { get; }
@@ -27,22 +44,15 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public string? CountryOfOrigin => Bank.CountryOfOrigin;
 	public int? Priority => Bank.Priority;
 
-	protected string Url => Configuration[$"CentralBanks:{Bank.BankCode}:Url"] ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:Url configuration.");
+	protected string ApiUrl => Bank.ApiUrl;
 
 	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Bank.BankCode}:HistoricalUrl"];
 
 	protected string? ApiKey => Configuration[$"ProviderKeys:{Bank.BankCode}"];
 
-	public string PivotCurrency { get => Configuration.GetSection($"CentralBanks:{Bank.BankCode}:Priority")?.Value?.Trim() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:Priority configuration."); }
-	public List<string> HistoricCurrencies { get => Configuration.GetSection($"CentralBanks:{Bank.BankCode}:HistoricCurrencies").Get<List<string>>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:HistoricCurrencies configuration."); }
-	public IReadOnlySet<string> SupportedCurrencies {
-		get {
-			var currencies = Configuration.GetSection($"CentralBanks:{Bank.BankCode}:SupportedCurrencies").Get<string[]>() ?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:SupportedCurrencies configuration.");
-			return currencies.ToHashSet();
-		}
-	}
-
-
+	public string PivotCurrency => _pivotCurrency.Value;
+	public List<string> HistoricCurrencies => _historicCurrencies.Value;
+	public IReadOnlySet<string> SupportedCurrencies => _supportedCurrencies.Value;
 
 	public bool Supports(string currency) {
 		return currency == Bank.BankCode || SupportedCurrencies.Contains(currency);

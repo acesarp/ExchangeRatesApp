@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExchangeRates.Domain.Entities;
 
@@ -34,6 +35,9 @@ public sealed class CentralBankEntity {
 	/// </summary>
 	public string CountryOfOrigin { get; set; }
 
+	/// <summary> Base URL for the central bank's API </summary>
+	public string ApiUrl { get; set; }
+
 	/// <summary> Foreign key identifying the bank's native currency. </summary>
 	[DisplayName("Native Currency Id")]
 	public int CurrencyId { get; set; }
@@ -59,8 +63,9 @@ public sealed class CentralBankEntity {
 	/// </summary>
 	public CurrencyEntity NativeCurrency { get; set; } = null!;
 
-	/// <summary>
-	/// Currencies for which this provider can retrieve exchange rates.
-	/// </summary>
+	[NotMapped]
+	public string NativeCurrencyCode => NativeCurrency.CurrencyCode;
+
+	/// <summary> Currencies for which this provider can retrieve exchange rates </summary>
 	public ICollection<CentralBankSupportedCurrencyEntity> SupportedCurrencies { get; set; } = new List<CentralBankSupportedCurrencyEntity>();
 }

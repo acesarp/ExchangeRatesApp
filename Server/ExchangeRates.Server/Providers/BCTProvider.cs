@@ -20,7 +20,7 @@ public sealed class BCTProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var uri = $"{Url}?date_debut={fromDate:dd/MM/yyyy}&date_fin={toDate:dd/MM/yyyy}";
+			var uri = $"{ApiUrl}?date_debut={fromDate:dd/MM/yyyy}&date_fin={toDate:dd/MM/yyyy}";
 			using var response = await Http.GetAsync(uri, ct);
 
 			if (!response.IsSuccessStatusCode) {

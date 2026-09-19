@@ -21,7 +21,7 @@ public sealed class BDIProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var url = $"{Url.TrimEnd('/')}/dailyTimeSeries" +
+		var url = $"{ApiUrl.TrimEnd('/')}/dailyTimeSeries" +
 			$"?startDate={fromDate:yyyy-MM-dd}" +
 			$"&endDate={toDate:yyyy-MM-dd}" +
 			$"&baseCurrencyIsoCode={quoteCurrency}" +
