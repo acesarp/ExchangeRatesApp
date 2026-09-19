@@ -216,9 +216,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		return result;
 	}
 
-	/// <summary>
-	/// Gets the list of central banks from the repository <br />
-	/// </summary>
+	/// <summary> Gets the list of central banks from the repository </summary>
 	public async Task<IReadOnlyList<CentralBankModel>> GetCentralBanksAsync(CancellationToken ct) {
 		var centralBanks = await _repository.GetCentralBanksAsync(ct);
 		return centralBanks.Select(x => new CentralBankModel(x.BankCode, x.BankName, x.CountryOfOrigin, x.NativeCurrency.CurrencyCode, x.CurrencyId, x.Priority))

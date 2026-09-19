@@ -11,7 +11,16 @@ public interface IExchangeRateRepository {
 	Task<IReadOnlyList<CurrencyEntity>> GetCurrencyByCodesAsync(IEnumerable<string> currencyCodes, CancellationToken ct);
 	Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct);
 	Task<CentralBankEntity> GetCentralBankAsync(string bankCode, CancellationToken ct);
-	Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct);
+	/// <summary>
+	/// Finds the most suitable central bank for the given currency pair, considering whether the currencies are historic or not.
+	/// </summary>
+	/// <param name="currency1"></param>
+	/// <param name="currency2"></param>
+	/// <param name="ct"></param>
+	/// <param name="isHistoric1">Indicates whether the first currency is historic</param>
+	/// <param name="isHistoric2">Indicates whether the second currency is historic</param>
+	/// <returns></returns>
+	Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct, bool isHistoric1 = false, bool isHistoric2 = false);
 	Task<int> AddUnavailableDatesAsync(IEnumerable<ExchangeRateUnavailableDateEntity> unavailableDates, CancellationToken ct);
 	Task<HashSet<ExchangeRateUnavailableDateEntity>> GetUnavailableDateEntitiesAsync(DateOnly from, DateOnly to, CancellationToken ct);
 	Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct);

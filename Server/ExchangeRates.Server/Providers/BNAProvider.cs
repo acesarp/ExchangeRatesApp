@@ -1,6 +1,6 @@
-
 using ExchangeRates.Domain.Entities;
 
+using System.Globalization;
 using System.Text.Json;
 
 namespace ExchangeRates.Server.Providers;
@@ -17,45 +17,43 @@ public sealed class BNAProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var json = await Http.GetStringAsync(ApiUrl, ct);
-			using var doc = JsonDocument.Parse(json);
+			var url = $"{ApiUrl}?datainicio={fromDate:yyyy-MM-dd}&datafim={toDate:yyyy-MM-dd}&tipocambio=all&moeda={Uri.EscapeDataString(quoteCurrency)}";
+			using HttpResponseMessage response = await Http.GetAsync(url, ct);
+			response.EnsureSuccessStatusCode();
+			using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+			if (!doc.RootElement.TryGetProperty("genericResponse", out var items) || items.ValueKind != JsonValueKind.Array) {
+				return Array.Empty<ExchangeRateResult>();
+			}
 
 			var results = new List<ExchangeRateResult>();
 			var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-			if (today < fromDate || today > toDate) {
-				return results;
-			}
-
-			var root = doc.RootElement;
-			var items = root.ValueKind == JsonValueKind.Array ? root : root.TryGetProperty("data", out var data) ? data : default;
-
-			if (items.ValueKind != JsonValueKind.Array) {
-				return results;
-			}
-
 			foreach (var item in items.EnumerateArray()) {
-				if (!item.TryGetProperty("currencySymbol", out var currencyProp) || !currencyProp.GetString()!.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
+				if (!item.TryGetProperty("codigoMoeda", out var currencyElement)) {
 					continue;
 				}
 
-				var rate = GetDecimal(item, "sellValue");
-
-				if (rate <= 0) {
+				if (!string.Equals(currencyElement.GetString(), quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
+				if (!item.TryGetProperty("data", out var dateElement) || !DateOnly.TryParseExact(dateElement.GetString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+					continue;
+				}
 
+				var publishedRate = GetDecimal(item, "taxa");
+				if (publishedRate <= 0) {
+					continue;
+				}
 
-				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				results.Add(new ExchangeRateResult(date, NativeCurrencyCode, quoteCurrency, 1m / publishedRate, BankCode));
 			}
 
 			return results;
 		}
 		catch (Exception ex) {
 			_logger.LogWarning(ex, "Failed to fetch BNA rates.");
-			return [];
+			return Array.Empty<ExchangeRateResult>();
 		}
 	}
 }
-

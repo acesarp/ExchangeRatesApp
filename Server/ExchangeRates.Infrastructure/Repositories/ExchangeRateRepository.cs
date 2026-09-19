@@ -38,7 +38,8 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 
 	/// <summary> Add a range of exchange rates to the database. </summary>
 	public async Task<int> AddRangeAsync(IEnumerable<ExchangeRateEntity> rates, CancellationToken ct) {
-		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrencyId, x.QuoteCurrencyId }).ToList();
+		var items = rates.DistinctBy(x => new { x.Date, x.BaseCurrencyId, x.QuoteCurrencyId })
+									.ToList();
 		if (items.Count == 0) {
 			return 0;
 		}
@@ -49,12 +50,15 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 		var quoteCurrencies = items.Select(x => x.QuoteCurrencyId).Distinct().ToList();
 
 		var existing = await _context.ExchangeRates.AsNoTracking()
-			.Where(x => x.Date >= minDate && x.Date <= maxDate && baseCurrencies.Contains(x.BaseCurrencyId) && quoteCurrencies.Contains(x.QuoteCurrencyId))
+			.Where(x => x.Date >= minDate && x.Date <= maxDate &&
+						baseCurrencies.Contains(x.BaseCurrencyId) && quoteCurrencies.Contains(x.QuoteCurrencyId))
 			.Select(x => new { x.Date, x.BaseCurrencyId, x.QuoteCurrencyId })
 			.ToListAsync(ct);
 
-		var existingKeys = existing.Select(x => (x.Date, x.BaseCurrencyId, x.QuoteCurrencyId)).ToHashSet();
-		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrencyId, x.QuoteCurrencyId))).ToList();
+		var existingKeys = existing.Select(x => (x.Date, x.BaseCurrencyId, x.QuoteCurrencyId))
+												.ToHashSet();
+		var newRates = items.Where(x => !existingKeys.Contains((x.Date, x.BaseCurrencyId, x.QuoteCurrencyId)))
+										.ToList();
 
 		if (newRates.Count == 0) {
 			return 0;
@@ -90,7 +94,8 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																	.ToListAsync(ct);
 	}
 
-	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct) {
+	///<inheritdoc />
+	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct, bool isHistoric1 = false, bool isHistoric2 = false) {
 		currency1 = currency1.ToUpperInvariant();
 		currency2 = currency2.ToUpperInvariant();
 		var query = _context.CentralBanks.AsNoTracking()
@@ -99,10 +104,12 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																.ThenInclude(x => x.Currency)
 																.Where(x => x.IsActive &&
 																									((x.NativeCurrency.CurrencyCode == currency1 &&
-																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2))
+																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2 &&
+																																						!sc.Currency.IsHistoric == !isHistoric2))
 																										||
 																										(x.NativeCurrency.CurrencyCode == currency2 &&
-																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1))
+																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1 &&
+																																						!sc.Currency.IsHistoric == !isHistoric1))
 																									)
 																)
 																.OrderBy(x => x.Priority ?? int.MaxValue)
