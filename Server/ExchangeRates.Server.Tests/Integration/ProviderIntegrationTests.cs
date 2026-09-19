@@ -130,7 +130,7 @@ public sealed class ProviderIntegrationTests : IDisposable {
 		});
 	}
 
-	// Tests the GetRatesAsync method of the BOIProvider class to ensure it returns valid ILS exchange rates from the Bank of Israel for a specified date range.
+	// BOIProvider class to ensure it returns valid ILS exchange rates from the Bank of Israel for a specified date range.
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_IlsRates_FromBOI_ForDateRange() {
 		var bank = await _repo.GetCentralBankAsync("BOI", CancellationToken.None);
@@ -296,7 +296,7 @@ public sealed class ProviderIntegrationTests : IDisposable {
 		});
 	}
 
-	// Tests the GetRatesAsync method of the CBUAEProvider class to ensure it returns valid AED exchange rates from the Central Bank of the UAE for a specified date range.
+	// CBUAEProvider class to ensure it returns valid AED exchange rates from the Central Bank of the UAE for a specified date range.
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_AedRates_FromCBUAE_ForDateRange() {
 		var bank = await _repo.GetCentralBankAsync("CBUAE", CancellationToken.None);
@@ -421,7 +421,7 @@ public sealed class ProviderIntegrationTests : IDisposable {
 		});
 	}
 
-	// Tests the GetRatesAsync method of the BANXICOProvider class to ensure it returns valid MXN exchange rates from BANXICO for a specified date range.
+	// BANXICOProvider class to ensure it returns valid MXN exchange rates from BANXICO for a specified date range.
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_MxnRates_FromBANXICO_ForDateRange() {
 		var bank = await _repo.GetCentralBankAsync("BANXICO", CancellationToken.None);
@@ -1163,7 +1163,7 @@ public sealed class ProviderIntegrationTests : IDisposable {
 		});
 	}
 
-	// Tests the GetRatesAsync method of the FBILProvider class to ensure it returns valid INR exchange rates from the Financial Benchmarks India for a specified date range.
+	// FBILProvider class to ensure it returns valid INR exchange rates from the Financial Benchmarks India for a specified date range.
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_InrRates_FromFBIL_ForDateRange() {
 		var bank = await _repo.GetCentralBankAsync("RBI", CancellationToken.None);
@@ -1750,7 +1750,7 @@ public sealed class ProviderIntegrationTests : IDisposable {
 		});
 	}
 
-	// Tests the GetRatesAsync method of the SAMAProvider class to ensure it returns valid SAR exchange rates from the Saudi Central Bank for a specified date range.
+	// SAMAProvider class to ensure it returns valid SAR exchange rates from the Saudi Central Bank for a specified date range.
 	[Fact]
 	public async Task GetRatesAsync_ShouldReturn_SarRates_FromSAMA_ForDateRange() {
 		var bank = await _repo.GetCentralBankAsync("SAMA", CancellationToken.None);
@@ -1768,5 +1768,55 @@ public sealed class ProviderIntegrationTests : IDisposable {
 			Assert.True(rate.Rate > 0);
 			Assert.InRange(rate.Date, fromDate, toDate);
 		});
+	}
+
+	// Tests every possible directional currency pair supported by the application.
+	[Fact]
+	public async Task GetRatesAsync_ShouldReturnRates_ForAllCurrencyCombinations() {
+		using var factory = new WebApplicationFactory<Program>();
+		using var scope = factory.Services.CreateScope();
+
+		var service = scope.ServiceProvider.GetRequiredService<IExchangeRateService>();
+
+		var currencies = await _context.Currencies.AsNoTracking()
+																			.Where(x => !x.IsHistoric)
+																			.Select(x => x.CurrencyCode)
+																			.OrderBy(x => x)
+																			.ToListAsync();
+
+		var fromDate = new DateOnly(2026, 9, 10);
+		var toDate = new DateOnly(2026, 9, 10);
+
+		var failures = new List<string>();
+		var tested = 0;
+
+		foreach (var baseCurrency in currencies) {
+			foreach (var quoteCurrency in currencies) {
+				if (baseCurrency == quoteCurrency) {
+					continue;
+				}
+
+				tested++;
+
+				try {
+					var rates = await service.GetRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, CancellationToken.None);
+
+					if (rates is null || rates.Count == 0) {
+						failures.Add($"{baseCurrency}/{quoteCurrency}: no rates returned");
+						continue;
+					}
+
+					if (rates.Any(x => x.Rate <= 0)) {
+						failures.Add($"{baseCurrency}/{quoteCurrency}: invalid rate");
+					}
+				}
+				catch (Exception ex) {
+					failures.Add($"{baseCurrency}/{quoteCurrency}: {ex.Message}");
+					Serilog.Log.Error(ex, $"AllCurrencyCombinations test: {baseCurrency}/{quoteCurrency}: {ex.Message}");
+				}
+			}
+		}
+
+		Assert.True(failures.Count == 0, $"Tested {tested} currency pairs. {failures.Count} failed:{Environment.NewLine}{string.Join(Environment.NewLine, failures)}");
 	}
 }

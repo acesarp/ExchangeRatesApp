@@ -118,7 +118,39 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	/// <summary> Add a range of unavailable dates to the database.<br /> Weekends and holidays when the exchange rate is not available. </summary>
 	public async Task<int> AddUnavailableDatesAsync(IEnumerable<ExchangeRateUnavailableDateEntity> unavailableDates, CancellationToken ct) {
 		var uniqueDates = unavailableDates.DistinctBy(x => new { x.CentralBankId, x.BaseCurrency, x.QuoteCurrency, x.UnavailableDate }).ToList();
-		_context.ExchangeRateUnavailableDates.AddRange(uniqueDates);
+		if (uniqueDates.Count == 0) {
+			return 0;
+		}
+
+		var bankIds = uniqueDates.Select(x => x.CentralBankId).Distinct().ToList();
+		var baseCurrencies = uniqueDates.Select(x => x.BaseCurrency).Distinct().ToList();
+		var quoteCurrencies = uniqueDates.Select(x => x.QuoteCurrency).Distinct().ToList();
+		var minDate = uniqueDates.Min(x => x.UnavailableDate);
+		var maxDate = uniqueDates.Max(x => x.UnavailableDate);
+
+		var existing = await _context.ExchangeRateUnavailableDates
+			.AsNoTracking()
+			.Where(x => bankIds.Contains(x.CentralBankId) &&
+						baseCurrencies.Contains(x.BaseCurrency) &&
+						quoteCurrencies.Contains(x.QuoteCurrency) &&
+						x.UnavailableDate >= minDate &&
+						x.UnavailableDate <= maxDate)
+			.Select(x => new { x.CentralBankId, x.BaseCurrency, x.QuoteCurrency, x.UnavailableDate })
+			.ToListAsync(ct);
+
+		var existingKeys = existing
+			.Select(x => (x.CentralBankId, x.BaseCurrency, x.QuoteCurrency, x.UnavailableDate))
+			.ToHashSet();
+
+		var newDates = uniqueDates
+			.Where(x => !existingKeys.Contains((x.CentralBankId, x.BaseCurrency, x.QuoteCurrency, x.UnavailableDate)))
+			.ToList();
+
+		if (newDates.Count == 0) {
+			return 0;
+		}
+
+		_context.ExchangeRateUnavailableDates.AddRange(newDates);
 		return await _context.SaveChangesAsync(ct);
 	}
 

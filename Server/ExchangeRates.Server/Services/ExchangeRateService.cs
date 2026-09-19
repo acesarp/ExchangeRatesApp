@@ -60,7 +60,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 			// If there are missing rates, fetch them from the resolver
 			rates = await GetDirectRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-			string bankProviderCode = rates.FirstOrDefault().Provider;
+			string bankProviderCode = rates.FirstOrDefault()?.Provider;
 			var rateDates = rates.Select(x => x.Date).ToHashSet();
 			if (rates.Any()) {
 				_logger.LogInformation("Direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
@@ -142,6 +142,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// Gets the exchange rates for the specified base and quote currencies between the given date range using triangulation through the pivot currency.
 	/// </summary>
 	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		_logger.LogInformation("Triangulating rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate} using pivot currency {PivotCurrency}.", baseCurrency, quoteCurrency, fromDate, toDate, _pivotCurrency);
 		var baseToPivot = await GetDirectRatesAsync(baseCurrency, _pivotCurrency, fromDate, toDate, ct);
 		var pivotToQuote = await GetDirectRatesAsync(_pivotCurrency, quoteCurrency, fromDate, toDate, ct);
 
