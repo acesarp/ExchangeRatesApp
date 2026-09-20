@@ -1,0 +1,40 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: Default
+  demands:
+    - Agent.Name -equals DELLServ
+
+variables:
+  imageName: 'exchangeratesapp'
+  containerName: 'exchangeratesapp'
+
+steps:
+- checkout: self
+  clean: true
+
+- powershell: |
+    docker version
+  displayName: 'Verify Docker'
+
+- powershell: |
+    docker build -t $(imageName):$(Build.BuildId) -t $(imageName):latest -f docker-compose.yml .
+  displayName: 'Build Docker image'
+
+- powershell: |
+    docker stop $(containerName) 2>$null
+    docker rm $(containerName) 2>$null
+
+    docker run -d `
+      --name $(containerName) `
+      --restart unless-stopped `
+      -p <HOST_PORT>:<CONTAINER_PORT> `
+      $(imageName):$(Build.BuildId)
+  displayName: 'Deploy container'
+
+- powershell: |
+    docker image prune -f
+  displayName: 'Clean old images'
