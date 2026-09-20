@@ -1,8 +1,10 @@
+using FluentAssertions;
+
+using Microsoft.AspNetCore.Mvc.Testing;
+
 using System.Net;
 using System.Text.Json;
-using ExchangeRates.Domain.Enums;
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+
 using Xunit;
 
 namespace ExchangeRates.Server.Tests.Integration;

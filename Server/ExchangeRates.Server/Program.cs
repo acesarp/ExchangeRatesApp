@@ -9,7 +9,6 @@ using ExchangeRates.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
-using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
 
@@ -23,17 +22,13 @@ public class Program {
 			var builder = WebApplication.CreateBuilder(args);
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 
-			SelfLog.Enable(message => Console.Error.WriteLine($"SERILOG SELFLOG: {message}"));
-
 			var loggerConfiguration = new LoggerConfiguration()
 				//.MinimumLevel.Debug()
 				//.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
 				//.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
 				//.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
 				//.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
-				.Enrich.FromLogContext()
-				.WriteTo.Console()
-				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
+				.Enrich.FromLogContext();
 
 			Exception? sqlSinkConfigurationException = null;
 			if (!string.IsNullOrWhiteSpace(connectionString)) {
@@ -52,7 +47,7 @@ public class Program {
 					connectionString: connectionString,
 					sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", SchemaName = "dbo", AutoCreateSqlTable = true },
 					columnOptions: columnOptions,
-					restrictedToMinimumLevel: LogEventLevel.Debug);
+					restrictedToMinimumLevel: LogEventLevel.Warning);
 			}
 
 			Log.Logger = loggerConfiguration.CreateLogger();
