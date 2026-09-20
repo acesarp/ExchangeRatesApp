@@ -26,11 +26,11 @@ public class Program {
 			SelfLog.Enable(message => Console.Error.WriteLine($"SERILOG SELFLOG: {message}"));
 
 			var loggerConfiguration = new LoggerConfiguration()
-				.MinimumLevel.Debug()
-				.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-				.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
-				.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-				.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+				//.MinimumLevel.Debug()
+				//.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+				//.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 				.Enrich.FromLogContext()
 				.WriteTo.Console()
 				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);

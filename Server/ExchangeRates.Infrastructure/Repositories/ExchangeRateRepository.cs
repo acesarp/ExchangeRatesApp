@@ -105,11 +105,11 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																.Where(x => x.IsActive &&
 																									((x.NativeCurrency.CurrencyCode == currency1 &&
 																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2 &&
-																																						!sc.Currency.IsHistoric == !isHistoric2))
+																																						sc.Currency.IsHistoric == isHistoric2))
 																										||
 																										(x.NativeCurrency.CurrencyCode == currency2 &&
 																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1 &&
-																																						!sc.Currency.IsHistoric == !isHistoric1))
+																																						sc.Currency.IsHistoric == isHistoric1))
 																									)
 																)
 																.OrderBy(x => x.Priority ?? int.MaxValue)

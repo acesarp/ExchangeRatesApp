@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Enums\ECurrencyISO.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Constants\" />
     <Folder Include="Views\" />
   </ItemGroup>
