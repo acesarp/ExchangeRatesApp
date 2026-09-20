@@ -1,8 +1,10 @@
+name: exchangerates
+
 services:
   client:
     build:
-      context: ./Clients/ExchangeRates.Client/exchangerates.client.react
-      dockerfile: Dockerfile.Client
+      context: ..
+      dockerfile: ./docker/Dockerfile.Client
     container_name: exchangerates-client
     ports:
       - "8082:80"
@@ -12,11 +14,11 @@ services:
 
   server:
     build:
-      context: ./Server
-      dockerfile: Dockerfile.Server
+      context: ..
+      dockerfile: ./docker/Dockerfile.Server
     container_name: exchangerates-server
     volumes:
-    - ./Server/ExchangeRates.Server/logs:/app/logs
+    - ../Server/ExchangeRates.Server/logs:/app/logs
     ports:
       - "8080:80"
     environment:

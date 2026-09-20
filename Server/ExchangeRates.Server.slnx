@@ -6,7 +6,6 @@
   </Configurations>
   <Folder Name="/Solution Items/">
     <File Path=".dockerignore" />
-    <File Path="Dockerfile" />
   </Folder>
   <Project Path="ExchangeRates.Domain/ExchangeRates.Domain.csproj" Id="1f579496-b703-4e55-a37f-2d6532bdd3a7" />
   <Project Path="ExchangeRates.Infrastructure/ExchangeRates.Infrastructure.csproj" />
