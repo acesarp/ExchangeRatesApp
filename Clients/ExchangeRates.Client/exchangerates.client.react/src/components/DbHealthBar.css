@@ -1,0 +1,14 @@
+.db-health-bar {
+	border-style: solid;
+	border-width: 0px 0px 2px 0px;
+	border-color: #ccc;
+	margin: 0px;
+	padding: 0px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-basis: auto;
+	flex-flow: row nowrap;
+	flex-direction: row;
+	
+}

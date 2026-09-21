@@ -84,15 +84,22 @@ public class Program {
 			builder.Services.AddSwaggerGen();
 
 			builder.Services.AddCors(ob => {
-				ob.AddPolicy("BlazorClient", policy => {
+				ob.AddPolicy("Client", policy => {
 					policy.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
 						   .AllowAnyMethod()
-						   .AllowAnyHeader();
+						   .AllowAnyHeader()
+						   .AllowCredentials();
 				});
 			});
 
+			builder.Services.AddSignalR();
+
+			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
+			builder.Services.AddHostedService<HealthStatusWorker>();
+
 			var app = builder.Build();
-			app.UseCors("BlazorClient");
+
+			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment()) {
@@ -107,6 +114,7 @@ public class Program {
 			app.UseHttpsRedirection();
 			app.UseAuthorization();
 			app.MapControllers();
+			app.MapHub<HealthStatusHub>("/hubs/health");
 
 			app.Run();
 		}

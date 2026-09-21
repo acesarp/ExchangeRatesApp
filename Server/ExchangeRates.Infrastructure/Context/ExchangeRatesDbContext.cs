@@ -13,6 +13,7 @@ public sealed class ExchangeRatesDbContext : DbContext {
 	public DbSet<CentralBankSupportedCurrencyEntity> CentralBankSupportedCurrencies => Set<CentralBankSupportedCurrencyEntity>();
 	public DbSet<ExchangeRateUnavailableDateEntity> ExchangeRateUnavailableDates => Set<ExchangeRateUnavailableDateEntity>();
 	public DbSet<PreferredProviderEntity> PreferredProviders => Set<PreferredProviderEntity>();
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);
 

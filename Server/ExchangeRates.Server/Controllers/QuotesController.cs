@@ -9,21 +9,23 @@ namespace ExchangeRates.Server.Controllers;
 [Route("/api")]
 public class QuotesController : ControllerBase {
 	private readonly IExchangeRateService _service;
+	private readonly IHealthStatusService _HealthCheckService;
 	private readonly ILogger<QuotesController> _logger;
 
-	public QuotesController(IExchangeRateService service, ILogger<QuotesController> logger) {
+	public QuotesController(IExchangeRateService service, IHealthStatusService healthCheckService, ILogger<QuotesController> logger) {
 		_service = service;
+		_HealthCheckService = healthCheckService;
 		_logger = logger;
 	}
 
 	[Route("exchange-rates", Name = "ExchangeRates")]
 	[HttpGet]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(string baseCurrency = "brl", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null) {
+	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(string baseCurrency = "jpy", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null) {
 		baseCurrency = baseCurrency.ToUpperInvariant();
 		quoteCurrency = quoteCurrency.ToUpperInvariant();
 
-		fromDate ??= new DateOnly(2025, 01, 01);
-		toDate ??= new DateOnly(2025, 10, 10);
+		fromDate ??= new DateOnly(2000, 01, 01);
+		toDate ??= new DateOnly(2026, 09, 19);
 		_logger.LogInformation($"GetRate request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
@@ -65,4 +67,5 @@ public class QuotesController : ControllerBase {
 	public IActionResult GetEnvironment([FromServices] IWebHostEnvironment environment) {
 		return Ok(new { environment = environment.EnvironmentName });
 	}
+
 }

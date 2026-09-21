@@ -33,9 +33,10 @@
 }
 
 body {
-  margin: 0;
-  background: var(--color-background);
-  color: var(--color-text);
+	margin: 0;
+	background: var(--color-background);
+	color: var(--color-text);
+	padding: 0;
 }
 
 #root {

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ChartJS from 'chart.js/auto'
 import { getAvailableCurrencies, getExchangeRates, getZacaMedia, getEnvironment } from './services/currencyService';
 import CurrencyModel from './models/CurrencyModel';
+import ExchangeRateResult from './models/ExchangeRateResult';
 import './App.css';
+import DbHealthBar from './components/DbHealthBar';
 
 
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
@@ -122,7 +124,7 @@ function App() {
     const [fromDate, setFromDate] = useState(getTodayIsoDate);
     const [toDate, setToDate] = useState(getTodayIsoDate);
 
-    const [rates, setRates] = useState([]);
+    const [rates, setRates] = useState( /** @type {ExchangeRateResult[]} */ ([]));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [hasSearched, setHasSearched] = useState(false);
@@ -248,7 +250,8 @@ function App() {
               <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
       </header>
 
-      <main className="content">
+          <main className="content">
+            <DbHealthBar />
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
                 <div className="form-grid">
