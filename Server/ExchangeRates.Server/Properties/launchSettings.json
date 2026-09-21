@@ -20,6 +20,16 @@
       "launchBrowser": false,
       "launchUrl": "index.html"
     },
+    "DEV": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "DEV"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7255",
+      "launchBrowser": true,
+      "launchUrl": "index.html"
+    },
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",

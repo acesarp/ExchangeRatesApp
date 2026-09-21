@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ChartJS from 'chart.js/auto'
 import { getAvailableCurrencies, getExchangeRates, getZacaMedia, getEnvironment } from './services/currencyService';
+import CurrencyModel from './models/CurrencyModel';
 import './App.css';
 
 
@@ -115,7 +116,7 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
 
 function App() {
     const [environment, setEnvironment] = useState('');
-    const [currencies, setCurrencies] = useState([]);
+    const [currencies, setCurrencies] = useState(/** @type {CurrencyModel[]} */ ([]));
     const [baseCurrency, setBaseCurrency] = useState('USD');
     const [quoteCurrency, setQuoteCurrency] = useState('EUR');
     const [fromDate, setFromDate] = useState(getTodayIsoDate);
@@ -137,13 +138,13 @@ function App() {
 
         async function loadCurrencies() {
             try {
-                const data = await getAvailableCurrencies(controller.signal);
-                const availableCurrencies = data ?? [];
+                const availableCurrencies = await getAvailableCurrencies(controller.signal);
+
                 setCurrencies(availableCurrencies);
 
                 if (availableCurrencies.length > 0) {
-                    setBaseCurrency(availableCurrencies.find(c => c.code === 'USD') ? 'USD' : availableCurrencies[0].code);
-                    setQuoteCurrency(availableCurrencies.find(c => c.code === 'EUR') ? 'EUR' : availableCurrencies[0].code);
+                    setBaseCurrency(availableCurrencies.find(c => c.currencyCode  === 'USD') ? 'USD' : availableCurrencies[0].currencyCode);
+                    setQuoteCurrency(availableCurrencies.find(c => c.currencyCode === 'EUR') ? 'EUR' : availableCurrencies[0].currencyCode);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -158,13 +159,13 @@ function App() {
 
     const sortedCurrencies = useMemo(() => {
         return [...currencies].sort((a, b) => {
-            const aPriority = PRIORITY_CURRENCIES.indexOf(a.code);
-            const bPriority = PRIORITY_CURRENCIES.indexOf(b.code);
+            const aPriority = PRIORITY_CURRENCIES.indexOf(a.currencyCode);
+            const bPriority = PRIORITY_CURRENCIES.indexOf(b.currencyCode);
 
             if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
             if (aPriority !== -1) return -1;
             if (bPriority !== -1) return 1;
-            return a.code.localeCompare(b.code);
+            return a.currencyCode.localeCompare(b.currencyCode);
         })
     }, [currencies]);
 
@@ -256,7 +257,7 @@ function App() {
                             <label htmlFor="baseCurrency">Base Currency</label>
                                  <select id="baseCurrency" value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} required>
                                     <option value="" disabled>Select currency</option>
-                                        {sortedCurrencies.map((currency) => ( <option key={currency.code} value={currency.code}>{currency.code} - {currency.name} {currency.isHistoric ? '(Historic)' : ''}</option> ))}
+                                        { sortedCurrencies.map((currency) => (<option key={currency.currencyCode} value={currency.currencyCode}>{currency.currencyCode} - {currency.name} {currency.isHistoric ? '(Historic)' : ''}</option>))}
                                  </select>
                         </div>
             <div className="currency-swap">
@@ -268,7 +269,7 @@ function App() {
                 <label htmlFor="quoteCurrency">Quote Currency</label>
                 <select id="quoteCurrency" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)} required>
                                       <option value="" disabled>Select currency</option>
-                                      {sortedCurrencies.map((currency) => (<option key={currency.code} value={currency.code}>{currency.code} - {currency.name}{currency.isHistoric ? '(Historic)' : ''}</option>))}
+                                      {sortedCurrencies.map((currency) => (<option key={currency.currencyCode} value={currency.currencyCode}>{currency.currencyCode} - {currency.name}{currency.isHistoric ? '(Historic)' : ''}</option>))}
                 </select>
               </div>
             </div>

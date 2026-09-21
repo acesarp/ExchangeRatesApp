@@ -20,9 +20,10 @@ services:
     volumes:
     - ../Server/ExchangeRates.Server/logs:/app/logs
     ports:
-      - "8090:80"
+      - "8090:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: UAT
       ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__ExchangeRates: ${EXCHANGERATES_CONNECTION_STRING}
     restart: unless-stopped
 
