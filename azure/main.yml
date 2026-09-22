@@ -13,6 +13,15 @@ steps:
   clean: true
 
 - powershell: |
+    $providerKeysPath = "$(Build.SourcesDirectory)\providerkeys.json"
+    $env:PROVIDER_KEYS_JSON | Set-Content -Path $providerKeysPath -Encoding UTF8
+
+    if (-not (Test-Path $providerKeysPath)) { throw "providerkeys.json was not created." }
+    Write-Host "providerkeys.json created successfully."
+    env:PROVIDER_KEYS_JSON: $(PROVIDER_KEYS_JSON)
+  displayName: 'Create Provider Keys 🔑'
+
+- powershell: |
     whoami
     whoami /groups
     docker version
@@ -32,7 +41,7 @@ steps:
       -f docker/docker-compose.yml `
       up -d --remove-orphans
     $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
-  displayName: 'Deploy ExchangeRates ,🚀'
+  displayName: 'Deploy ExchangeRates 🚀'
 
 - powershell: |
     docker compose `
