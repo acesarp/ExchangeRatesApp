@@ -18,21 +18,21 @@ steps:
     docker version
     docker info
     docker compose version
-  displayName: 'Verify Docker'
+  displayName: 'Verify Docker 🔎'
 
 - powershell: |
     docker compose `
       -f docker/docker-compose.yml `
       build
     $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
-  displayName: 'Build ExchangeRates'
+  displayName: 'Build ExchangeRates 🛠️'
 
 - powershell: |
     docker compose `
       -f docker/docker-compose.yml `
       up -d --remove-orphans
     $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
-  displayName: 'Deploy ExchangeRates \o/'
+  displayName: 'Deploy ExchangeRates ,🚀'
 
 - powershell: |
     docker compose `
@@ -42,4 +42,4 @@ steps:
 
 - powershell: |
     docker image prune -f
-  displayName: 'Clean old images'
+  displayName: 'Clean old images 🧹'
