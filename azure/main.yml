@@ -19,7 +19,6 @@ steps:
 
 - powershell: |
     docker compose `
-      --env-file .env `
       -f docker/docker-compose.yml `
       build
   displayName: 'Build ExchangeRates'
