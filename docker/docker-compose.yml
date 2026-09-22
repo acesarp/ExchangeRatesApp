@@ -18,7 +18,8 @@ services:
       dockerfile: ./docker/Dockerfile.Server
     container_name: exchangerates-server
     volumes:
-    - ../Server/ExchangeRates.Server/logs:/app/logs
+      - ../Server/ExchangeRates.Server/logs:/app/logs
+      -  ../providerkeys.json:/app/providerkeys.json:ro
     ports:
       - "8090:8080"
     environment:
