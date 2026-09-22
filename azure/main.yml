@@ -13,7 +13,10 @@ steps:
   clean: true
 
 - powershell: |
+    whoami
+    whoami /groups
     docker version
+    docker info
     docker compose version
   displayName: 'Verify Docker'
 
