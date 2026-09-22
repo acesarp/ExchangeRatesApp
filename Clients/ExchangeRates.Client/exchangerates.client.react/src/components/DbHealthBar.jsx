@@ -3,10 +3,8 @@ import * as signalR from '@microsoft/signalr';
 import { dbServerHealthCheck } from '../services/healthCheckService'
 import './DbHealthBar.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'api'
-const HUB_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '/hubs');
+const HUB_BASE_URL = import.meta.env.VITE_HUB_BASE_URL || 'hubs';
 
-console.log('API_BASE_URL:', API_BASE_URL);
 console.log('HUB_BASE_URL:', HUB_BASE_URL);
 
 function DbHealthBar() {

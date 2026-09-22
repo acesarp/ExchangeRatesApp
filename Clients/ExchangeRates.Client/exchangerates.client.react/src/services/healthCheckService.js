@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'api'
-const HUB_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '/hubs');
+console.log('API_BASE_URL:', API_BASE_URL);
 
 export async function dbServerHealthCheck(signal) {
 	const response = await fetch(`${API_BASE_URL}/health`, { signal });
