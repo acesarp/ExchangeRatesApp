@@ -38,7 +38,7 @@ steps:
     docker compose `
       -f docker/docker-compose.yml `
       ps
-  displayName: 'Verify Deployment'
+  displayName: 'Verify Deployment 👀'
 
 - powershell: |
     docker image prune -f
