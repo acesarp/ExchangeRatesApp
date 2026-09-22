@@ -18,9 +18,6 @@ steps:
   displayName: 'Verify Docker'
 
 - powershell: |
-    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
-
-- powershell: |
     docker compose `
       --env-file .env `
       -f docker/docker-compose.yml `
@@ -36,6 +33,9 @@ steps:
       -f docker/docker-compose.yml `
       up -d --remove-orphans
   displayName: 'Deploy ExchangeRates'
+
+- powershell: |
+    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
 
 - powershell: |
     docker compose `
