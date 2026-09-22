@@ -18,7 +18,8 @@ steps:
 
     if (-not (Test-Path $providerKeysPath)) { throw "providerkeys.json was not created." }
     Write-Host "providerkeys.json created successfully."
-  env:PROVIDER_KEYS_JSON: $(PROVIDER_KEYS_JSON)
+  env:
+    PROVIDER_KEYS_JSON: $(PROVIDER_KEYS_JSON)
   displayName: 'Create Provider Keys 🔑'
 
 - powershell: |
