@@ -24,19 +24,15 @@ steps:
     docker compose `
       -f docker/docker-compose.yml `
       build
-  displayName: 'Build ExchangeRates'
-
-- powershell: |
     $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
+  displayName: 'Build ExchangeRates'
 
 - powershell: |
     docker compose `
       -f docker/docker-compose.yml `
       up -d --remove-orphans
-  displayName: 'Deploy ExchangeRates'
-
-- powershell: |
     $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
+  displayName: 'Deploy ExchangeRates \o/'
 
 - powershell: |
     docker compose `
