@@ -21,10 +21,10 @@ public sealed class AppHealthController : ControllerBase {
 		try {
 			var isHealthy = await _healthCheckService.GetDbHealthAsync(ct);
 			if (isHealthy.CanConnect) {
-				return Ok(new { isHealthy.CanConnect, LatencyMs = isHealthy.LatencyMs, error = isHealthy.Error });
+				return Ok(new { isHealthy.CanConnect, isHealthy.LatencyMs, isHealthy.Error });
 			}
 			else {
-				return StatusCode(503, new { isHealthy.CanConnect, LatencyMs = isHealthy.LatencyMs, error = isHealthy.Error });
+				return StatusCode(503, new { isHealthy.CanConnect, isHealthy.LatencyMs, isHealthy.Error });
 			}
 		}
 		catch (Exception ex) {

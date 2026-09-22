@@ -8,32 +8,41 @@ pool:
   demands:
     - Agent.Name -equals DELLServ
 
-variables:
-  imageName: 'exchangeratesapp'
-  containerName: 'exchangeratesapp'
-
 steps:
 - checkout: self
   clean: true
 
 - powershell: |
     docker version
+    docker compose version
   displayName: 'Verify Docker'
 
 - powershell: |
-    docker build -t $(imageName):$(Build.BuildId) -t $(imageName):latest -f docker-compose.yml .
-  displayName: 'Build Docker image'
+    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
 
 - powershell: |
-    docker stop $(containerName) 2>$null
-    docker rm $(containerName) 2>$null
+    docker compose `
+      --env-file .env `
+      -f docker/docker-compose.yml `
+      build
+  displayName: 'Build ExchangeRates'
 
-    docker run -d `
-      --name $(containerName) `
-      --restart unless-stopped `
-      -p <HOST_PORT>:<CONTAINER_PORT> `
-      $(imageName):$(Build.BuildId)
-  displayName: 'Deploy container'
+- powershell: |
+    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
+
+- powershell: |
+    docker compose `
+      --env-file .env `
+      -f docker/docker-compose.yml `
+      up -d --remove-orphans
+  displayName: 'Deploy ExchangeRates'
+
+- powershell: |
+    docker compose `
+      --env-file .env `
+      -f docker/docker-compose.yml `
+      ps
+  displayName: 'Verify Deployment'
 
 - powershell: |
     docker image prune -f

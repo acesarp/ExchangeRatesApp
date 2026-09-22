@@ -2,6 +2,7 @@ using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
+using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
@@ -23,12 +24,13 @@ public class Program {
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 
 			var loggerConfiguration = new LoggerConfiguration()
-				//.MinimumLevel.Debug()
-				//.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-				//.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
-				.Enrich.FromLogContext();
+				.MinimumLevel.Debug()
+				.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+				.Enrich.FromLogContext()
+				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
 
 			Exception? sqlSinkConfigurationException = null;
 			if (!string.IsNullOrWhiteSpace(connectionString)) {
@@ -102,7 +104,7 @@ public class Program {
 			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment()) {
+			if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
 				app.MapOpenApi();
 				app.UseSwagger();
 				app.UseSwaggerUI(options => {
