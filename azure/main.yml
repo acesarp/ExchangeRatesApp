@@ -29,7 +29,6 @@ steps:
 
 - powershell: |
     docker compose `
-      --env-file .env `
       -f docker/docker-compose.yml `
       up -d --remove-orphans
   displayName: 'Deploy ExchangeRates'
@@ -39,7 +38,6 @@ steps:
 
 - powershell: |
     docker compose `
-      --env-file .env `
       -f docker/docker-compose.yml `
       ps
   displayName: 'Verify Deployment'
