@@ -1,10 +1,11 @@
 using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
+using ExchangeRates.Server.Workers;
 
 using Microsoft.EntityFrameworkCore;
 

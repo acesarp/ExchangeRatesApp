@@ -1,12 +1,12 @@
 
-using System.Globalization;
-using System.Xml.Linq;
-
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
+
+using System.Globalization;
+using System.Xml.Linq;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>
@@ -48,8 +48,8 @@ public sealed class BNRProvider : CentralBankProviderBase {
 					var multiplierAttr = rateElement.Attribute("multiplier")?.Value;
 					var multiplier = multiplierAttr is not null && decimal.TryParse(multiplierAttr, NumberStyles.Any, CultureInfo.InvariantCulture, out var m) ? m : 1m;
 
-					
-						
+
+
 					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / multiplier, Bank.BankCode));
 				}
 			}

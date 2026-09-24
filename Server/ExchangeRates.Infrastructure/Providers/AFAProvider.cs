@@ -1,5 +1,5 @@
-using ExchangeRates.Domain;
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Utilities;
 
 using Microsoft.Extensions.Configuration;

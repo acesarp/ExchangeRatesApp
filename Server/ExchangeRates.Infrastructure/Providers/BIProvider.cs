@@ -1,5 +1,6 @@
 
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using HtmlAgilityPack;
 
@@ -8,10 +9,6 @@ using Microsoft.Extensions.Logging;
 
 using System.Globalization;
 using System.Net;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>

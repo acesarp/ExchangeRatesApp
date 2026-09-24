@@ -1,6 +1,6 @@
 using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
 
 using FluentAssertions;

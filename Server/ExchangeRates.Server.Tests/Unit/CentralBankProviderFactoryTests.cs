@@ -1,5 +1,5 @@
 using ExchangeRates.Domain.Entities;
-using ExchangeRates.Server.Providers;
+using ExchangeRates.Infrastructure.Providers;
 
 using FluentAssertions;
 

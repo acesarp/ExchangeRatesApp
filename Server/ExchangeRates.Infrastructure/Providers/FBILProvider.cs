@@ -1,5 +1,5 @@
 
-using ExchangeRates.Domain;
+using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Entities;
 
 using HtmlAgilityPack;

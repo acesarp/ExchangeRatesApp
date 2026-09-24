@@ -1,8 +1,8 @@
 ﻿using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;

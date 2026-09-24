@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Domain;
+﻿using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
 

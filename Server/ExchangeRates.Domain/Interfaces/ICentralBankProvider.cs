@@ -1,4 +1,6 @@
-﻿namespace ExchangeRates.Domain.Interfaces;
+﻿using ExchangeRates.Domain.Models;
+
+namespace ExchangeRates.Domain.Interfaces;
 
 public interface ICentralBankProvider {
 

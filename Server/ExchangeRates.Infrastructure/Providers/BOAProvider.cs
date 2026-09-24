@@ -1,9 +1,9 @@
 
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>

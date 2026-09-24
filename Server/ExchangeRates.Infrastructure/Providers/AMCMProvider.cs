@@ -1,6 +1,6 @@
 
-using ExchangeRates.Domain;
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

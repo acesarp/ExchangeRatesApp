@@ -1,14 +1,14 @@
 
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using HtmlAgilityPack;
 
-using System.Globalization;
-using System.Net;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
+
+using System.Globalization;
+using System.Net;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>

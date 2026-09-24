@@ -1,11 +1,11 @@
 
-using System.Text.Json;
-
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
+
+using System.Text.Json;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>
@@ -56,8 +56,8 @@ public sealed class BNMProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				
-					
+
+
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 			catch (Exception ex) {

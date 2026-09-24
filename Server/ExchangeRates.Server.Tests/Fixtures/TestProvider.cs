@@ -1,5 +1,6 @@
 using ExchangeRates.Domain.Entities;
-using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Domain.Models;
 
 namespace ExchangeRates.Server.Tests.Fixtures;
 

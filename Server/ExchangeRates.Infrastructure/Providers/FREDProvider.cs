@@ -1,12 +1,12 @@
 
+using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Entities;
-
-using System.Globalization;
-using System.Text.Json;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
+
+using System.Globalization;
+using System.Text.Json;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>

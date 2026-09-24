@@ -7,7 +7,7 @@ using System.Globalization;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExchangeRates.Domain;
+using ExchangeRates.Domain.Models;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>

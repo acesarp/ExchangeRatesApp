@@ -1,6 +1,7 @@
 using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Domain.Models;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
 using ExchangeRates.Server.Tests.Fixtures;
 

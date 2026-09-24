@@ -1,5 +1,5 @@
+using ExchangeRates.Domain.Models;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Models;
 
 using Microsoft.AspNetCore.Mvc;
 

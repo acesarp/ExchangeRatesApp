@@ -1,4 +1,5 @@
 ﻿using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 namespace ExchangeRates.Server.Mappers;
 

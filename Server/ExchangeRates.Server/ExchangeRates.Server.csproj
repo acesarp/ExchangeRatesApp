@@ -56,8 +56,4 @@
 	  <Compile Remove="Services\KrakenMarketDataService.cs" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Utilities\" />
-	</ItemGroup>
-
 </Project>

@@ -1,10 +1,10 @@
 ﻿using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Domain.Models;
+using ExchangeRates.Domain.Utilities;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Mappers;
-using ExchangeRates.Server.Models;
-using ExchangeRates.Server.Providers;
-using ExchangeRates.Server.Utilities;
 
 namespace ExchangeRates.Server.Services;
 
@@ -223,4 +223,15 @@ public sealed class ExchangeRateService : IExchangeRateService {
 										.ToList();
 	}
 
+	Task<IReadOnlyList<ExchangeRateResult>> IExchangeRateService.GetRatesAsync(string quoteCurrency, string toCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		throw new NotImplementedException();
+	}
+
+	Task<IReadOnlyList<CurrencyModel>> IExchangeRateService.GetCurrenciesAsync(CancellationToken ct) {
+		throw new NotImplementedException();
+	}
+
+	Task<IReadOnlyList<CentralBankModel>> IExchangeRateService.GetCentralBanksAsync(CancellationToken ct) {
+		throw new NotImplementedException();
+	}
 }
