@@ -167,6 +167,9 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																							.ToHashSetAsync(ct);
 	}
 
+	/// <summary>
+	/// Get a range of unavailable dates from the database.
+	/// </summary>
 	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
 		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from && x.UnavailableDate <= to)
 																							.Select(x => x.UnavailableDate)

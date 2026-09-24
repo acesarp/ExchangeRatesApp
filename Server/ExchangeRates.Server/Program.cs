@@ -2,7 +2,6 @@ using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
-using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
@@ -77,10 +76,12 @@ public class Program {
 			builder.Services.AddOpenApi();
 			builder.Services.AddHttpClient();
 
+			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
 			builder.Services.AddScoped<CentralBankProviderFactory>();
+			builder.Services.AddSingleton<IKrakenMarketDataService, KrakenMarketDataService>();
 
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
@@ -96,7 +97,7 @@ public class Program {
 
 			builder.Services.AddSignalR();
 
-			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
+			builder.Services.AddHostedService<BitcoinPriceWorker>();
 			builder.Services.AddHostedService<HealthStatusWorker>();
 
 			var app = builder.Build();

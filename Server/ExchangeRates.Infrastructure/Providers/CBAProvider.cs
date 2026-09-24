@@ -1,0 +1,82 @@
+
+using ExchangeRates.Domain.Entities;
+
+using System.Globalization;
+using System.Text;
+using System.Xml.Linq;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ExchangeRates.Domain;
+namespace ExchangeRates.Infrastructure.Providers;
+
+/// <summary>
+/// Central Bank of Armenia
+/// </summary>
+public sealed class CBAProvider : CentralBankProviderBase {
+	private readonly ILogger<CBAProvider> _logger;
+
+	public CBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBAProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
+
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+
+		if (quoteCurrency == Bank.NativeCurrency.CurrencyCode) {
+			return [];
+		}
+
+		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.NativeCurrency.CurrencyCode)
+																															.Select(c => c.ToString()));
+
+		var soap = $"""
+			<?xml version="1.0" encoding="utf-8"?>
+			<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+						   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+				<soap:Body>
+					<ExchangeRatesByDateRangeByISO xmlns="http://www.cba.am/">
+						<ISOCodes>{isoCodes}</ISOCodes>
+						<DateFrom>{fromDate:yyyy-MM-dd}T00:00:00</DateFrom>
+						<DateTo>{toDate:yyyy-MM-dd}T00:00:00</DateTo>
+					</ExchangeRatesByDateRangeByISO>
+				</soap:Body>
+			</soap:Envelope>
+			""";
+
+		using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
+		request.Headers.Add("SOAPAction", "\"http://www.cba.am/ExchangeRatesByDateRangeByISO\"");
+		request.Content = new StringContent(soap, Encoding.UTF8, "text/xml");
+
+		using var response = await Http.SendAsync(request, ct);
+		response.EnsureSuccessStatusCode();
+
+		var xml = await response.Content.ReadAsStringAsync(ct);
+		var document = XDocument.Parse(xml);
+		var rates = new List<ExchangeRateResult>();
+
+		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "ExchangeRate")) {
+			var iso = row.Elements().FirstOrDefault(x => x.Name.LocalName == "ISO")?.Value;
+			var amountText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "Amount")?.Value;
+			var rateText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "Rate")?.Value;
+
+			var dateText =
+				row.Elements().FirstOrDefault(x => x.Name.LocalName == "Date")?.Value ??
+				row.Elements().FirstOrDefault(x => x.Name.LocalName == "CurrentDate")?.Value;
+
+			if (string.IsNullOrWhiteSpace(iso) ||
+				!decimal.TryParse(amountText, NumberStyles.Any, CultureInfo.InvariantCulture, out var amount) ||
+				!decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) ||
+				!DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
+				amount <= 0 ||
+				rate <= 0) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), iso, Bank.NativeCurrency.CurrencyCode, rate / amount, Bank.BankCode));
+		}
+
+		return rates;
+	}
+}
+

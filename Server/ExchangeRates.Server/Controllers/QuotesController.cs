@@ -24,8 +24,8 @@ public class QuotesController : ControllerBase {
 		baseCurrency = baseCurrency.ToUpperInvariant();
 		quoteCurrency = quoteCurrency.ToUpperInvariant();
 
-		fromDate ??= new DateOnly(2000, 01, 01);
-		toDate ??= new DateOnly(2026, 09, 19);
+		fromDate ??= new DateOnly(2026, 09, 20);
+		toDate ??= new DateOnly(2026, 09, 22);
 		_logger.LogInformation($"GetRate request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);

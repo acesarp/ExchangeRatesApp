@@ -1,5 +1,4 @@
-﻿using ExchangeRates.Server.Hubs;
-using ExchangeRates.Server.Interfaces;
+﻿using ExchangeRates.Server.Interfaces;
 
 using Microsoft.AspNetCore.SignalR;
 
