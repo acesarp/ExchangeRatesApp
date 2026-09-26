@@ -1,6 +1,6 @@
 
-using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,16 +16,13 @@ public sealed class FREDProvider : CentralBankProviderBase {
 	private readonly ILogger<FREDProvider> _logger;
 	public FREDProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FREDProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
-		Series = Configuration.GetSection("CentralBanks:FRED:SupportedCurrencies").Get<List<FREDProviderCurrencyConfiguration>>();
 	}
 
-	private readonly List<FREDProviderCurrencyConfiguration> Series;
-
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var series = Series.FirstOrDefault(s => s.Currency == quoteCurrency);
+		var series = base.Series.FirstOrDefault(s => s.Currency == quoteCurrency);
 		if (series == default) {
 			_logger.LogWarning("FRED series not found for quote currency: {QuoteCurrency}", quoteCurrency);
-			return [];
+			return Array.Empty<ExchangeRateResult>();
 		}
 
 		var apiKey = Configuration[$"ProviderKeys:{Bank.BankCode}"];
@@ -44,7 +41,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
 
 		if (!doc.RootElement.TryGetProperty("observations", out var observations)) {
-			return [];
+			return Array.Empty<ExchangeRateResult>();
 		}
 
 		var rates = new List<ExchangeRateResult>();
@@ -68,10 +65,4 @@ public sealed class FREDProvider : CentralBankProviderBase {
 
 		return rates;
 	}
-}
-
-public class FREDProviderCurrencyConfiguration {
-	public string Currency { get; set; }
-	public string SeriesId { get; set; } = string.Empty;
-	public bool Invert { get; set; }
 }

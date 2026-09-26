@@ -12,7 +12,7 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 
 	public string Name => "Kraken";
 
-	public async Task ConnectAsync(IEnumerable<string> symbols, Func<CryptoPriceResult, Task> onPriceReceived, CancellationToken ct) {
+	public async Task ConnectAsync(IEnumerable<string> symbols, Func<CryptoPriceResult, CancellationToken, Task> onPriceReceived, CancellationToken ct) {
 		using var socket = new ClientWebSocket();
 
 		await socket.ConnectAsync(new Uri(WebSocketUrl), ct);
@@ -35,7 +35,7 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 		await socket.SendAsync(bytes, WebSocketMessageType.Text, true, ct);
 	}
 
-	private async Task ReceiveAsync(ClientWebSocket socket, Func<CryptoPriceResult, Task> onPriceReceived, CancellationToken ct) {
+	private async Task ReceiveAsync(ClientWebSocket socket, Func<CryptoPriceResult, CancellationToken, Task> onPriceReceived, CancellationToken ct) {
 		var buffer = new byte[8192];
 
 		while (socket.State == WebSocketState.Open && !ct.IsCancellationRequested) {
@@ -61,11 +61,11 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 
 			var json = Encoding.UTF8.GetString(stream.ToArray());
 
-			await ProcessMessageAsync(json, onPriceReceived);
+			await ProcessMessageAsync(json, onPriceReceived, ct);
 		}
 	}
 
-	private async Task ProcessMessageAsync(string json, Func<CryptoPriceResult, Task> onPriceReceived) {
+	private async Task ProcessMessageAsync(string json, Func<CryptoPriceResult, CancellationToken, Task> onPriceReceived, CancellationToken ct) {
 		using var document = JsonDocument.Parse(json);
 
 		var root = document.RootElement;
@@ -96,7 +96,9 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 			var price = lastElement.GetDecimal();
 			var result = new CryptoPriceResult(symbol, price, DateTime.UtcNow, Name);
 
-			await onPriceReceived(result);
+			await onPriceReceived(result, ct);
 		}
 	}
+
+
 }

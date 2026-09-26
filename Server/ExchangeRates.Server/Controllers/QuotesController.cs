@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExchangeRates.Server.Controllers;
 
 [ApiController]
-[Route("/api")]
+[Route("api/[controller]")]
 public class QuotesController : ControllerBase {
 	private readonly IExchangeRateService _service;
 	private readonly IHealthStatusService _HealthCheckService;
@@ -18,15 +18,14 @@ public class QuotesController : ControllerBase {
 		_logger = logger;
 	}
 
-	[Route("exchange-rates", Name = "ExchangeRates")]
-	[HttpGet]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> GetRates(string baseCurrency = "jpy", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null) {
+	[HttpGet("exchange-rates", Name = "ExchangeRates")]
+	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> ExchangeRates(string baseCurrency = "jpy", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null) {
 		baseCurrency = baseCurrency.ToUpperInvariant();
 		quoteCurrency = quoteCurrency.ToUpperInvariant();
 
 		fromDate ??= new DateOnly(2026, 09, 20);
 		toDate ??= new DateOnly(2026, 09, 22);
-		_logger.LogInformation($"GetRate request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
+		_logger.LogInformation($"ExchangeRates request: {baseCurrency}->{quoteCurrency}, fromDate={fromDate}, toDate={toDate}");
 
 		var _fromDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 		var _toDate = toDate ?? _fromDate;
@@ -42,9 +41,8 @@ public class QuotesController : ControllerBase {
 		}
 	}
 
-	[Route("available-currencies", Name = "AvailableCurrencies")]
-	[HttpGet]
-	public async Task<ActionResult<List<CurrencyModel>>> GetAvailableCurrencies(CancellationToken ct) {
+	[HttpGet("available-currencies", Name = "AvailableCurrencies")]
+	public async Task<ActionResult<List<CurrencyModel>>> AvailableCurrencies(CancellationToken ct) {
 		var currencies = await _service.GetCurrenciesAsync(ct);
 		return Ok(currencies);
 
@@ -52,9 +50,8 @@ public class QuotesController : ControllerBase {
 
 
 	/// <summary> Returns Zacarias picture a audio file </summary>
-	[Route("zaca-media", Name = "ZacaMedia")]
-	[HttpGet]
-	public ActionResult GetZacaMedia() {
+	[HttpGet("zaca-media", Name = "ZacaMedia")]
+	public ActionResult ZacaMedia() {
 		var picture = System.IO.File.ReadAllBytes("./Assets/zaca01.PNG");
 		var audio = System.IO.File.ReadAllBytes("./Assets/risada-zacarias.mp3");
 
@@ -64,7 +61,7 @@ public class QuotesController : ControllerBase {
 
 	/// <summary> Returns the current hosting environment name </summary>
 	[HttpGet("environment")]
-	public IActionResult GetEnvironment([FromServices] IWebHostEnvironment environment) {
+	public IActionResult Environment([FromServices] IWebHostEnvironment environment) {
 		return Ok(new { environment = environment.EnvironmentName });
 	}
 

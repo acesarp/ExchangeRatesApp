@@ -1,42 +1,42 @@
 ﻿using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Domain.Models;
+using ExchangeRates.Server.Hubs;
+
+using Microsoft.AspNetCore.SignalR;
 
 namespace ExchangeRates.Server.Workers;
 
-public class BitcoinPriceWorker : BackgroundService {
+public sealed class BitcoinPriceWorker : BackgroundService {
 	private readonly ICryptoMarketDataProvider _cryptoMarketDataProvider;
+	private readonly IHubContext<CryptoPriceHub> _hubContext;
 	private readonly ILogger<BitcoinPriceWorker> _logger;
-	private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
 
-	public BitcoinPriceWorker(ICryptoMarketDataProvider cryptoMarketDataProvider, ILogger<BitcoinPriceWorker> logger) {
+	public BitcoinPriceWorker(ICryptoMarketDataProvider cryptoMarketDataProvider, IHubContext<CryptoPriceHub> hubContext, ILogger<BitcoinPriceWorker> logger) {
 		_cryptoMarketDataProvider = cryptoMarketDataProvider;
+		_hubContext = hubContext;
 		_logger = logger;
 	}
 
-	protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-		_logger.LogInformation("Bitcoin Price Worker started.");
+	protected override async Task ExecuteAsync(CancellationToken ct) {
+		_logger.LogInformation("Bitcoin Price Worker started using {Provider}.", _cryptoMarketDataProvider.Name);
 
-		while (!stoppingToken.IsCancellationRequested) {
+		while (!ct.IsCancellationRequested) {
 			try {
-				await UpdateBitcoinPriceAsync(stoppingToken);
+				await _cryptoMarketDataProvider.ConnectAsync(new string[] { "BTC-USD" }, OnPriceReceivedAsync, ct);
 			}
-			catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
-				break;
+			catch (OperationCanceledException) when (ct.IsCancellationRequested) {
+				_logger.LogInformation("Bitcoin price broadcasting was canceled.");
 			}
 			catch (Exception ex) {
-				_logger.LogError(ex, "Error retrieving Bitcoin price.");
+				_logger.LogError(ex, "Bitcoin market data connection failed.");
 			}
 
-			await Task.Delay(_interval, stoppingToken);
+			_logger.LogInformation("Bitcoin Price Worker stopped.");
 		}
-
-		_logger.LogInformation("Bitcoin Price Worker stopped.");
 	}
 
-	private async Task UpdateBitcoinPriceAsync(CancellationToken ct) {
-		// Chame aqui o método que criamos no ICryptoMarketDataProvider.
-		// Exemplo:
-		//
-		// var price = await _cryptoMarketDataProvider.GetPriceAsync(..., ct);
-		// _logger.LogInformation("BTC price: {Price}", price);
+	private async Task OnPriceReceivedAsync(CryptoPriceResult price, CancellationToken ct) {
+		_logger.LogInformation("BTC price update: {@Price}", price);
+		await _hubContext.Clients.All.SendAsync("CryptoPriceUpdated", price, ct);
 	}
 }

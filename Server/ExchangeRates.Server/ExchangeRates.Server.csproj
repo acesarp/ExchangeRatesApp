@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="ExcelDataReader" Version="3.9.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.11" />
@@ -42,7 +44,9 @@
 		<None Include="appsettings.json" Link="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Include="Controllers\AdminController.cs" />
 		<None Include="Services\KrakenMarketDataService.cs" />
+		<None Include="wwwroot\SignalRTestPage.html" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -54,6 +58,10 @@
 
 	<ItemGroup>
 	  <Compile Remove="Services\KrakenMarketDataService.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Remove="wwwroot\SignalRTestPage.html" />
 	</ItemGroup>
 
 </Project>

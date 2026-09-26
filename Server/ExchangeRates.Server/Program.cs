@@ -3,6 +3,7 @@ using ExchangeRates.Infrastructure;
 using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
+using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
 using ExchangeRates.Server.Workers;
@@ -70,12 +71,16 @@ public class Program {
 			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
 
 			builder.Services.AddControllers()
-				.AddJsonOptions(options => {
-					options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-				});
+									.AddJsonOptions(options => {
+										options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+									});
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 			builder.Services.AddOpenApi();
-			builder.Services.AddHttpClient();
+
+			builder.Services.AddExchangeRatesAuthentication(builder.Configuration)
+										.AddEndpointsApiExplorer()
+										.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN")
+										.AddHttpClient();
 
 			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
@@ -83,16 +88,18 @@ public class Program {
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
 			builder.Services.AddScoped<CentralBankProviderFactory>();
 			builder.Services.AddSingleton<IKrakenMarketDataService, KrakenMarketDataService>();
+			builder.Services.AddSingleton<ICryptoMarketDataProvider, CoinbaseMarketDataProvider>();
 
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
 			builder.Services.AddCors(ob => {
 				ob.AddPolicy("Client", policy => {
-					policy.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
+					policy.AllowAnyOrigin()
+							.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
 						   .AllowAnyMethod()
 						   .AllowAnyHeader()
-						   .AllowCredentials();
+							.AllowCredentials();
 				});
 			});
 
@@ -107,18 +114,24 @@ public class Program {
 
 			// Configure the HTTP request pipeline.
 			//if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
-			app.MapOpenApi();
+			app.UseDeveloperExceptionPage();
 			app.UseSwagger();
 			app.UseSwaggerUI(options => {
 				options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
 				options.RoutePrefix = string.Empty;
 			});
+			app.MapSwaggerUI("Swag");
 			//}
 
+			app.UseStaticFiles();
 			app.UseHttpsRedirection();
+			app.UseAuthentication();
 			app.UseAuthorization();
+
 			app.MapControllers();
 			app.MapHub<HealthStatusHub>("/hubs/health");
+			app.MapHub<CryptoPriceHub>("/hubs/crypto");
+			app.MapOpenApi();
 
 			app.Run();
 		}

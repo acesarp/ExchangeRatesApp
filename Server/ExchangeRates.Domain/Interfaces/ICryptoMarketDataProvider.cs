@@ -5,5 +5,5 @@ namespace ExchangeRates.Domain.Interfaces;
 public interface ICryptoMarketDataProvider {
 	string Name { get; }
 
-	Task ConnectAsync(IEnumerable<string> symbols, Func<CryptoPriceResult, Task> onPriceReceived, CancellationToken ct);
+	Task ConnectAsync(IEnumerable<string> symbols, Func<CryptoPriceResult, CancellationToken, Task> onPriceReceived, CancellationToken ct);
 }

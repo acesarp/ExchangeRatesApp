@@ -27,7 +27,7 @@ public sealed class TestCentralBankProvider : ICentralBankProvider {
 
 	public int? Priority { get; set; } = 1;
 
-	protected CentralBankEntity Bank => new CentralBankEntity(BankCode, BankName, CountryOfOrigin, CurrencyId, true, DateTime.UtcNow);
+	public CentralBankEntity Bank => new CentralBankEntity(BankCode, BankName, CountryOfOrigin, CurrencyId, "https://example.com", true, DateTime.UtcNow);
 
 	public TestCentralBankProvider(
 		string code,

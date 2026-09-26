@@ -96,14 +96,6 @@ public class CentralBankProviderFactoryTests {
 	private static CentralBankEntity CreateBank(string bankCode, string currencyCode) {
 		var currency = new CurrencyEntity(currencyCode, 978, currencyCode, false, 1);
 
-		return new CentralBankEntity(
-			bankCode,
-			$"{bankCode} Test Bank",
-			"Test Country",
-			currency.Id,
-			true,
-			DateTime.UtcNow) {
-			NativeCurrency = currency
-		};
+		return new CentralBankEntity(bankCode, $"{bankCode} Test Bank", "Test Country", nativeCurrencyId: currency.Id, apiUrl: "https://example.com", isActive: true, createdAtUtc: DateTime.UtcNow, series: null);
 	}
 }

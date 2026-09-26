@@ -1,6 +1,6 @@
-﻿using ExchangeRates.Domain.Models;
-using ExchangeRates.Domain.Entities;
+﻿using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Domain.Models;
 
 using Microsoft.Extensions.Configuration;
 
@@ -27,10 +27,10 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 		// Initialize lazy-loaded configuration properties to avoid repeated GetSection calls
 		_supportedCurrencies = new Lazy<IReadOnlySet<string>>(() => Bank.SupportedCurrencies.Select(c => c.Currency.CurrencyCode).ToHashSet());
 
-		_historicCurrencies = new Lazy<List<string>>(() =>
-			Configuration.GetSection($"CentralBanks:{Bank.BankCode}:HistoricCurrencies").Get<List<string>>()
-			?? throw new InvalidOperationException($"Missing CentralBanks:{Bank.BankCode}:HistoricCurrencies configuration.")
-		);
+		_historicCurrencies = new Lazy<List<string>>(() => Bank.SupportedCurrencies.Where(c => c.Currency.IsHistoric)
+																					.Select(c => c.Currency.CurrencyCode)
+																					.ToList()
+																				);
 
 		_pivotCurrency = new Lazy<string>(() =>
 			Configuration.GetSection($"CentralBanks:{Bank.BankCode}:Priority")?.Value?.Trim()
@@ -56,6 +56,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public string PivotCurrency => _pivotCurrency.Value;
 	public List<string> HistoricCurrencies => _historicCurrencies.Value;
 	public IReadOnlySet<string> SupportedCurrencies => _supportedCurrencies.Value;
+	public IReadOnlySet<ProviderSeries>? Series => Bank.Series;
 
 	public bool Supports(string currency) {
 		return currency == Bank.BankCode || SupportedCurrencies.Contains(currency);

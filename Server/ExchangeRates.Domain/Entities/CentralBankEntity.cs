@@ -7,13 +7,15 @@ namespace ExchangeRates.Domain.Entities;
 public sealed class CentralBankEntity {
 	public CentralBankEntity() { }
 
-	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int nativeCurrencyId, bool isActive, DateTime createdAtUtc) {
+	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int nativeCurrencyId, string apiUrl, bool isActive, DateTime createdAtUtc, IReadOnlySet<ProviderSeries>? series = null) {
 		BankCode = bankCode;
 		BankName = bankName;
 		CountryOfOrigin = countryOfOrigin;
 		CurrencyId = nativeCurrencyId;
+		ApiUrl = apiUrl;
 		IsActive = isActive;
 		CreatedAtUtc = createdAtUtc;
+		Series = series;
 	}
 
 	/// <summary> Internal database identifier for the central bank </summary>
@@ -23,7 +25,7 @@ public sealed class CentralBankEntity {
 	/// <summary>
 	/// Unique code used to identify the central bank or exchange-rate provider (e.g. BOK, ECB, BOE).
 	/// </summary>
-	public string BankCode { get; set; } = null!;
+	public string BankCode { get; set; }
 
 	/// <summary>
 	/// Official name of the central bank or exchange-rate provider.
@@ -33,10 +35,10 @@ public sealed class CentralBankEntity {
 	/// <summary>
 	/// Country or territory where the central bank or provider originates.
 	/// </summary>
-	public string CountryOfOrigin { get; set; }
+	public string CountryOfOrigin { get; set; } = null!;
 
 	/// <summary> Base URL for the central bank's API </summary>
-	public string ApiUrl { get; set; }
+	public string ApiUrl { get; set; } = null!;
 
 	/// <summary> Foreign key identifying the bank's native currency. </summary>
 	[DisplayName("Native Currency Id")]
@@ -58,6 +60,8 @@ public sealed class CentralBankEntity {
 	/// </summary>
 	public int? Priority { get; set; }
 
+	[NotMapped]
+	public IReadOnlySet<ProviderSeries>? Series { get; set; }
 	/// <summary>
 	/// Navigation property representing the bank's native currency.
 	/// </summary>

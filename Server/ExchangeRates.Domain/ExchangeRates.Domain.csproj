@@ -9,12 +9,11 @@
 
   <ItemGroup>
     <Compile Remove="Constants\**" />
+    <Compile Remove="Views\**" />
     <EmbeddedResource Remove="Constants\**" />
+    <EmbeddedResource Remove="Views\**" />
     <None Remove="Constants\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Views\" />
+    <None Remove="Views\**" />
   </ItemGroup>
 
 </Project>
