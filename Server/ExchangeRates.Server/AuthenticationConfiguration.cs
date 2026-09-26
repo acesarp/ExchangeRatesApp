@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ExchangeRates.Server;
 
@@ -11,25 +12,32 @@ public static class AuthenticationConfiguration {
 			o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 			o.DefaultChallengeScheme = "oidc";
 		})
-					.AddOAuth("OAuth", o => o.CallbackPath = "/oauth/callback")
-					.AddCookie()
-					.AddOpenIdConnect("oidc", o => {
-						o.Authority = configuration["IdentityServer:Authority"];
-						o.ClientId = configuration["IdentityServer:ClientId"];
-						o.ClientSecret = configuration["IdentityServer:ClientSecret"];
-						o.ResponseType = "code";
-						o.SaveTokens = true;
-						o.GetClaimsFromUserInfoEndpoint = true;
-						o.Scope.Add("openid");
-						o.Scope.Add("profile");
-						o.Scope.Add("email");
-						o.Scope.Add("ExchangeRatesAPI");
-					})
-			.AddJwtBearer(o => {
-				o.Authority = configuration["IdentityServer:Authority"];
-				o.RequireHttpsMetadata = true;
-				o.Audience = "ExchangeRatesAPI";
-			});
+		//.AddOAuth("OAuth", o => o.CallbackPath = "/oauth/callback")
+		.AddCookie()
+		.AddOpenIdConnect("oidc", o => {
+			o.Authority = configuration["IdentityServer:Authority"];
+			o.ClientId = configuration["IdentityServer:ClientId"];
+			o.ClientSecret = configuration["IdentityServer:ClientSecret"];
+			o.ResponseType = "code";
+			o.SaveTokens = true;
+			o.GetClaimsFromUserInfoEndpoint = false;
+			o.Scope.Add("openid");
+			o.Scope.Add("profile");
+			o.Scope.Add("email");
+			o.Scope.Add($"api://{configuration["IdentityServer:ClientId"]}/access_as_user");
+			o.TokenValidationParameters.NameClaimType = "name";
+			//o.Scope.Add("access_as_user");
+		})
+		.AddJwtBearer(o => {
+			o.Authority = configuration["IdentityServer:Authority"];
+			o.Audience = configuration["IdentityServer:ClientId"];
+			o.RequireHttpsMetadata = true;
+			o.MapInboundClaims = false;
+			o.TokenValidationParameters.NameClaimType = "name";
+		});
+
+		Console.WriteLine($"Authority: {configuration["IdentityServer:Authority"]}");
+		Console.WriteLine($"ClientId: {configuration["IdentityServer:ClientId"]}");
 
 		AddExchangeRatesAuthorization(services);
 
@@ -38,8 +46,9 @@ public static class AuthenticationConfiguration {
 	private static IServiceCollection AddExchangeRatesAuthorization(this IServiceCollection services) {
 		services.AddAuthorizationBuilder()
 						.AddPolicy("ApiScope", policy => {
+							policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
 							policy.RequireAuthenticatedUser();
-							policy.RequireClaim("scope", "ExchangeRatesAPI");
+							policy.RequireClaim("scp", "access_as_user");
 						});
 
 		return services;

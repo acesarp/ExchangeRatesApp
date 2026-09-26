@@ -3,10 +3,8 @@ using ExchangeRates.Infrastructure;
 using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
-using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
-using ExchangeRates.Server.Workers;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +20,11 @@ public class Program {
 	public static void Main(string[] args) {
 		try {
 			var builder = WebApplication.CreateBuilder(args);
+			Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+			Console.WriteLine($"Authority: {builder.Configuration["IdentityServer:Authority"] ?? "NULL"}");
+			Console.WriteLine($"ClientId: {builder.Configuration["IdentityServer:ClientId"] ?? "NULL"}");
+			Console.WriteLine($"ClientSecret configured: {!string.IsNullOrWhiteSpace(builder.Configuration["IdentityServer:ClientSecret"])}");
+
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 
 			var loggerConfiguration = new LoggerConfiguration()
@@ -31,6 +34,7 @@ public class Program {
 				.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
 				.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 				.Enrich.FromLogContext()
+				.WriteTo.Console()
 				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
 
 			Exception? sqlSinkConfigurationException = null;
@@ -75,12 +79,11 @@ public class Program {
 										options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 									});
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-			builder.Services.AddOpenApi();
+			//builder.Services.AddOpenApi();
 
-			builder.Services.AddExchangeRatesAuthentication(builder.Configuration)
-										.AddEndpointsApiExplorer()
-										.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN")
-										.AddHttpClient();
+			builder.Services.AddExchangeRatesAuthentication(builder.Configuration);
+			builder.Services.AddAntiforgery(o => o.HeaderName = "X-XSRF-TOKEN");
+			builder.Services.AddHttpClient();
 
 			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
@@ -93,20 +96,19 @@ public class Program {
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			builder.Services.AddCors(ob => {
-				ob.AddPolicy("Client", policy => {
-					policy.AllowAnyOrigin()
-							.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
-						   .AllowAnyMethod()
-						   .AllowAnyHeader()
-							.AllowCredentials();
+			builder.Services.AddCors(o => {
+				o.AddPolicy("Client", policy => {
+					policy.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
+							.AllowAnyMethod()
+						   .AllowAnyHeader();
+
 				});
 			});
 
-			builder.Services.AddSignalR();
+			//builder.Services.AddSignalR();
 
-			builder.Services.AddHostedService<BitcoinPriceWorker>();
-			builder.Services.AddHostedService<HealthStatusWorker>();
+			//builder.Services.AddHostedService<BitcoinPriceWorker>();
+			//builder.Services.AddHostedService<HealthStatusWorker>();
 
 			var app = builder.Build();
 
@@ -120,7 +122,7 @@ public class Program {
 				options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
 				options.RoutePrefix = string.Empty;
 			});
-			app.MapSwaggerUI("Swag");
+			//app.MapSwaggerUI("Swag");
 			//}
 
 			app.UseStaticFiles();
@@ -129,8 +131,8 @@ public class Program {
 			app.UseAuthorization();
 
 			app.MapControllers();
-			app.MapHub<HealthStatusHub>("/hubs/health");
-			app.MapHub<CryptoPriceHub>("/hubs/crypto");
+			//app.MapHub<HealthStatusHub>("/hubs/health");
+			//app.MapHub<CryptoPriceHub>("/hubs/crypto");
 			app.MapOpenApi();
 
 			app.Run();

@@ -227,11 +227,4 @@ public sealed class ExchangeRateService : IExchangeRateService {
 		throw new NotImplementedException();
 	}
 
-	Task<IReadOnlyList<CurrencyModel>> IExchangeRateService.GetCurrenciesAsync(CancellationToken ct) {
-		throw new NotImplementedException();
-	}
-
-	Task<IReadOnlyList<CentralBankModel>> IExchangeRateService.GetCentralBanksAsync(CancellationToken ct) {
-		throw new NotImplementedException();
-	}
 }
