@@ -3,8 +3,10 @@ using ExchangeRates.Infrastructure;
 using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
+using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
+using ExchangeRates.Server.Workers;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -105,10 +107,10 @@ public class Program {
 				});
 			});
 
-			//builder.Services.AddSignalR();
+			builder.Services.AddSignalR();
 
-			//builder.Services.AddHostedService<BitcoinPriceWorker>();
-			//builder.Services.AddHostedService<HealthStatusWorker>();
+			builder.Services.AddHostedService<BitcoinPriceWorker>();
+			builder.Services.AddHostedService<HealthStatusWorker>();
 
 			var app = builder.Build();
 
@@ -131,8 +133,8 @@ public class Program {
 			app.UseAuthorization();
 
 			app.MapControllers();
-			//app.MapHub<HealthStatusHub>("/hubs/health");
-			//app.MapHub<CryptoPriceHub>("/hubs/crypto");
+			app.MapHub<HealthStatusHub>("/hubs/health");
+			app.MapHub<CryptoPriceHub>("/hubs/crypto");
 			app.MapOpenApi();
 
 			app.Run();

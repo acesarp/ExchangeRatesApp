@@ -12,13 +12,13 @@ export const loginRequest = {
     ]
 };
 
-const token = await instance.acquireTokenSilent({
-    ...loginRequest,
-    account: accounts[0]
-});
+// const token = await instance.acquireTokenSilent({
+//     ...loginRequest,
+//     account: accounts[0]
+// });
 
-const response = await fetch("/api/Admin/secure", {
-    headers: {
-        Authorization: `Bearer ${token.accessToken}`
-    }
-});
+// const response = await fetch("/api/Admin/secure", {
+//     headers: {
+//         Authorization: `Bearer ${token.accessToken}`
+//     }
+// });

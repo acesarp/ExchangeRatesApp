@@ -5,7 +5,9 @@ import CurrencyModel from './models/CurrencyModel';
 import ExchangeRateResult from './models/ExchangeRateResult';
 import './App.css';
 import DbHealthBar from './components/DbHealthBar';
-
+import CryptoFeedBar from './components/CryptoFeedBar';
+import { useMsal } from '@azure/msal-react';
+import { loginRequest } from './services/authConfig';
 
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
@@ -117,6 +119,10 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
 }
 
 function App() {
+    const { instance, accounts } = useMsal();
+    const login = () => instance.loginRedirect(loginRequest);
+    const logout = () => instance.logoutRedirect();
+
     const [environment, setEnvironment] = useState('');
     const [currencies, setCurrencies] = useState(/** @type {CurrencyModel[]} */ ([]));
     const [baseCurrency, setBaseCurrency] = useState('USD');
@@ -248,9 +254,15 @@ function App() {
         <h1>Exchange Rates</h1>
               <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
               <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
+              <div className="auth">
+                  {accounts.length === 0 ? (<button type="button" onClick={login}>Sign in</button>) :
+                      (<><span>Logged in as: {accounts[0].name}</span><button type="button" onClick={logout}>Sign out</button></>)
+                  }
+              </div>
       </header>
 
           <main className="content">
+			  <CryptoFeedBar />
             <DbHealthBar />
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
