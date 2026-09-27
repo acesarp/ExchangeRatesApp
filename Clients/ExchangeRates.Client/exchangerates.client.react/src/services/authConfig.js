@@ -11,14 +11,3 @@ export const loginRequest = {
         "api://78022d48-23c2-41e0-a1ec-04ee8956f07e/access_as_user"
     ]
 };
-
-// const token = await instance.acquireTokenSilent({
-//     ...loginRequest,
-//     account: accounts[0]
-// });
-
-// const response = await fetch("/api/Admin/secure", {
-//     headers: {
-//         Authorization: `Bearer ${token.accessToken}`
-//     }
-// });

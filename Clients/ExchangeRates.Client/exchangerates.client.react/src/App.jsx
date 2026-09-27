@@ -263,7 +263,7 @@ function App() {
 
           <main className="content">
 			  <CryptoFeedBar />
-            <DbHealthBar />
+             <DbHealthBar />
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
                 <div className="form-grid">

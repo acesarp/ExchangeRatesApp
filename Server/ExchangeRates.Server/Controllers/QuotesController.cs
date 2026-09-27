@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExchangeRates.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/")]
 public class QuotesController : ControllerBase {
 	private readonly IExchangeRateService _service;
 	private readonly IHealthStatusService _HealthCheckService;

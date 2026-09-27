@@ -1,26 +1,37 @@
 import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
-//import { dbServerHealthCheck } from '../services/healthCheckService'
-
+import { loginRequest } from '../services/authConfig.js'
+import { useMsal } from '@azure/msal-react';
 const HUB_BASE_URL = import.meta.env.VITE_HUB_BASE_URL || 'hubs';
 
 console.log('HUB_BASE_URL:', HUB_BASE_URL);
 
+// const response = await fetch("/api/Admin/secure", {
+//     headers: { Authorization: `Bearer ${token.accessToken}` }
+// });
+
 function CryptoFeedBar() {
     const [status, setStatus] = useState({ Symbol: '', Price: 0, TimestampUtc: new Date(), Provider: '' });
+    const { instance, accounts } = useMsal();
 
     async function fetchCryptoStatus() {
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${HUB_BASE_URL}/crypto`)
+            .withUrl(`${HUB_BASE_URL}/crypto`, {
+                accessTokenFactory: async () => {
+                    const response = await instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] });
+                    return response.accessToken;
+                }
+            })
             .withAutomaticReconnect()
             .build();
 
-        connection.on('CryptoValueChanged', crypto => {
+        connection.on('CryptoPriceUpdated', crypto => {
             console.log('Crypto -> ', crypto);
             setStatus(crypto);
         });
 
         await connection.start();
+        console.log("✅ SignalR connected:", connection.connectionId);
     }
 
     useEffect(() => {

@@ -18,7 +18,7 @@ public sealed class BitcoinPriceWorker : BackgroundService {
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken ct) {
-		_logger.LogInformation("Bitcoin Price Worker started using {Provider}.", _cryptoMarketDataProvider.Name);
+		//	_logger.LogInformation("Bitcoin Price Worker started using {Provider}.", _cryptoMarketDataProvider.Name);
 
 		while (!ct.IsCancellationRequested) {
 			try {
@@ -36,7 +36,7 @@ public sealed class BitcoinPriceWorker : BackgroundService {
 	}
 
 	private async Task OnPriceReceivedAsync(CryptoPriceResult price, CancellationToken ct) {
-		_logger.LogInformation("BTC price update: {@Price}", price);
+		//_logger.LogInformation("BTC price update: {@Price}", price);
 		await _hubContext.Clients.All.SendAsync("CryptoPriceUpdated", price, ct);
 	}
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { loginRequest } from '../services/authConfig.js'
+import { useMsal } from '@azure/msal-react';
 import { dbServerHealthCheck } from '../services/healthCheckService'
 import './DbHealthBar.css';
 
@@ -9,15 +11,21 @@ console.log('HUB_BASE_URL:', HUB_BASE_URL);
 
 function DbHealthBar() {
     const [status, setHealth] = useState({ canConnect: false, latencyMs: 0, error: '' });
+    const { instance, accounts } = useMsal();
 
     async function fetchHealthStatus() {
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${HUB_BASE_URL}/health`)
+            .withUrl(`${HUB_BASE_URL}/health`, {
+                accessTokenFactory: async () => {
+                    const response = await instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] });
+                    return response.accessToken;
+                }
+            })
             .withAutomaticReconnect()
             .build();
 
         connection.on('HealthStatusChanged', health => {
-            console.log('Health -> ', health);
+            //console.log('Health -> ', health);
             setHealth(health);
         });
 
