@@ -35,7 +35,7 @@ public sealed class BOCProvider : CentralBankProviderBase {
 		foreach (var observation in observations.EnumerateArray()) {
 			if (!observation.TryGetProperty("d", out var dateValue) ||
 				!DateOnly.TryParse(dateValue.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
-				!observation.TryGetProperty("FXUSDCAD", out var series) ||
+				!observation.TryGetProperty($"FX{quoteCurrency.ToUpperInvariant()}CAD", out var series) ||
 				!series.TryGetProperty("v", out var value) ||
 				!decimal.TryParse(value.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) ||
 				rate <= 0) {

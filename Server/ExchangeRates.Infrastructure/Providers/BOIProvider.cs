@@ -42,6 +42,7 @@ public sealed class BOIProvider : CentralBankProviderBase {
 
 		var headers = TextUtils.SplitCsv(lines[0]);
 		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+		var unitMultIndex = headers.FindIndex(x => x.Equals("UNIT_MULT", StringComparison.OrdinalIgnoreCase));
 
 		foreach (var line in lines.Skip(1)) {
 			var columns = TextUtils.SplitCsv(line);
@@ -82,6 +83,11 @@ public sealed class BOIProvider : CentralBankProviderBase {
 
 			if (rate <= 0) {
 				continue;
+			}
+
+			// UNIT_MULT is a power of ten: RER_JPY_ILS has UNIT_MULT=2, i.e. shekels per 100 yen.
+			if (unitMultIndex >= 0 && unitMultIndex < columns.Count && int.TryParse(columns[unitMultIndex], out var unitMult) && unitMult > 0) {
+				rate /= (decimal)Math.Pow(10, unitMult);
 			}
 
 			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));

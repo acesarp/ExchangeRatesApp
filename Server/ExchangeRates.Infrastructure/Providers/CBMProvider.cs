@@ -36,8 +36,15 @@ public sealed class CBMProvider : CentralBankProviderBase {
 				return results;
 			}
 
-			var dateStr = doc.RootElement.TryGetProperty("timestamp", out var t) ? t.GetString() : null;
-			var date = DateOnly.TryParse(dateStr, out var parsedDate) ? parsedDate : DateOnly.FromDateTime(DateTime.UtcNow);
+			// "timestamp": "1791187200" (unix seconds)
+			var date = doc.RootElement.TryGetProperty("timestamp", out var t) && long.TryParse(t.GetString(), out var seconds)
+				? DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime)
+				: DateOnly.FromDateTime(DateTime.UtcNow);
+
+			// Currencies with small unit values are quoted in kyat per 100 units.
+			if (PerHundredCurrencies.Contains(currencyCode)) {
+				rate /= 100m;
+			}
 
 			if (date < fromDate || date > toDate) {
 				return results;
@@ -51,5 +58,6 @@ public sealed class CBMProvider : CentralBankProviderBase {
 			return [];
 		}
 	}
-}
 
+	private static readonly HashSet<string> PerHundredCurrencies = new(StringComparer.OrdinalIgnoreCase) { "IDR", "JPY", "KHR", "KRW", "LAK", "VND" };
+}

@@ -61,7 +61,21 @@ public sealed class NBProvider : CentralBankProviderBase {
 				return results;
 			}
 
+			// Series attributes reference the structure's attribute values by index; UNIT_MULT is a power of ten (JPY: 2 = per 100 yen).
+			var seriesAttributes = structure.TryGetProperty("attributes", out var attributeGroups) && attributeGroups.TryGetProperty("series", out var attrs)
+				? attrs.EnumerateArray().ToList()
+				: [];
+			var unitMultPosition = seriesAttributes.FindIndex(a => a.TryGetProperty("id", out var id) && id.GetString() == "UNIT_MULT");
+
 			foreach (var seriesEntry in series.EnumerateObject()) {
+				var unitDivisor = 1m;
+
+				if (unitMultPosition >= 0 && seriesEntry.Value.TryGetProperty("attributes", out var attributeIndexes) && attributeIndexes.GetArrayLength() > unitMultPosition &&
+					attributeIndexes[unitMultPosition].ValueKind == JsonValueKind.Number &&
+					int.TryParse(seriesAttributes[unitMultPosition].GetProperty("values")[attributeIndexes[unitMultPosition].GetInt32()].GetProperty("id").GetString(), out var unitMult)) {
+					unitDivisor = (decimal)Math.Pow(10, unitMult);
+				}
+
 				if (!seriesEntry.Value.TryGetProperty("observations", out var observations)) {
 					continue;
 				}
@@ -95,7 +109,7 @@ public sealed class NBProvider : CentralBankProviderBase {
 						continue;
 					}
 
-					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / unitDivisor, Bank.BankCode));
 				}
 			}
 
