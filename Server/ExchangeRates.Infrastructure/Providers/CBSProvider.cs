@@ -10,6 +10,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Samoa
 /// </summary>
 public sealed class CBSProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<CBSProvider> _logger;
 	public CBSProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBSProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -44,7 +46,8 @@ public sealed class CBSProvider : CentralBankProviderBase {
 
 				var values = cells.Select(c => System.Net.WebUtility.HtmlDecode(c.InnerText).Trim()).ToArray();
 
-				if (!values[0].Contains(currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				// Currencies are listed by name, e.g. "United States Dollar | 0.36045" (foreign units per tala).
+				if (!CurrencyNames.TryGetValue(values[0], out var rowCurrency) || !string.Equals(rowCurrency, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 
@@ -65,5 +68,15 @@ public sealed class CBSProvider : CentralBankProviderBase {
 			return [];
 		}
 	}
-}
 
+	private static readonly Dictionary<string, string> CurrencyNames = new(StringComparer.OrdinalIgnoreCase) {
+		["United States Dollar"] = "USD",
+		["New Zealand Dollar"] = "NZD",
+		["Australian Dollar"] = "AUD",
+		["Euro"] = "EUR",
+		["Fijian Dollar"] = "FJD",
+		["Japanese Yen"] = "JPY",
+		["Great Britain Pound"] = "GBP",
+		["Chinese Yuan Onshore"] = "CNY"
+	};
+}

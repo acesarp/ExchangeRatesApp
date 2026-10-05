@@ -11,6 +11,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco Central do Brasil
 /// </summary>
 public sealed class BCBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BCBProvider> _logger;
 
 	public BCBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBProvider> logger) : base(http, bank, configuration) {
@@ -30,6 +32,11 @@ public sealed class BCBProvider : CentralBankProviderBase {
 		}
 
 		foreach (var row in values.EnumerateArray()) {
+			// Each day has opening and intermediate bulletins plus the closing one ("Fechamento"), which is the official PTAX rate.
+			if (!row.TryGetProperty("tipoBoletim", out var bulletin) || bulletin.GetString() != "Fechamento") {
+				continue;
+			}
+
 			var buy = GetDecimal(row, "cotacaoCompra");
 			var sell = GetDecimal(row, "cotacaoVenda");
 			var rate = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);

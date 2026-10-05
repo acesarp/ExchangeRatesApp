@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// National Bank of the Kyrgyz Republic
 /// </summary>
 public sealed class NBKRProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBKRProvider> _logger;
 	public NBKRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBKRProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -26,7 +28,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 			var results = new List<ExchangeRateResult>();
 			var dateStr = xdoc.Root?.Attribute("Date")?.Value;
 
-			if (dateStr is null || !DateOnly.TryParse(dateStr, CultureInfo.InvariantCulture, out var date)) {
+			if (dateStr is null || !DateOnly.TryParseExact(dateStr, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				return results;
 			}
 
@@ -35,7 +37,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 			}
 
 			var currencyCode = quoteCurrency;
-			var currencyNode = xdoc.Descendants("NativeCurrency").FirstOrDefault(c => string.Equals(c.Attribute("ISOCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
+			var currencyNode = xdoc.Descendants("Currency").FirstOrDefault(c => string.Equals(c.Attribute("ISOCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
 
 			if (currencyNode is null) {
 				return results;
@@ -44,7 +46,7 @@ public sealed class NBKRProvider : CentralBankProviderBase {
 			var valueStr = currencyNode.Element("Value")?.Value;
 			var nominalStr = currencyNode.Element("Nominal")?.Value;
 
-			if (valueStr is null || !decimal.TryParse(valueStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) || value <= 0) {
+			if (valueStr is null || !decimal.TryParse(valueStr.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) || value <= 0) {
 				return results;
 			}
 

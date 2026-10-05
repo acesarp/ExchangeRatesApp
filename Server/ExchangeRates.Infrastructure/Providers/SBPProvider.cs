@@ -10,6 +10,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// State Bank of Pakistan
 /// </summary>
 public sealed class SBPProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<SBPProvider> _logger;
 	public SBPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBPProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

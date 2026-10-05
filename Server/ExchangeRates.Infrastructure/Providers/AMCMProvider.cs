@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Monetary Authority of Macao
 /// </summary>
 public sealed class AMCMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<AMCMProvider> _logger;
 	public AMCMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AMCMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -28,8 +30,19 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 		}
 
 		foreach (var row in data.EnumerateArray()) {
-			var bankCode = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
-			if (string.IsNullOrWhiteSpace(bankCode)) {
+			// Rows hold every currency per day: { "date": "2026-09-30 00:00:00", "currency": "JPY", "unit": 100, "usdMeanValue": 5.1438 } (MOP per unit)
+			var currencyCode = row.TryGetProperty("currency", out var c) ? c.GetString() : null;
+			if (!string.Equals(currencyCode, quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
+				continue;
+			}
+
+			if (!row.TryGetProperty("date", out var dateProp) || !DateTime.TryParse(dateProp.GetString(), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var dateTime)) {
+				continue;
+			}
+
+			var date = DateOnly.FromDateTime(dateTime);
+
+			if (date < fromDate || date > toDate) {
 				continue;
 			}
 
@@ -39,7 +52,7 @@ public sealed class AMCMProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(fromDate, quoteCurrency!, Bank.NativeCurrency.CurrencyCode, value / unit, bankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, value / unit, Bank.BankCode));
 		}
 		return rates;
 	}

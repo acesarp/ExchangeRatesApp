@@ -13,14 +13,16 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Federal Reserve Bank of St. Louis
 /// </summary>
 public sealed class FREDProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<FREDProvider> _logger;
 	public FREDProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FREDProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var series = base.Series.FirstOrDefault(s => s.Currency == quoteCurrency);
-		if (series == default) {
+		var seriesId = Bank.SupportedCurrencies.FirstOrDefault(s => s.Currency.CurrencyCode == quoteCurrency)?.ProviderSeriesId;
+		if (string.IsNullOrWhiteSpace(seriesId)) {
 			_logger.LogWarning("FRED series not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return Array.Empty<ExchangeRateResult>();
 		}
@@ -32,7 +34,7 @@ public sealed class FREDProvider : CentralBankProviderBase {
 		}
 
 		var url = $"{ApiUrl}" +
-			$"?series_id={series.SeriesId}" +
+			$"?series_id={seriesId}" +
 			$"&api_key={Uri.EscapeDataString(apiKey)}" +
 			"&file_type=json" +
 			$"&observation_start={fromDate:yyyy-MM-dd}" +
@@ -56,7 +58,8 @@ public sealed class FREDProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (series.Invert) {
+			// DEXUS{XX} series are quoted as USD per foreign unit; flip them to foreign units per USD like the DEX{XX}US series.
+			if (seriesId.StartsWith("DEXUS", StringComparison.OrdinalIgnoreCase)) {
 				rate = 1m / rate;
 			}
 

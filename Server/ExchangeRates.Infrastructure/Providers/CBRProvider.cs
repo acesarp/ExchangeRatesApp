@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Russia
 /// </summary>
 public sealed class CBRProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBRProvider> _logger;
 	public CBRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBRProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -25,10 +27,18 @@ public sealed class CBRProvider : CentralBankProviderBase {
 				return [];
 			}
 
-			var currencyCode = quoteCurrency;
-			var uri = $"{historicalUrl}?date_req1={fromDate:dd/MM/yyyy}&date_req2={toDate:dd/MM/yyyy}&VAL_NM_RQ={currencyCode}";
-			var xml = await Http.GetStringAsync(uri, ct);
-			var xdoc = XDocument.Parse(xml);
+			// XML_dynamic takes the CBR internal currency id (e.g. R01235 for USD), not the ISO code; look it up from the daily list.
+			var dailyXml = XDocument.Parse(await GetWindows1251StringAsync(ApiUrl, ct));
+			var currencyId = dailyXml.Descendants("Valute")
+									.FirstOrDefault(v => string.Equals(v.Element("CharCode")?.Value, quoteCurrency, StringComparison.OrdinalIgnoreCase))?
+									.Attribute("ID")?.Value;
+
+			if (currencyId is null) {
+				return [];
+			}
+
+			var uri = $"{historicalUrl}?date_req1={fromDate:dd'/'MM'/'yyyy}&date_req2={toDate:dd'/'MM'/'yyyy}&VAL_NM_RQ={currencyId}";
+			var xdoc = XDocument.Parse(await GetWindows1251StringAsync(uri, ct));
 
 			var results = new List<ExchangeRateResult>();
 
@@ -65,6 +75,13 @@ public sealed class CBRProvider : CentralBankProviderBase {
 			_logger.LogWarning(ex, "Failed to fetch CBR rates.");
 			return [];
 		}
+	}
+
+	private async Task<string> GetWindows1251StringAsync(string url, CancellationToken ct) {
+		// CBR responds in windows-1251, which .NET doesn't decode without the code pages provider.
+		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+		var bytes = await Http.GetByteArrayAsync(url, ct);
+		return System.Text.Encoding.GetEncoding(1251).GetString(bytes);
 	}
 }
 

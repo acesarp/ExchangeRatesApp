@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Israel
 /// </summary>
 public sealed class BOIProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOIProvider> _logger;
 	public BOIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOIProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -64,6 +66,10 @@ public sealed class BOIProvider : CentralBankProviderBase {
 			}
 
 			var currency = parts[1];
+
+			if (!currency.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
+				continue;
+			}
 			var rateText = columns.LastOrDefault(x => decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
 
 			if (rateText is null) {

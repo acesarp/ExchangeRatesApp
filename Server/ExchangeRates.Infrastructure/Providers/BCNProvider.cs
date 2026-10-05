@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco Central de Nicaragua
 /// </summary>
 public sealed class BCNProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BCNProvider> _logger;
 
 	public BCNProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCNProvider> logger) : base(http, bank, configuration) {
@@ -27,39 +29,42 @@ public sealed class BCNProvider : CentralBankProviderBase {
 
 		var results = new List<ExchangeRateResult>();
 
+		// RecuperaTC_Dia(Ano, Mes, Dia) returns the official NIO/USD rate for one calendar day.
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
 			try {
 				var soapEnvelope = $"""
 					<?xml version="1.0" encoding="utf-8"?>
-					<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+					<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 						<soap:Body>
-							<obtenerTipoCambio xmlns="http://tempuri.org/">
-								<Fecha>{date:yyyy-MM-dd}</Fecha>
-							</obtenerTipoCambio>
+							<RecuperaTC_Dia xmlns="http://servicios.bcn.gob.ni/">
+								<Ano>{date.Year}</Ano>
+								<Mes>{date.Month}</Mes>
+								<Dia>{date.Day}</Dia>
+							</RecuperaTC_Dia>
 						</soap:Body>
 					</soap:Envelope>
 					""";
 
-				using var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
-				using var response = await Http.PostAsync(ApiUrl, content, ct);
+				using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl) {
+					Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml")
+				};
+				request.Headers.TryAddWithoutValidation("SOAPAction", "\"http://servicios.bcn.gob.ni/RecuperaTC_Dia\"");
+				using var response = await Http.SendAsync(request, ct);
 
 				if (!response.IsSuccessStatusCode) {
 					continue;
 				}
 
-				var xml = await response.Content.ReadAsStringAsync(ct);
-				var document = XDocument.Parse(xml);
-				var value = document.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("obtenerTipoCambioResult", StringComparison.OrdinalIgnoreCase))?.Value;
+				var document = XDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+				var value = document.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("RecuperaTC_DiaResult", StringComparison.OrdinalIgnoreCase))?.Value;
 
 				if (value is null || !decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
 
-
-
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
-			catch (Exception ex) {
+			catch (Exception ex) when (ex is not OperationCanceledException) {
 				_logger.LogWarning(ex, "Failed to fetch BCN rate for {Date}", date);
 			}
 		}

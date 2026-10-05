@@ -9,6 +9,8 @@ using System.Text.Json;
 namespace ExchangeRates.Infrastructure.Providers;
 
 public sealed class BOKProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOKProvider> _logger;
 	public BOKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOKProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -25,7 +27,7 @@ public sealed class BOKProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
 		if (string.IsNullOrWhiteSpace(ApiKey)) {
-			throw new InvalidOperationException($"Missing CentralBanks:{Bank.NativeCurrency.CurrencyCode}:ApiKey configuration.");
+			throw new InvalidOperationException($"Missing ProviderKeys:{Bank.BankCode} configuration.");
 		}
 
 		var day = fromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture);

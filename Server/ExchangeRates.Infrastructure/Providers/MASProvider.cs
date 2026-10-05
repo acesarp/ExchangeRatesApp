@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Monetary Authority of Singapore
 /// </summary>
 public sealed class MASProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<MASProvider> _logger;
 	public MASProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MASProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

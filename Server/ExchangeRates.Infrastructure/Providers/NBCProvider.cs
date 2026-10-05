@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// National Bank of Cambodia
 /// </summary>
 public sealed class NBCProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBCProvider> _logger;
 	public NBCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBCProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

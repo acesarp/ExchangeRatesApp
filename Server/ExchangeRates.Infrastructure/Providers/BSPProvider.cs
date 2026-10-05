@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bangko Sentral ng Pilipinas
 /// </summary>
 public sealed class BSPProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BSPProvider> _logger;
 
 	public BSPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BSPProvider> logger) : base(http, bank, configuration) {
@@ -41,7 +43,7 @@ public sealed class BSPProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			foreach (var item in items.EnumerateArray()) {
-				var bankCurrencyCode = item.TryGetProperty("NativeCurrency", out var c) ? c.GetString() : null;
+				var bankCurrencyCode = item.TryGetProperty("Currency", out var c) ? c.GetString() : null;
 
 				if (!string.Equals(bankCurrencyCode, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;

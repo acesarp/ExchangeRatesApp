@@ -84,12 +84,11 @@ public sealed class ExchangeRateService : IExchangeRateService {
 				await _repository.AddUnavailableDatesAsync(missingdatesToSave, ct);
 
 				var ratesForDbToSave = await OrientToCanonical(rates, ct);
-				var currencyEntities = await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct);
+				var currencyIds = (await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct))
+										.ToDictionary(x => x.CurrencyCode, x => x.Id);
 
-				var baseCurrencyId = currencyEntities.First(x => x.CurrencyCode == baseCurrency).Id;
-				var quoteCurrencyId = currencyEntities.First(x => x.CurrencyCode == quoteCurrency).Id;
-
-				var rst = await _repository.AddRangeAsync(ratesForDbToSave.Select(x => ExchangeRateMapper.ToEntity(x, baseCurrencyId, quoteCurrencyId)), ct);
+				// OrientToCanonical may have swapped base and quote (and inverted the rate), so store each row under its own currencies.
+				var rst = await _repository.AddRangeAsync(ratesForDbToSave.Select(x => ExchangeRateMapper.ToEntity(x, currencyIds[x.BaseCurrency], currencyIds[x.QuoteCurrency])), ct);
 
 				_logger.LogInformation("Saved {Count} new rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", rst, baseCurrency, quoteCurrency, fromDate, toDate);
 

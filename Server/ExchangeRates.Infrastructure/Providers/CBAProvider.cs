@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Armenia
 /// </summary>
 public sealed class CBAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBAProvider> _logger;
 
 	public CBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBAProvider> logger) : base(http, bank, configuration) {
@@ -26,8 +28,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 			return [];
 		}
 
-		var isoCodes = string.Join(",", SupportedCurrencies.Where(c => c != Bank.NativeCurrency.CurrencyCode)
-																															.Select(c => c.ToString()));
+		var isoCodes = quoteCurrency.ToUpperInvariant();
 
 		var soap = $"""
 			<?xml version="1.0" encoding="utf-8"?>
@@ -55,16 +56,17 @@ public sealed class CBAProvider : CentralBankProviderBase {
 		var document = XDocument.Parse(xml);
 		var rates = new List<ExchangeRateResult>();
 
-		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "ExchangeRate")) {
+		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "ExchangeRatesByRange")) {
 			var iso = row.Elements().FirstOrDefault(x => x.Name.LocalName == "ISO")?.Value;
 			var amountText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "Amount")?.Value;
 			var rateText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "Rate")?.Value;
 
 			var dateText =
+				row.Elements().FirstOrDefault(x => x.Name.LocalName == "RateDate")?.Value ??
 				row.Elements().FirstOrDefault(x => x.Name.LocalName == "Date")?.Value ??
 				row.Elements().FirstOrDefault(x => x.Name.LocalName == "CurrentDate")?.Value;
 
-			if (string.IsNullOrWhiteSpace(iso) ||
+			if (!string.Equals(iso?.Trim(), quoteCurrency, StringComparison.OrdinalIgnoreCase) ||
 				!decimal.TryParse(amountText, NumberStyles.Any, CultureInfo.InvariantCulture, out var amount) ||
 				!decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) ||
 				!DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
@@ -73,7 +75,7 @@ public sealed class CBAProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), iso, Bank.NativeCurrency.CurrencyCode, rate / amount, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / amount, Bank.BankCode));
 		}
 
 		return rates;

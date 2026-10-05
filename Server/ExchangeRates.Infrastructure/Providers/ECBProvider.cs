@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// European Central Bank
 /// </summary>
 public sealed class ECBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<ECBProvider> _logger;
 	public ECBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<ECBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

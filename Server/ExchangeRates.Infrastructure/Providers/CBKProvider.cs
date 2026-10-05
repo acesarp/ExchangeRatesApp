@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Kenya
 /// </summary>
 public sealed class CBKProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBKProvider> _logger;
 
 	public CBKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBKProvider> logger) : base(http, bank, configuration) {

@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Sri Lanka
 /// </summary>
 public sealed class CBSLProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBSLProvider> _logger;
 
 	public CBSLProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBSLProvider> logger) : base(http, bank, configuration) {

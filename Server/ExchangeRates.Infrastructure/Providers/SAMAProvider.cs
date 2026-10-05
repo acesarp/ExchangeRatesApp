@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary> Saudi Central Bank </summary>
 public sealed class SAMAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<SAMAProvider> _logger;
 
 	private static readonly IReadOnlyDictionary<string, string> CurrencyMap = new Dictionary<string, string> {

@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Reserve Bank of Malawi
 /// </summary>
 public sealed class RBMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<RBMProvider> _logger;
 	public RBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

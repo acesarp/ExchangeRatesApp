@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco Central del Uruguay
 /// </summary>
 public sealed class BCUProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BCUProvider> _logger;
 
 	public BCUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCUProvider> logger) : base(http, bank, configuration) {
@@ -21,61 +23,56 @@ public sealed class BCUProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		// BCU identifies currencies by its own numeric codes; 2225 = US dollar (billete).
 		if (quoteCurrency != "USD") {
 			return [];
 		}
 
 		var results = new List<ExchangeRateResult>();
 
-		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-			try {
-				var soapEnvelope = $"""
-					<?xml version="1.0" encoding="utf-8"?>
-					<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-						<soap:Body>
-							<wsawsbcuC xmlns="Cotizaciones">
-								<Entrada>
-									<Moneda><item>0</item></Moneda>
-									<FechaDesde>{date:dd/MM/yyyy}</FechaDesde>
-									<FechaHasta>{date:dd/MM/yyyy}</FechaHasta>
-									<Grupo>0</Grupo>
-								</Entrada>
-							</wsawsbcuC>
-						</soap:Body>
-					</soap:Envelope>
-					""";
+		try {
+			var soapEnvelope = $"""
+				<?xml version="1.0" encoding="utf-8"?>
+				<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cot="Cotiza">
+					<soap:Body>
+						<cot:wsbcucotizaciones.Execute>
+							<cot:Entrada>
+								<cot:Moneda><cot:item>2225</cot:item></cot:Moneda>
+								<cot:FechaDesde>{fromDate:yyyy-MM-dd}</cot:FechaDesde>
+								<cot:FechaHasta>{toDate:yyyy-MM-dd}</cot:FechaHasta>
+								<cot:Grupo>0</cot:Grupo>
+							</cot:Entrada>
+						</cot:wsbcucotizaciones.Execute>
+					</soap:Body>
+				</soap:Envelope>
+				""";
 
-				using var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
-				using var response = await Http.PostAsync(ApiUrl, content, ct);
+			using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl) {
+				Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml")
+			};
+			request.Headers.TryAddWithoutValidation("SOAPAction", "\"Cotizaaction/AWSBCUCOTIZACIONES.Execute\"");
+			using var response = await Http.SendAsync(request, ct);
+			response.EnsureSuccessStatusCode();
 
-				if (!response.IsSuccessStatusCode) {
+			var document = XDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+
+			// <datoscotizaciones.dato><Fecha>2026-09-29</Fecha><Moneda>2225</Moneda><TCV>40.237</TCV></datoscotizaciones.dato>
+			foreach (var item in document.Descendants().Where(e => e.Name.LocalName.Equals("datoscotizaciones.dato", StringComparison.OrdinalIgnoreCase))) {
+				string? Value(string name) => item.Elements().FirstOrDefault(e => e.Name.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase))?.Value;
+
+				if (!DateOnly.TryParse(Value("Fecha"), CultureInfo.InvariantCulture, out var date) || date < fromDate || date > toDate) {
 					continue;
 				}
 
-				var xml = await response.Content.ReadAsStringAsync(ct);
-				var document = XDocument.Parse(xml);
-
-				foreach (var item in document.Descendants().Where(e => e.Name.LocalName.Equals("datoscotizaciones", StringComparison.OrdinalIgnoreCase))) {
-					var nombre = item.Elements().FirstOrDefault(e => e.Name.LocalName.Equals("Nombre", StringComparison.OrdinalIgnoreCase))?.Value;
-
-					if (nombre is null || !nombre.Contains(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
-						continue;
-					}
-
-					var tcvValue = item.Elements().FirstOrDefault(e => e.Name.LocalName.Equals("TCV", StringComparison.OrdinalIgnoreCase))?.Value;
-
-					if (tcvValue is null || !decimal.TryParse(tcvValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
-						continue;
-					}
-
-
-
-					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				if (!decimal.TryParse(Value("TCV"), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+					continue;
 				}
+
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
-			catch (Exception ex) {
-				_logger.LogWarning(ex, "Failed to fetch BCU rate for {Date}", date);
-			}
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException) {
+			_logger.LogWarning(ex, "Failed to fetch BCU rates for {FromDate}-{ToDate}", fromDate, toDate);
 		}
 
 		return results;

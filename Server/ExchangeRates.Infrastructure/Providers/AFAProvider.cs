@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// so this provider mirrors the same CSV data endpoint contract as <see cref="ECBProvider"/>.
 /// </summary>
 public sealed class AFAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<AFAProvider> _logger;
 	public AFAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<AFAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

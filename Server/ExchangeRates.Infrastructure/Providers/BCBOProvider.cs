@@ -15,6 +15,8 @@ using System.Globalization;
 /// Banco Central de Bolivia
 /// </summary>
 public sealed class BCBOProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<BCBOProvider> _logger;
 
 	public BCBOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBOProvider> logger) : base(http, bank, configuration) {

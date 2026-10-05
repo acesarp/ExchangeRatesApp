@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Jamaica
 /// </summary>
 public sealed class BOJAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOJAProvider> _logger;
 
 	public BOJAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJAProvider> logger) : base(http, bank, configuration) {

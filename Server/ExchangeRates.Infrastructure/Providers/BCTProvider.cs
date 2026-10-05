@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banque Centrale de Tunisie
 /// </summary>
 public sealed class BCTProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BCTProvider> _logger;
 
 	public BCTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCTProvider> logger) : base(http, bank, configuration) {

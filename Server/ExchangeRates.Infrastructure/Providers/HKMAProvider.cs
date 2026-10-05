@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Hong Kong Monetary Authority
 /// </summary>
 public sealed class HKMAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<HKMAProvider> _logger;
 	public HKMAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<HKMAProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

@@ -10,6 +10,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Algeria
 /// </summary>
 public sealed class BOAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOAProvider> _logger;
 
 	public BOAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOAProvider> logger) : base(http, bank, configuration) {

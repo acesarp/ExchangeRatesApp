@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Swiss National Bank
 /// </summary>
 public sealed class SNBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<SNBProvider> _logger;
 	private Dictionary<string, (string SeriesCode, decimal Units)>? _series;
 

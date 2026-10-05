@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of the United Arab Emirates
 /// </summary>
 public sealed class CBUAEProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBUAEProvider> _logger;
 
 	public CBUAEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBUAEProvider> logger) : base(http, bank, configuration) {
@@ -21,7 +23,12 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 
-		if (!CurrencyMap.TryGetValue(quoteCurrency, out var currencyName)) {
+		// CurrencyMap is keyed by the Arabic name shown on the page; a currency can appear under more than one name.
+		var currencyNames = CurrencyMap.Where(x => x.Value.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase))
+										.Select(x => x.Key)
+										.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+		if (currencyNames.Count == 0) {
 			_logger.LogDebug("NativeCurrency {NativeCurrency} is not supported by CBUAE.", quoteCurrency);
 			return [];
 		}
@@ -29,7 +36,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 		var results = new List<ExchangeRateResult>();
 
 		for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-			var result = await FetchDateAsync(date, quoteCurrency, currencyName, ct);
+			var result = await FetchDateAsync(date, quoteCurrency, currencyNames, ct);
 
 			if (result is not null) {
 				results.Add(result);
@@ -39,7 +46,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 		return results;
 	}
 
-	private async Task<ExchangeRateResult?> FetchDateAsync(DateOnly date, string quoteCurrency, string currencyName, CancellationToken ct) {
+	private async Task<ExchangeRateResult?> FetchDateAsync(DateOnly date, string quoteCurrency, IReadOnlySet<string> currencyNames, CancellationToken ct) {
 
 		var url = $"{ApiUrl.TrimEnd('/')}/GetExchangeRateAllCurrencyDate?dateTime={date:yyyy-MM-dd}";
 
@@ -77,7 +84,7 @@ public sealed class CBUAEProvider : CentralBankProviderBase {
 			var name = Clean(cells[^2].InnerText);
 			var rateText = Clean(cells[^1].InnerText);
 
-			if (!name.Equals(currencyName, StringComparison.OrdinalIgnoreCase)) {
+			if (!currencyNames.Contains(name)) {
 				continue;
 			}
 

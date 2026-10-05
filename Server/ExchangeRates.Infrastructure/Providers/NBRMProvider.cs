@@ -1,5 +1,7 @@
 
-using System.Text.Json;
+using System.Text.Json;
+using System.Globalization;
+using System.Xml.Linq;
 
 using ExchangeRates.Domain.Entities;
 
@@ -12,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Narodna Banka na Republika Severna Makedonija
 /// </summary>
 public sealed class NBRMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBRMProvider> _logger;
 
 	public NBRMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBRMProvider> logger) : base(http, bank, configuration) {
@@ -20,32 +24,40 @@ public sealed class NBRMProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = $"{ApiUrl}?startDate={fromDate:yyyy-MM-dd}&endDate={toDate:yyyy-MM-dd}&currencyCode={currencyCode}";
-			var json = await Http.GetStringAsync(uri, ct);
-			using var doc = JsonDocument.Parse(json);
+			var uri = $"{ApiUrl}?startDate={fromDate:dd.MM.yyyy}&endDate={toDate:dd.MM.yyyy}&currencyCode={currencyCode}";
+			var xml = await Http.GetStringAsync(uri, ct);
+
+			// The prolog declares utf-16 but the body is utf-8; loading from a string reader ignores the declared encoding.
+			using var reader = new StringReader(xml);
+			var xdoc = XDocument.Load(reader);
 
 			var results = new List<ExchangeRateResult>();
 
-			if (doc.RootElement.ValueKind != JsonValueKind.Array) {
-				return results;
-			}
-
-			foreach (var item in doc.RootElement.EnumerateArray()) {
-				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+			// The service returns every currency for the range, so filter on the ISO code (Oznaka).
+			foreach (var item in xdoc.Descendants("GetExchangeRate")) {
+				if (!string.Equals(item.Element("Oznaka")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
+
+				if (!DateTime.TryParse(item.Element("Datum")?.Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime)) {
+					continue;
+				}
+
+				var date = DateOnly.FromDateTime(dateTime);
 
 				if (date < fromDate || date > toDate) {
 					continue;
 				}
 
-				var rate = GetDecimal(item, "middleRate");
-
-				if (rate <= 0) {
+				if (!decimal.TryParse(item.Element("Sreden")?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
 
-				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+				if (!decimal.TryParse(item.Element("Nomin")?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var nominal) || nominal <= 0) {
+					nominal = 1m;
+				}
+
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / nominal, Bank.BankCode));
 			}
 
 			return results;

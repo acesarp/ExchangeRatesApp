@@ -2,17 +2,17 @@
 using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Entities;
 
-using HtmlAgilityPack;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using System.Globalization;
-using System.Net;
+using System.Text.Json;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary> Financial Benchmarks India </summary>
 public sealed class FBILProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<FBILProvider> _logger;
 
 	public FBILProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<FBILProvider> logger) : base(http, bank, configuration) {
@@ -20,80 +20,62 @@ public sealed class FBILProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var uri = $"{ApiUrl}?fromDate={fromDate:dd-MM-yyyy}&toDate={toDate:dd-MM-yyyy}";
+		var uri = $"{ApiUrl}?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}&authenticated=false";
 		using var response = await Http.GetAsync(uri, ct);
 		response.EnsureSuccessStatusCode();
-
-		var html = await response.Content.ReadAsStringAsync(ct);
-		return ExtractTable(html, quoteCurrency, fromDate, toDate);
-	}
-
-	private IReadOnlyList<ExchangeRateResult> ExtractTable(string html, string quoteCurrency, DateOnly fromDate, DateOnly toDate) {
-		var document = new HtmlDocument();
-		document.LoadHtml(html);
+		using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
 		var results = new List<ExchangeRateResult>();
-		var rows = document.DocumentNode.SelectNodes("//table//tr");
 
-		if (rows is null) {
+		if (doc.RootElement.ValueKind != JsonValueKind.Array) {
 			return results;
 		}
 
-		foreach (var row in rows) {
-			var cells = row.SelectNodes("./td");
-
-			if (cells is null || cells.Count < 4) {
+		// [{ "processRunDate": "2026-09-28 00:00:00", "subProdName": "INR / 1 USD", "rate": 95.9681 }, ...]
+		foreach (var item in doc.RootElement.EnumerateArray()) {
+			if (!TryGetCurrency(item.TryGetProperty("subProdName", out var name) ? name.GetString() : null, out var currency, out var unitMultiplier) ||
+				!string.Equals(currency, quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 
-			var values = cells.Select(cell => WebUtility.HtmlDecode(cell.InnerText).Trim()).ToArray();
-
-			if (!DateOnly.TryParseExact(values[0], "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+			if (!item.TryGetProperty("processRunDate", out var dateProp) ||
+				!DateTime.TryParse(dateProp.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime)) {
 				continue;
 			}
+
+			var date = DateOnly.FromDateTime(dateTime);
 
 			if (date < fromDate || date > toDate) {
 				continue;
 			}
 
-			if (!TryGetCurrency(values[2], out var currency, out var unitMultiplier)) {
+			var rate = GetDecimal(item, "rate");
+
+			if (rate <= 0) {
 				continue;
 			}
 
-			if (currency != quoteCurrency) {
-				continue;
-			}
-
-			if (!decimal.TryParse(values[3], NumberStyles.Number, CultureInfo.InvariantCulture, out var rate)) {
-				continue;
-			}
-
-			rate /= unitMultiplier;
-
-			results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+			results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / unitMultiplier, Bank.BankCode));
 		}
 
 		return results;
 	}
 
-	private static bool TryGetCurrency(string currencyPair, out string currency, out decimal multiplier) {
-		currency = default;
+	/// <summary>
+	/// Parses FBIL product names such as "INR / 1 USD" or "INR / 100 JPY" into the currency and its quotation unit.
+	/// </summary>
+	private static bool TryGetCurrency(string? currencyPair, out string currency, out decimal multiplier) {
+		currency = string.Empty;
 		multiplier = 1m;
 
-		return currencyPair switch {
-			"INR / 1 USD" => Set("USD", 1m, out currency, out multiplier),
-			"INR / 1 GBP" => Set("GBP", 1m, out currency, out multiplier),
-			"INR / 1 EUR" => Set("EUR", 1m, out currency, out multiplier),
-			"INR / 100 JPY" => Set("JPY", 100m, out currency, out multiplier),
-			"INR / 1 AED" => Set("AED", 1m, out currency, out multiplier),
-			"INR / 10000 IDR" => Set("IDR", 10_000m, out currency, out multiplier),
-			_ => false
-		};
-	}
+		var parts = currencyPair?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-	private static bool Set(string value, decimal valueMultiplier, out string currency, out decimal multiplier) {
-		currency = value;
-		multiplier = valueMultiplier;
+		// ["INR", "/", "100", "JPY"]
+		if (parts is not { Length: 4 } || parts[1] != "/" || !decimal.TryParse(parts[2], NumberStyles.Number, CultureInfo.InvariantCulture, out multiplier) || multiplier <= 0) {
+			return false;
+		}
+
+		currency = parts[3];
 		return true;
 	}
 }

@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco Central de Cuba
 /// </summary>
 public sealed class BCCProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BCCProvider> _logger;
 	public BCCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

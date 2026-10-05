@@ -9,65 +9,51 @@ using ExchangeRates.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ExchangeRates.Domain.Models;
+using System.Xml.Linq;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>
 /// National Bank of Moldova
 /// </summary>
 public sealed class NBMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBMProvider> _logger;
 	public NBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		try {
-			var html = await Http.GetStringAsync(ApiUrl, ct);
-			var document = new HtmlDocument();
-			document.LoadHtml(html);
+		var results = new List<ExchangeRateResult>();
 
-			var results = new List<ExchangeRateResult>();
-			var rows = document.DocumentNode.SelectNodes("//table//tr");
+		// The official rates are published as XML per date: ?get_xml=1&date=dd.MM.yyyy
+		// <ValCurs Date="01.10.2026"><Valute><CharCode>USD</CharCode><Nominal>1</Nominal><Value>17.43</Value></Valute></ValCurs>
+		for (var day = fromDate; day <= toDate; day = day.AddDays(1)) {
+			try {
+				var xml = await Http.GetStringAsync($"{ApiUrl}?get_xml=1&date={day:dd.MM.yyyy}", ct);
+				var xdoc = System.Xml.Linq.XDocument.Parse(xml);
 
-			if (rows is null) {
-				return results;
-			}
-
-			var currencyCode = quoteCurrency;
-			var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-			if (today < fromDate || today > toDate) {
-				return results;
-			}
-
-			foreach (var row in rows) {
-				var cells = row.SelectNodes("./td");
-
-				if (cells is null || cells.Count < 3) {
+				if (!DateOnly.TryParseExact(xdoc.Root?.Attribute("Date")?.Value, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) || date != day) {
 					continue;
 				}
 
-				var values = cells.Select(c => WebUtility.HtmlDecode(c.InnerText).Trim()).ToArray();
+				var valute = xdoc.Descendants("Valute").FirstOrDefault(v => string.Equals(v.Element("CharCode")?.Value, quoteCurrency, StringComparison.OrdinalIgnoreCase));
 
-				if (!values[0].Contains(currencyCode, StringComparison.OrdinalIgnoreCase)) {
+				if (valute is null || !decimal.TryParse(valute.Element("Value")?.Value, NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
 
-				if (!decimal.TryParse(values[2], NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
-					continue;
+				if (!decimal.TryParse(valute.Element("Nominal")?.Value, NumberStyles.Number, CultureInfo.InvariantCulture, out var nominal) || nominal <= 0) {
+					nominal = 1m;
 				}
 
-				
-					
-				results.Add(new ExchangeRateResult(today, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
-				break;
+				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate / nominal, Bank.BankCode));
 			}
-
-			return results;
+			catch (Exception ex) when (ex is not OperationCanceledException) {
+				_logger.LogWarning(ex, "Failed to fetch NBM rates for {Date}", day);
+			}
 		}
-		catch (Exception ex) {
-			_logger.LogWarning(ex, "Failed to fetch NBM rates.");
-			return [];
-		}
+
+		return results;
 	}
 }
 

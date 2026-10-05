@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Japan
 /// </summary>
 public sealed class BOJProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOJProvider> _logger;
 
 	public BOJProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOJProvider> logger) : base(http, bank, configuration) {
@@ -23,18 +25,23 @@ public sealed class BOJProvider : CentralBankProviderBase {
 		}
 
 		try {
-			var uri = $"{ApiUrl}?Bank.BankCode=FM01&from={fromDate:yyyy-MM}&to={toDate:yyyy-MM}";
+			// FM08 = foreign exchange rates database, FXERD04 = USD/JPY spot rate at 17:00 JST (Tokyo market close).
+			var uri = $"{ApiUrl}?format=json&lang=en&db=FM08&code=FXERD04&startDate={fromDate:yyyyMM}&endDate={toDate:yyyyMM}";
 			var json = await Http.GetStringAsync(uri, ct);
 			using var doc = JsonDocument.Parse(json);
 
 			var results = new List<ExchangeRateResult>();
 
-			if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) {
+			if (!doc.RootElement.TryGetProperty("RESULTSET", out var resultSet) || resultSet.ValueKind != JsonValueKind.Array || resultSet.GetArrayLength() == 0) {
 				return results;
 			}
 
-			foreach (var item in data.EnumerateArray()) {
-				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+			var values = resultSet[0].GetProperty("VALUES");
+			var dates = values.GetProperty("SURVEY_DATES").EnumerateArray().ToList();
+			var rates = values.GetProperty("VALUES").EnumerateArray().ToList();
+
+			for (var i = 0; i < Math.Min(dates.Count, rates.Count); i++) {
+				if (rates[i].ValueKind != JsonValueKind.Number || !DateOnly.TryParseExact(dates[i].GetRawText(), "yyyyMMdd", out var date)) {
 					continue;
 				}
 
@@ -42,13 +49,11 @@ public sealed class BOJProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				var rate = GetDecimal(item, "value");
+				var rate = rates[i].GetDecimal();
 
 				if (rate <= 0) {
 					continue;
 				}
-
-
 
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}

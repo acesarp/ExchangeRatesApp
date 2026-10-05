@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Myanmar
 /// </summary>
 public sealed class CBMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBMProvider> _logger;
 	public CBMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBMProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

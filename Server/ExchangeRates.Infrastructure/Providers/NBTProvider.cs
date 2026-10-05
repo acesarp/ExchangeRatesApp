@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// National Bank of Tajikistan
 /// </summary>
 public sealed class NBTProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBTProvider> _logger;
 
 	public NBTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBTProvider> logger) : base(http, bank, configuration) {
@@ -24,18 +26,18 @@ public sealed class NBTProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-				var uri = $"{ApiUrl}?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl}?date={date:yyyy-MM-dd}&export=xmlout";
 				var xml = await Http.GetStringAsync(uri, ct);
 				var xdoc = XDocument.Parse(xml);
 
-				var currencyNode = xdoc.Descendants("currency").FirstOrDefault(c => string.Equals(c.Element("Bank.BankCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
+				var currencyNode = xdoc.Descendants("Valute").FirstOrDefault(c => string.Equals(c.Element("CharCode")?.Value, currencyCode, StringComparison.OrdinalIgnoreCase));
 
 				if (currencyNode is null) {
 					continue;
 				}
 
-				var valueStr = currencyNode.Element("rate")?.Value;
-				var nominalStr = currencyNode.Element("units")?.Value;
+				var valueStr = currencyNode.Element("Value")?.Value;
+				var nominalStr = currencyNode.Element("Nominal")?.Value;
 
 				if (valueStr is null || !decimal.TryParse(valueStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) || value <= 0) {
 					continue;

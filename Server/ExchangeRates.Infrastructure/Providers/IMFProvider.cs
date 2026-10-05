@@ -17,6 +17,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// International Monetary Fund
 /// </summary>
 public sealed class IMFProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<IMFProvider> _logger;
 
 	public IMFProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<IMFProvider> logger) : base(http, bank, configuration) {
@@ -153,7 +155,7 @@ public sealed class IMFProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			if (!Clean(cells[0].InnerText).Equals("NativeCurrency", StringComparison.OrdinalIgnoreCase)) {
+			if (!Clean(cells[0].InnerText).Equals("Currency", StringComparison.OrdinalIgnoreCase)) {
 				continue;
 			}
 

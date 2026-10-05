@@ -66,15 +66,15 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 	}
 
 	private async Task ProcessMessageAsync(string json, Func<CryptoPriceResult, CancellationToken, Task> onPriceReceived, CancellationToken ct) {
-		using var document = JsonDocument.Parse(json);
 
-		var root = document.RootElement;
+		using var doc = JsonDocument.Parse(json);
+		var root = doc.RootElement;
 
 		if (!root.TryGetProperty("channel", out var channel)) {
 			return;
 		}
 
-		if (!string.Equals(channel.GetString(), "ticker", StringComparison.OrdinalIgnoreCase)) {
+		if (!string.Equals(root.ToString(), "ticker", StringComparison.OrdinalIgnoreCase)) {
 			return;
 		}
 
@@ -99,6 +99,5 @@ public sealed class KrakenMarketDataProvider : ICryptoMarketDataProvider {
 			await onPriceReceived(result, ct);
 		}
 	}
-
 
 }

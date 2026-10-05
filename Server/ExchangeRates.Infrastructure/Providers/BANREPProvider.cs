@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco de la República
 /// </summary>
 public sealed class BANREPProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BANREPProvider> _logger;
 	public BANREPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANREPProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

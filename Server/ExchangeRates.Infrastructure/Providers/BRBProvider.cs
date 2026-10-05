@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banque de la Republique du Burundi
 /// </summary>
 public sealed class BRBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BRBProvider> _logger;
 
 	public BRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BRBProvider> logger) : base(http, bank, configuration) {

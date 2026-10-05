@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Egypt
 /// </summary>
 public sealed class CBEProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBEProvider> _logger;
 
 	public CBEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBEProvider> logger) : base(http, bank, configuration) {

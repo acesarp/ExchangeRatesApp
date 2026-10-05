@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco de Portugal
 /// </summary>
 public sealed class BDPProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BDPProvider> _logger;
 
 	public BDPProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDPProvider> logger) : base(http, bank, configuration) {

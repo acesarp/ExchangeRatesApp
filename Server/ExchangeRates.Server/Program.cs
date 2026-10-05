@@ -85,6 +85,14 @@ public class Program {
 
 			builder.Services.AddExchangeRatesAuthentication(builder.Configuration);
 			builder.Services.AddAntiforgery(o => o.HeaderName = "X-XSRF-TOKEN");
+			// Several central bank sites (e.g. RBA) reject requests without a browser-like User-Agent, and some serve compressed responses.
+			builder.Services.ConfigureHttpClientDefaults(http => {
+				http.ConfigureHttpClient(client => {
+					client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
+					client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+				});
+				http.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.All });
+			});
 			builder.Services.AddHttpClient();
 
 			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();

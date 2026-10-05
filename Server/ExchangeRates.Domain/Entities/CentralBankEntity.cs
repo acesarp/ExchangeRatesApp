@@ -7,7 +7,7 @@ namespace ExchangeRates.Domain.Entities;
 public sealed class CentralBankEntity {
 	public CentralBankEntity() { }
 
-	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int nativeCurrencyId, string apiUrl, bool isActive, DateTime createdAtUtc, IReadOnlySet<ProviderSeries>? series = null) {
+	public CentralBankEntity(string bankCode, string bankName, string countryOfOrigin, int nativeCurrencyId, string? apiUrl, bool isActive, DateTime createdAtUtc, IReadOnlySet<ProviderSeries>? series = null) {
 		BankCode = bankCode;
 		BankName = bankName;
 		CountryOfOrigin = countryOfOrigin;
@@ -38,7 +38,7 @@ public sealed class CentralBankEntity {
 	public string CountryOfOrigin { get; set; } = null!;
 
 	/// <summary> Base URL for the central bank's API </summary>
-	public string ApiUrl { get; set; } = null!;
+	public string? ApiUrl { get; set; }
 
 	/// <summary> Foreign key identifying the bank's native currency. </summary>
 	[DisplayName("Native Currency Id")]

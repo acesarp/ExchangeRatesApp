@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Nepal Rastra Bank
 /// </summary>
 public sealed class NRBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NRBProvider> _logger;
 	public NRBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NRBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

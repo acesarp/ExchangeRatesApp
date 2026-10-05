@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Thailand
 /// </summary>
 public sealed class BOTProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOTProvider> _logger;
 
 	public BOTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOTProvider> logger) : base(http, bank, configuration) {
@@ -22,7 +24,7 @@ public sealed class BOTProvider : CentralBankProviderBase {
 		var apiKey = ApiKey;
 
 		if (string.IsNullOrWhiteSpace(apiKey)) {
-			_logger.LogWarning("Missing CentralBanks:BOT:ApiKey.");
+			_logger.LogWarning("Missing ProviderKeys:BOT configuration.");
 			return [];
 		}
 

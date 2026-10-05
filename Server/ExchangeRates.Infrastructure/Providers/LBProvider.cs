@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Lietuvos Bankas
 /// </summary>
 public sealed class LBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<LBProvider> _logger;
 	public LBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<LBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

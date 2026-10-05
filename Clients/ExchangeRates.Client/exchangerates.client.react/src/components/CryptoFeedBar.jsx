@@ -15,6 +15,7 @@ function CryptoFeedBar() {
     const { instance, accounts } = useMsal();
 
     async function fetchCryptoStatus() {
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${HUB_BASE_URL}/crypto`, {
                 accessTokenFactory: async () => {
@@ -35,7 +36,7 @@ function CryptoFeedBar() {
     }
 
     useEffect(() => {
-      const controller = new AbortController();
+      //const controller = new AbortController();
        fetchCryptoStatus();
         //dbServerHealthCheck(controller.signal)
         //    .then(data => {
@@ -45,7 +46,7 @@ function CryptoFeedBar() {
         //            console.error('Error fetching CryptoStatus:', error);
         //        }
         //    });
-        return () => controller.abort();
+       // return () => controller.abort();
     }, []);
 
     return (

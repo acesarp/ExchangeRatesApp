@@ -1,7 +1,8 @@
 
 using ExchangeRates.Domain.Entities;
 
-using System.Text.Json;
+using System.Text.Json;
+using System.Globalization;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -12,20 +13,27 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Sveriges Riksbank
 /// </summary>
 public sealed class RBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<RBProvider> _logger;
 
 	public RBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		if (quoteCurrency != "USD") {
-			return [];
-		}
-
 		try {
-			var uri = $"{ApiUrl}?from={fromDate:yyyy-MM-dd}&to={toDate:yyyy-MM-dd}";
-			var json = await Http.GetStringAsync(uri, ct);
-			using var doc = JsonDocument.Parse(json);
+			// SWEA series are named SEK{currency}PMI (SEK per unit, daily fixing). The configured ApiUrl points at
+			// .../Observations/ByGroup/{id}; a single series is served at .../Observations/{seriesId}/{from}/{to}.
+			var observationsUrl = ApiUrl[..(ApiUrl.IndexOf("/Observations", StringComparison.OrdinalIgnoreCase) + "/Observations".Length)];
+			var uri = $"{observationsUrl}/SEK{quoteCurrency.ToUpperInvariant()}PMI/{fromDate:yyyy-MM-dd}/{toDate:yyyy-MM-dd}";
+			using var response = await Http.GetAsync(uri, ct);
+
+			// 204/404: no observations in range, or no series for this currency.
+			if (!response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent) {
+				return [];
+			}
+
+			using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
 			var results = new List<ExchangeRateResult>();
 
@@ -34,7 +42,7 @@ public sealed class RBProvider : CentralBankProviderBase {
 			}
 
 			foreach (var item in doc.RootElement.EnumerateArray()) {
-				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), CultureInfo.InvariantCulture, out var date)) {
 					continue;
 				}
 
@@ -47,8 +55,6 @@ public sealed class RBProvider : CentralBankProviderBase {
 				if (rate <= 0) {
 					continue;
 				}
-
-
 
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}

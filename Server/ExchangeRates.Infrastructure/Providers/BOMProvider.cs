@@ -5,13 +5,16 @@ using ExchangeRates.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-using System.Text.Json;
+using System.Text.Json;
+using System.Globalization;
 namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary>
 /// Bank of Mongolia
 /// </summary>
 public sealed class BOMProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOMProvider> _logger;
 
 	public BOMProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOMProvider> logger) : base(http, bank, configuration) {
@@ -19,20 +22,24 @@ public sealed class BOMProvider : CentralBankProviderBase {
 	}
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
-			var uri = $"{ApiUrl}?date_from={fromDate:yyyy-MM-dd}&date_to={toDate:yyyy-MM-dd}&Bank.BankCode={quoteCurrency}";
-			var json = await Http.GetStringAsync(uri, ct);
-			using var doc = JsonDocument.Parse(json);
+			// The endpoint is a POST that returns the full daily history regardless of the requested range:
+			// { "data": [{ "RATE_DATE": "2026-10-05", "USD": "3,595.55", ... }] }
+			using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl) {
+				Content = new StringContent($"{{\"startDate\":\"{fromDate:yyyy-MM-dd}\",\"endDate\":\"{toDate:yyyy-MM-dd}\"}}", System.Text.Encoding.UTF8, "application/json")
+			};
+			request.Headers.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
+			using var response = await Http.SendAsync(request, ct);
+			response.EnsureSuccessStatusCode();
+			using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
 
 			var results = new List<ExchangeRateResult>();
-			var root = doc.RootElement;
-			var items = root.ValueKind == JsonValueKind.Array ? root : root.TryGetProperty("data", out var data) ? data : default;
 
-			if (items.ValueKind != JsonValueKind.Array) {
+			if (!doc.RootElement.TryGetProperty("data", out var items) || items.ValueKind != JsonValueKind.Array) {
 				return results;
 			}
 
 			foreach (var item in items.EnumerateArray()) {
-				if (!item.TryGetProperty("date", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), out var date)) {
+				if (!item.TryGetProperty("RATE_DATE", out var dateProp) || !DateOnly.TryParse(dateProp.GetString(), CultureInfo.InvariantCulture, out var date)) {
 					continue;
 				}
 
@@ -40,13 +47,10 @@ public sealed class BOMProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				var rate = GetDecimal(item, "rate");
-
-				if (rate <= 0) {
+				if (!item.TryGetProperty(quoteCurrency.ToUpperInvariant(), out var rateProp) ||
+					!decimal.TryParse(rateProp.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
-
-
 
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}

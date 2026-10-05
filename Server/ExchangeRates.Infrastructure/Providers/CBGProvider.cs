@@ -15,6 +15,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of The Gambia
 /// </summary>
 public sealed class CBGProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBGProvider> _logger;
 	public CBGProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBGProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

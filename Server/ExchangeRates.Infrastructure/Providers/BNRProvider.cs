@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banca Națională a României
 /// </summary>
 public sealed class BNRProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BNRProvider> _logger;
 
 	public BNRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNRProvider> logger) : base(http, bank, configuration) {

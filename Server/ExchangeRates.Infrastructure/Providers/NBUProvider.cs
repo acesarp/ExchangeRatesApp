@@ -11,6 +11,8 @@ using System.Text.Json;
 /// Natsionalnyi Bank Ukrainy
 /// </summary>
 public sealed class NBUProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBUProvider> _logger;
 
 	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, bank, configuration) {

@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Retrieves daily spot exchange rates against Pound Sterling (GBP).
 /// </summary>
 public sealed class BOEProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<BOEProvider> _logger;
 	private readonly Dictionary<string, string> _series;
 	public BOEProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOEProvider> logger) : base(http, bank, configuration) {
@@ -24,7 +26,7 @@ public sealed class BOEProvider : CentralBankProviderBase {
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (!_series.TryGetValue(quoteCurrency, out var quoteCode)) {
-			_logger.LogWarning("Series Bank.BankCode not found for quote currency: {QuoteCurrency}", quoteCurrency);
+			_logger.LogWarning("Series code not found for quote currency: {QuoteCurrency}", quoteCurrency);
 			return [];
 		}
 
@@ -59,7 +61,8 @@ public sealed class BOEProvider : CentralBankProviderBase {
 				continue;
 			}
 
-			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, 1m / rate, Bank.BankCode));
+			// BoE XUDL series are quoted as foreign currency per GBP (e.g. XUDLUSS: 1 GBP = 1.27 USD).
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 		return rates;
 	}

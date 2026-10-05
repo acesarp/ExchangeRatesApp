@@ -11,6 +11,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary> Banco de México </summary>
 public sealed class BANXICOProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BANXICOProvider> _logger;
 	public BANXICOProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BANXICOProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

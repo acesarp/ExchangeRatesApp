@@ -12,54 +12,48 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Deutsche Bundesbank
 /// </summary>
 public sealed class BBKProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<BBKProvider> _logger;
 	public BBKProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BBKProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		var url = $"{ApiUrl}?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csvdata";
+		// BBEX3.D.{currency}.EUR.BB.AC.000 = ECB euro reference rate (1 EUR = x currency). The configured ApiUrl ends with a
+		// series key; replace it with the key for the requested currency.
+		var flowUrl = ApiUrl[..(ApiUrl.IndexOf("/BBEX3", StringComparison.OrdinalIgnoreCase) + "/BBEX3".Length)];
+		var url = $"{flowUrl}/D.{quoteCurrency.ToUpperInvariant()}.EUR.BB.AC.000?startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}&format=csv";
 
-		var csv = await Http.GetStringAsync(url, ct);
-		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+		using var request = new HttpRequestMessage(HttpMethod.Get, url);
+		request.Headers.Accept.ParseAdd("text/csv");
+		using var response = await Http.SendAsync(request, ct);
 
-		if (lines.Length < 2) {
+		if (response.StatusCode == System.Net.HttpStatusCode.NotFound) {
 			return [];
 		}
 
-		var headers = TextUtils.SplitCsv(lines[0]);
+		response.EnsureSuccessStatusCode();
+		var csv = await response.Content.ReadAsStringAsync(ct);
 		var rates = new List<ExchangeRateResult>();
 
-		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
-		var valueIndex = headers.FindIndex(x => x.Equals("OBS_VALUE", StringComparison.OrdinalIgnoreCase));
-		var currencyIndex = headers.FindIndex(x => x.Equals("CURRENCY", StringComparison.OrdinalIgnoreCase));
-		var currencyDenomIndex = headers.FindIndex(x => x.Equals("CURRENCY_DENOM", StringComparison.OrdinalIgnoreCase));
-
-		for (var i = 1; i < lines.Length; i++) {
-			var columns = TextUtils.SplitCsv(lines[i]);
-
-			if (dateIndex < 0 || valueIndex < 0 || dateIndex >= columns.Count || valueIndex >= columns.Count) {
+		// The CSV starts with metadata rows. The layout follows Accept-Language: German rows look like "2026-09-29;1,1355;",
+		// English rows like "2026-09-29,1.1355,".
+		foreach (var line in csv.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+			if (line.Length < 12 || !DateOnly.TryParseExact(line[..10], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
 			}
 
-			if (!DateOnly.TryParse(columns[dateIndex], CultureInfo.InvariantCulture, out var date)) {
+			// The character after the date is the column separator: ';' means German formatting (decimal comma).
+			var german = line[10] == ';';
+			var columns = line.Split(line[10]);
+			var value = german ? columns[1].Replace(',', '.') : columns[1];
+
+			if (!decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 				continue;
 			}
 
-			if (!decimal.TryParse(columns[valueIndex], NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
-				continue;
-			}
-
-			var baseCurrency = currencyIndex >= 0 && currencyIndex < columns.Count ? columns[currencyIndex] : null;
-			var _quoteCurrency = currencyDenomIndex >= 0 && currencyDenomIndex < columns.Count ? columns[currencyDenomIndex] : null;
-
-			if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(_quoteCurrency)) {
-				continue;
-			}
-
-
-
-			rates.Add(new ExchangeRateResult(date, Bank.BankCode, quoteCurrency, rate, Bank.BankCode));
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 		}
 
 		return rates;

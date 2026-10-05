@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banco Nacional de Angola
 /// </summary>
 public sealed class BNAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<BNAProvider> _logger;
 
 	public BNAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNAProvider> logger) : base(http, bank, configuration) {

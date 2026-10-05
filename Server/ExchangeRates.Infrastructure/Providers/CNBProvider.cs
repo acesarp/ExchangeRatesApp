@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Czech National Bank
 /// </summary>
 public sealed class CNBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CNBProvider> _logger;
 
 	public CNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CNBProvider> logger) : base(http, bank, configuration) {

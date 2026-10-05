@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// National Bank of Georgia
 /// </summary>
 public sealed class NBGProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBGProvider> _logger;
 	public NBGProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBGProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -22,7 +24,7 @@ public sealed class NBGProvider : CentralBankProviderBase {
 			var currencyCode = quoteCurrency;
 
 			for (var date = fromDate; date <= toDate; date = date.AddDays(1)) {
-				var uri = $"{ApiUrl}{currencyCode}?date={date:yyyy-MM-dd}";
+				var uri = $"{ApiUrl.TrimEnd('/')}/en/json/?currencies={currencyCode}&date={date:yyyy-MM-dd}";
 				var json = await Http.GetStringAsync(uri, ct);
 				using var doc = JsonDocument.Parse(json);
 

@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Seðlabanki Íslands
 /// </summary>
 public sealed class SBIProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<SBIProvider> _logger;
 
 	public SBIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<SBIProvider> logger) : base(http, bank, configuration) {

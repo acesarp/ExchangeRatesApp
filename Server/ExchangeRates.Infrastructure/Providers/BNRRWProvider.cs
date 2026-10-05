@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Banque Nationale du Rwanda
 /// </summary>
 public sealed class BNRRWProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BNRRWProvider> _logger;
 
 	public BNRRWProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BNRRWProvider> logger) : base(http, bank, configuration) {

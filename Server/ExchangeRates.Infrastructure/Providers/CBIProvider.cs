@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of Iraq
 /// </summary>
 public sealed class CBIProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBIProvider> _logger;
 
 	public CBIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBIProvider> logger) : base(http, bank, configuration) {

@@ -12,6 +12,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Norges Bank
 /// </summary>
 public sealed class NBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<NBProvider> _logger;
 
 	public NBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBProvider> logger) : base(http, bank, configuration) {
@@ -20,7 +22,9 @@ public sealed class NBProvider : CentralBankProviderBase {
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		try {
 			var currencyCode = quoteCurrency;
-			var uri = ApiUrl.Replace("NOK", currencyCode) + $"?format=sdmx-json&startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}";
+			// Series key is FREQ.BASE_CUR.QUOTE_CUR.TENOR, e.g. B.USD.NOK.SP (NOK per USD, business-daily spot).
+			var dataflowUrl = ApiUrl[..(ApiUrl.IndexOf("/EXR", StringComparison.OrdinalIgnoreCase) + "/EXR".Length)];
+			var uri = $"{dataflowUrl}/B.{currencyCode}.NOK.SP?format=sdmx-json&startPeriod={fromDate:yyyy-MM-dd}&endPeriod={toDate:yyyy-MM-dd}";
 			using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 			request.Headers.TryAddWithoutValidation("Accept", "application/vnd.sdmx.data+json;version=1.0.0");
 
@@ -77,13 +81,18 @@ public sealed class NBProvider : CentralBankProviderBase {
 						continue;
 					}
 
+					// Observation values are serialized as strings, e.g. "0": ["9.2703"]
 					var rateElement = obs.Value[0];
-					decimal rate = default;
-					if (rateElement.ValueKind != JsonValueKind.Number || rateElement.GetDecimal() <= 0) {
+					decimal rate;
+					if (rateElement.ValueKind == JsonValueKind.Number) {
+						rate = rateElement.GetDecimal();
+					}
+					else if (rateElement.ValueKind != JsonValueKind.String || !decimal.TryParse(rateElement.GetString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out rate)) {
 						continue;
 					}
-					else {
-						rate = rateElement.GetDecimal();
+
+					if (rate <= 0) {
+						continue;
 					}
 
 					results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));

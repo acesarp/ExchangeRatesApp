@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Bank of Canada
 /// </summary>
 public sealed class BOCProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<BOCProvider> _logger;
 	public BOCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOCProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

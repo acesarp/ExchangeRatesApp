@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 
 /// <summary> Da Afghanistan Bank </summary>
 public sealed class DABProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<DABProvider> _logger;
 	public DABProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<DABProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;

@@ -9,6 +9,8 @@ using System.Globalization;
 using System.Text.Json;
 
 public sealed class BDIProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<BDIProvider> _logger;
 
 	public BDIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BDIProvider> logger) : base(http, bank, configuration) {

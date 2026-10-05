@@ -47,7 +47,7 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 	public string? CountryOfOrigin => Bank.CountryOfOrigin;
 	public int? Priority => Bank.Priority;
 
-	protected string ApiUrl => Bank.ApiUrl;
+	protected string ApiUrl => Bank.ApiUrl ?? throw new InvalidOperationException($"Central bank {Bank.BankCode} has no ApiUrl configured.");
 
 	protected string? HistoricalUrl => Configuration[$"CentralBanks:{Bank.BankCode}:HistoricalUrl"];
 
@@ -62,13 +62,30 @@ public abstract class CentralBankProviderBase : ICentralBankProvider {
 		return currency == Bank.BankCode || SupportedCurrencies.Contains(currency);
 	}
 
-	/// <inheritdoc/>
-	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		return FetchAsync(quoteCurrency, fromDate, toDate, ct);
+	/// <summary>
+	/// Returns rates as "1 unit of the native currency = Rate units of the quote currency" (e.g. ECB: 1 EUR = 1.12 USD),
+	/// regardless of how the source publishes them.
+	/// </summary>
+	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var rates = await FetchAsync(quoteCurrency, fromDate, toDate, ct);
+
+		if (Quotation == RateQuotation.ForeignPerNative) {
+			return rates;
+		}
+
+		return rates.Where(x => x.Rate != 0)
+					.Select(x => x with { Rate = 1m / x.Rate })
+					.ToList();
 	}
 
 	/// <summary>
-	/// Retrieves and parses exchange rate data directly from the central bank source.
+	/// How the values returned by <see cref="FetchAsync"/> are quoted. Every provider must declare it so that
+	/// <see cref="GetRatesAsync"/> can normalize the direction.
+	/// </summary>
+	protected abstract RateQuotation Quotation { get; }
+
+	/// <summary>
+	/// Retrieves and parses exchange rate data directly from the central bank source, quoted as declared by <see cref="Quotation"/>.
 	/// Provider-specific implementations should override this method.
 	/// </summary>
 	protected abstract Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct);

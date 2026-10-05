@@ -10,6 +10,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Reserve Bank of Fiji
 /// </summary>
 public sealed class RBFProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<RBFProvider> _logger;
 
 	public RBFProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBFProvider> logger) : base(http, bank, configuration) {

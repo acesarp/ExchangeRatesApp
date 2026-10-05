@@ -14,6 +14,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Magyar Nemzeti Bank
 /// </summary>
 public sealed class MNBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<MNBProvider> _logger;
 	public MNBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<MNBProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -25,11 +27,11 @@ public sealed class MNBProvider : CentralBankProviderBase {
 				<?xml version="1.0" encoding="utf-8"?>
 				<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 				<soap:Body>
-				<GetExchangeRatesXML xmlns="http://www.mnb.hu/webservices/">
+				<GetExchangeRates xmlns="http://www.mnb.hu/webservices/">
 				<startDate>{fromDate:yyyy-MM-dd}</startDate>
 				<endDate>{toDate:yyyy-MM-dd}</endDate>
 				<currencyNames>{currencyCode}</currencyNames>
-				</GetExchangeRatesXML>
+				</GetExchangeRates>
 				</soap:Body>
 				</soap:Envelope>
 				""";
@@ -38,7 +40,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 			content.Headers.Remove("Content-Type");
 			content.Headers.TryAddWithoutValidation("Content-Type", "text/xml; charset=utf-8");
 			using var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl) { Content = content };
-			request.Headers.TryAddWithoutValidation("SOAPAction", "http://www.mnb.hu/webservices/GetExchangeRatesXML");
+			request.Headers.TryAddWithoutValidation("SOAPAction", "\"http://www.mnb.hu/webservices/MNBArfolyamServiceSoap/GetExchangeRates\"");
 
 			using var response = await Http.SendAsync(request, ct);
 
@@ -48,7 +50,7 @@ public sealed class MNBProvider : CentralBankProviderBase {
 
 			var soapXml = await response.Content.ReadAsStringAsync(ct);
 			var soapDoc = XDocument.Parse(soapXml);
-			var resultText = soapDoc.Descendants().FirstOrDefault(e => e.Name.LocalName == "GetExchangeRatesXMLResult")?.Value;
+			var resultText = soapDoc.Descendants().FirstOrDefault(e => e.Name.LocalName == "GetExchangeRatesResult")?.Value;
 
 			if (string.IsNullOrWhiteSpace(resultText)) {
 				return [];

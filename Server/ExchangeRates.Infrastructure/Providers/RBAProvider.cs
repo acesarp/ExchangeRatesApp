@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Reserve Bank of Australia
 /// </summary>
 public sealed class RBAProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<RBAProvider> _logger;
 
 	public RBAProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<RBAProvider> logger) : base(http, bank, configuration) {

@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// Central Bank of the Republic of China (Taiwan)
 /// </summary>
 public sealed class CBCProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
 	private readonly ILogger<CBCProvider> _logger;
 	public CBCProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<CBCProvider> logger) : base(http, bank, configuration) {
 		_logger = logger;
@@ -28,19 +30,19 @@ public sealed class CBCProvider : CentralBankProviderBase {
 
 			var results = new List<ExchangeRateResult>();
 
-			if (!doc.RootElement.TryGetProperty("Data", out var data) || data.ValueKind != JsonValueKind.Array) {
+			// { "data": { "structure": { "Table1": [{ "data": "NTD/USD" }, ...] }, "dataSets": [["20260930", "31.852", ...], ...] } }
+			// Column 0 is the date (yyyyMMdd), column 1 is NTD per USD.
+			if (!doc.RootElement.TryGetProperty("data", out var data) ||
+				!data.TryGetProperty("dataSets", out var dataSets) || dataSets.ValueKind != JsonValueKind.Array) {
 				return results;
 			}
 
-			foreach (var item in data.EnumerateArray()) {
+			foreach (var item in dataSets.EnumerateArray()) {
 				if (item.ValueKind != JsonValueKind.Array || item.GetArrayLength() < 2) {
 					continue;
 				}
 
-				var elements = item.EnumerateArray().ToArray();
-				var dateStr = elements[0].GetString();
-
-				if (dateStr is null || !DateOnly.TryParseExact(dateStr, "yyyy/MM/dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				if (!DateOnly.TryParseExact(item[0].GetString(), "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 					continue;
 				}
 
@@ -48,14 +50,10 @@ public sealed class CBCProvider : CentralBankProviderBase {
 					continue;
 				}
 
-				if (elements[1].ValueKind != JsonValueKind.Number || elements[1].GetDecimal() <= 0) {
+				if (!decimal.TryParse(item[1].GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
 					continue;
 				}
 
-				var rate = elements[1].GetDecimal();
-
-				
-					
 				results.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
 			}
 

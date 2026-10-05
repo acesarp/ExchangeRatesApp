@@ -13,6 +13,8 @@ namespace ExchangeRates.Infrastructure.Providers;
 /// National Reserve Bank of Tonga
 /// </summary>
 public sealed class NRBTProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.ForeignPerNative;
+
 	private readonly ILogger<NRBTProvider> _logger;
 
 	public NRBTProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NRBTProvider> logger) : base(http, bank, configuration) {
