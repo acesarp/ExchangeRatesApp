@@ -129,17 +129,16 @@ public class Program {
 			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
+			var isDevEnvironment = app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV";
+			if (isDevEnvironment) {
 				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI(options => {
+					options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
+					options.RoutePrefix = string.Empty;
+				});
+				//app.MapSwaggerUI("Swag");
 			}
-			//if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
-			app.UseSwagger();
-			app.UseSwaggerUI(options => {
-				options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
-				options.RoutePrefix = string.Empty;
-			});
-			//app.MapSwaggerUI("Swag");
-			//}
 
 			app.UseStaticFiles();
 			app.UseHttpsRedirection();
@@ -149,7 +148,9 @@ public class Program {
 			app.MapControllers();
 			app.MapHub<HealthStatusHub>("/hubs/health");
 			app.MapHub<CryptoPriceHub>("/hubs/crypto");
-			app.MapOpenApi();
+			if (isDevEnvironment) {
+				app.MapOpenApi();
+			}
 
 			app.Run();
 		}
