@@ -1,52 +1,47 @@
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
-using ExchangeRates.Domain.Models;
 using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
-using ExchangeRates.Server.Tests.Fixtures;
 
 using FluentAssertions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+using Moq;
 
 using Xunit;
 
 namespace ExchangeRates.Server.Tests.Unit;
 
 public class ExchangeRateServiceTests {
+	private static readonly CurrencyEntity Usd = new("USD", 840, "US Dollar", false, 1) { Id = 1 };
+	private static readonly CurrencyEntity Eur = new("EUR", 978, "Euro", false, 2) { Id = 2 };
+
 	private readonly IExchangeRateService _service;
-	private readonly List<ICentralBankProvider> _providers;
-	private readonly IConfiguration _config;
+	private readonly Mock<IExchangeRateRepository> _repository;
 
 	public ExchangeRateServiceTests() {
-		_providers = [];
+		_repository = new Mock<IExchangeRateRepository>();
+		_repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
+		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 
-		// Setup configuration
-		var configDict = new Dictionary<string, string?> {
-			{ "Priority", "USD" },
-			{ "FixedExchangeRates:Rates:USD", "1.00" },
-			{ "FixedExchangeRates:Rates:EUR", "0.92" }
-		};
-		var configBuilder = new ConfigurationBuilder()
-			.AddInMemoryCollection(configDict);
-		_config = configBuilder.Build();
+		var config = new ConfigurationBuilder()
+			.AddInMemoryCollection(new Dictionary<string, string?> { ["PivotCurrency"] = "USD" })
+			.Build();
 
-		// Setup service provider
-		var serviceCollection = new ServiceCollection()
-			.AddSingleton(_config)
-			.AddLogging(builder => builder.AddConsole());
+		var services = new ServiceCollection()
+			.AddSingleton<IConfiguration>(config)
+			.AddLogging()
+			.BuildServiceProvider();
 
-		var serviceProvider = serviceCollection.BuildServiceProvider();
+		var factory = new CentralBankProviderFactory(services, NullLogger<CentralBankProviderFactory>.Instance);
 
-		var logger = serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		IServiceProvider serviceProviderForFactory = serviceProvider; // Use the same service provider for the factory
-		var factory = new CentralBankProviderFactory(serviceProviderForFactory, logger);
-		var fixedProvider = new FixedExchangeRateProvider(_config);
-		var repository = serviceProvider.GetRequiredService<IExchangeRateRepository>();
-		var serviceLogger = serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
-		_service = new ExchangeRateService(serviceLogger, repository, factory, _config);
+		_service = new ExchangeRateService(NullLogger<ExchangeRateService>.Instance, _repository.Object, factory, config);
 	}
 
 	#region Identity Tests
@@ -68,43 +63,38 @@ public class ExchangeRateServiceTests {
 	}
 	#endregion
 
-	#region Direct Provider Lookup Tests
+	#region Repository Cache Tests
 	[Fact]
-	public async Task GetRatesAsync_WithProvider_ReturnsResult() {
+	public async Task GetRatesAsync_RatesCachedInRepository_ReturnsThemWithoutCallingProvider() {
 		// Arrange
-		var from = "USD";
-		var to = "EUR";
-		var date = DateOnly.FromDateTime(DateTime.UtcNow);
+		var date = new DateOnly(2026, 10, 1);
+		CacheRate(Usd, Eur, 0.92m, date);
 
-		var rates = new Dictionary<(string, string, DateOnly), decimal> {
-			{ (from, to, date), 0.92m }
-		};
-
-		var provider = new TestCentralBankProvider("TEST", "Test Provider", "USD", new[] { from, to }, rates);
-		_providers.Add(provider);
-
-		// Act - will either find direct or return fixed
-		var result = await _service.GetRatesAsync(from, to, date, date);
+		// Act
+		var result = await _service.GetRatesAsync("USD", "EUR", date, date);
 
 		// Assert
-		result.Should().NotBeEmpty();
+		result.Should().ContainSingle();
+		result[0].BaseCurrency.Should().Be("USD");
+		result[0].QuoteCurrency.Should().Be("EUR");
+		result[0].Rate.Should().Be(0.92m);
+		_repository.Verify(x => x.FindSuitableBankAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
 	}
-	#endregion
 
-	#region Fixed Rate Tests
 	[Fact]
-	public async Task GetRatesAsync_FixedRateConfigured_MayReturnFixedOrEmpty() {
-		// Arrange
-		var from = "USD";
-		var to = "EUR";
-		var date = DateOnly.FromDateTime(DateTime.UtcNow);
+	public async Task GetRatesAsync_RateCachedInOppositeDirection_ReturnsInvertedRate() {
+		// Arrange - the repository stores the canonical USD/EUR pair
+		var date = new DateOnly(2026, 10, 1);
+		CacheRate(Usd, Eur, 0.8m, date);
 
-		// EUR is configured as fixed at 0.92 in config
 		// Act
-		var result = await _service.GetRatesAsync(from, to, date, date);
+		var result = await _service.GetRatesAsync("EUR", "USD", date, date);
 
-		// Assert - It may return fixed rate or be empty depending on service logic
-		result.Should().BeOfType<List<ExchangeRateResult>>();
+		// Assert
+		result.Should().ContainSingle();
+		result[0].BaseCurrency.Should().Be("EUR");
+		result[0].QuoteCurrency.Should().Be("USD");
+		result[0].Rate.Should().Be(1.25m);
 	}
 	#endregion
 
@@ -121,27 +111,40 @@ public class ExchangeRateServiceTests {
 		var result = await _service.GetRatesAsync(from, to, fromDate, toDate);
 
 		// Assert
-		result.Should().NotBeEmpty();
-		result.Should().AllSatisfy(r => {
-			r.Date.Should().Be(r.Date); // Sanity check
-		});
+		result.Should().HaveCount(5);
+		result.Select(r => r.Date).Should().BeEquivalentTo(Enumerable.Range(0, 5).Select(fromDate.AddDays));
 	}
 	#endregion
 
-	#region Error Handling Tests
+	#region Unavailable Date Tests
 	[Fact]
-	public async Task GetRatesAsync_NoProviderAndNoFixed_ReturnsEmpty() {
+	public async Task GetRatesAsync_AllDatesMarkedUnavailable_ReturnsEmptyWithoutCallingProvider() {
 		// Arrange
-		var from = "USD";
-		var to = "GBP"; // Not configured as fixed
-		var date = DateOnly.FromDateTime(DateTime.UtcNow);
+		var date = new DateOnly(2026, 10, 3);
+		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([date]);
 
-		// No providers added
 		// Act
-		var result = await _service.GetRatesAsync(from, to, date, date);
+		var result = await _service.GetRatesAsync("USD", "GBP", date, date);
 
 		// Assert
 		result.Should().BeEmpty();
+		_repository.Verify(x => x.FindSuitableBankAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
 	}
 	#endregion
+
+	private void CacheRate(CurrencyEntity baseCurrency, CurrencyEntity quoteCurrency, decimal rate, DateOnly date) {
+		var entity = new ExchangeRateEntity {
+			Date = date,
+			BaseCurrency = baseCurrency,
+			BaseCurrencyId = baseCurrency.Id,
+			QuoteCurrency = quoteCurrency,
+			QuoteCurrencyId = quoteCurrency.Id,
+			Rate = rate,
+			Provider = "TEST"
+		};
+
+		_repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([entity]);
+	}
 }
