@@ -7,6 +7,7 @@ import './App.css';
 import DbHealthBar from './components/DbHealthBar';
 import CryptoFeedBar from './components/CryptoFeedBar';
 import { useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
 import { loginRequest } from './services/authConfig';
 import logoMark from './assets/exchangerates-light.svg';
 
@@ -120,9 +121,11 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
 }
 
 function App() {
-    const { instance, accounts } = useMsal();
-    const login = () => instance.loginRedirect(loginRequest);
-    const logout = () => instance.logoutRedirect();
+    const { instance, accounts, inProgress } = useMsal();
+    // MSAL rejects a new redirect while it is still starting up or handling the previous one (interaction_in_progress).
+    const msalBusy = inProgress !== InteractionStatus.None;
+    const login = () => instance.loginRedirect(loginRequest).catch(error => console.error('Sign in failed:', error));
+    const logout = () => instance.logoutRedirect().catch(error => console.error('Sign out failed:', error));
 
     const [environment, setEnvironment] = useState('');
     const [currencies, setCurrencies] = useState(/** @type {CurrencyModel[]} */ ([]));
@@ -266,11 +269,11 @@ function App() {
             )}
             <div className="auth">
               {accounts.length === 0 ? (
-                <button type="button" className="btn btn-primary btn-sm" onClick={login}>Sign in</button>
+                <button type="button" className="btn btn-primary btn-sm" onClick={login} disabled={msalBusy}>Sign in</button>
               ) : (
                 <>
                   <span className="auth-user" title={accounts[0].username}>{accounts[0].name}</span>
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={logout}>Sign out</button>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={logout} disabled={msalBusy}>Sign out</button>
                 </>
               )}
             </div>
