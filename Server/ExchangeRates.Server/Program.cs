@@ -125,8 +125,10 @@ public class Program {
 			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
+				app.UseDeveloperExceptionPage();
+			}
 			//if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
-			app.UseDeveloperExceptionPage();
 			app.UseSwagger();
 			app.UseSwaggerUI(options => {
 				options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");

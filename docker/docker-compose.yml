@@ -29,5 +29,6 @@ services:
       IdentityServer__Authority: ${IDENTITYSERVER_AUTHORITY}
       IdentityServer__ClientId: ${IDENTITYSERVER_CLIENT_ID}
       IdentityServer__ClientSecret: ${IDENTITYSERVER_CLIENT_SECRET}
+      IdentityServer__PublicBaseUrl: https://guto.ca/exchangerates
     restart: unless-stopped
 
