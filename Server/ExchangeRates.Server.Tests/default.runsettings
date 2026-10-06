@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Live tests call the real central bank APIs and need the real database and providerkeys.json,
+	so they are excluded from the default run. Run them explicitly by passing live.runsettings
+	as the settings file of dotnet test (see live.runsettings).
+-->
+<RunSettings>
+	<RunConfiguration>
+		<TestCaseFilter>Category!=Live</TestCaseFilter>
+	</RunConfiguration>
+</RunSettings>

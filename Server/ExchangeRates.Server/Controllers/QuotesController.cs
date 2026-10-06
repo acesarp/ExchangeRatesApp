@@ -35,6 +35,9 @@ public class QuotesController : ControllerBase {
 			_logger.LogInformation($"GetRate response count: {result.Count} for {baseCurrency}->{quoteCurrency}");
 			return Ok(result);
 		}
+		catch (ArgumentException ex) {
+			return BadRequest(new { error = ex.Message });
+		}
 		catch (InvalidOperationException ex) {
 			_logger.LogError(ex, $"Unable to retrieve rates for {baseCurrency}->{quoteCurrency}");
 			return BadRequest(new { error = ex.Message });

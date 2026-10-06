@@ -15,7 +15,7 @@ using Xunit;
 namespace ExchangeRates.Server.Tests.Integration;
 
 [Collection("CentralBanksDataApiTests")]
-[Trait("Category", "Integration")]
+[Trait("Category", "Live")]
 [CollectionDefinition("CentralBanksDataApiTests", DisableParallelization = true)]
 [TestCaseOrderer("Xunit.Extensions.Ordering.TestCaseOrderer", "Xunit.Extensions.Ordering")]
 public sealed class ProviderIntegrationTests : IDisposable {

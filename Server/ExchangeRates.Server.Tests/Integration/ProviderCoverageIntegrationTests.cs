@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace ExchangeRates.Server.Tests.Integration;
 
+[Trait("Category", "Live")]
 public sealed class ProviderCoverageIntegrationTests {
 	private readonly ITestOutputHelper _output;
 

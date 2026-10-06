@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Runs only the Live tests (real central bank APIs, real database, providerkeys.json). -->
+<RunSettings>
+	<RunConfiguration>
+		<TestCaseFilter>Category=Live</TestCaseFilter>
+	</RunConfiguration>
+</RunSettings>
