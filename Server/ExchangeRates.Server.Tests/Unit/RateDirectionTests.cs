@@ -39,6 +39,7 @@ public class RateDirectionTests {
 
 		rates.Should().ContainSingle();
 		rates[0].Rate.Should().BeApproximately(1m / CzkPerUsd, 0.0000001m);
+		rates[0].Provider.Should().Be("CNB");
 	}
 
 	[Theory]

@@ -32,10 +32,10 @@ public sealed class NBUProvider : CentralBankProviderBase {
 		var rates = new List<ExchangeRateResult>();
 
 		foreach (var row in doc.RootElement.EnumerateArray()) {
-			var bankCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
+			var currencyCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
 			var dateText = row.TryGetProperty("exchangedate", out var d) ? d.GetString() : null;
 
-			if (string.IsNullOrWhiteSpace(bankCode) ||
+			if (string.IsNullOrWhiteSpace(currencyCode) ||
 				string.IsNullOrWhiteSpace(dateText) ||
 				!DateOnly.TryParseExact(dateText, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
 				continue;
@@ -48,9 +48,7 @@ public sealed class NBUProvider : CentralBankProviderBase {
 			}
 
 			if (rate > 0) {
-
-
-				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, BankCode, rate, bankCode));
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, currencyCode, rate, BankCode));
 			}
 		}
 
