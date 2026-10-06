@@ -4,36 +4,134 @@
   flex-direction: column;
 }
 
-.logo {
-	width: 30em;
-	height: 30em;
-	margin-right: 8px;
-	display: flex;
-	flex-direction: row;
-	flex-flow: row wrap;
-    
-}
-.header-container {
-	display: flex;
-	align-items: center;
-}
+/* Header */
 
 .app-header {
-    background: var(--color-primary);
-    color: #fff;
-    padding: 32px 24px;
-    text-align: center;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 14px;
 }
 
-.app-header h1 {
-  color: #fff;
-  font-size: 32px;
-  margin-bottom: 8px;
+.header-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-brand-navy);
+}
+
+.brand-name-accent {
+  color: var(--color-brand-teal);
 }
 
 .app-header .subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 15px;
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.environment-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.environment-uat {
+  background: #fff7e6;
+  color: var(--color-warning);
+  border-color: rgba(183, 121, 31, 0.3);
+}
+
+.environment-dev,
+.environment-development {
+  background: #e6f4f8;
+  color: var(--color-accent);
+  border-color: rgba(22, 138, 173, 0.3);
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-user {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.btn.btn-sm {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+  }
+
+  .app-header .subtitle {
+    display: none;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .content {

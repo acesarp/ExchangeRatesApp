@@ -8,10 +8,8 @@ import DbHealthBar from './components/DbHealthBar';
 import CryptoFeedBar from './components/CryptoFeedBar';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from './services/authConfig';
-import './assets/ExRt-logo.png';
-import logo from './assets/logo.png'
+import logoMark from './assets/exchangerates.svg';
 
-const logoPath = logo;
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
 function getTodayIsoDate() {
@@ -254,17 +252,30 @@ function App() {
     <div className="page">
       <audio ref={audioRef} hidden />
       <header className="app-header">
-              <h1>Exchange Rates</h1>
-              <div className="header-container">
-			  <img className="logo" src={logo} alt="Exchange Rates Logo" />
+        <div className="header-inner">
+          <div className="brand">
+            <img className="brand-mark" src={logoMark} alt="" />
+            <div className="brand-text">
+              <h1 className="brand-name">Exchange<span className="brand-name-accent">Rates</span></h1>
               <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
-              <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
-              <div className="auth">
-                  {accounts.length === 0 ? (<button type="button" onClick={login}>Sign in</button>) :
-                          (<><span>Logged in as: {accounts[0].name}</span><button type="button" onClick={logout}>Sign out</button></>)
-                      }
-                  </div>
-              </div>
+            </div>
+          </div>
+          <div className="header-actions">
+            {environment && (
+              <span className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</span>
+            )}
+            <div className="auth">
+              {accounts.length === 0 ? (
+                <button type="button" className="btn btn-primary btn-sm" onClick={login}>Sign in</button>
+              ) : (
+                <>
+                  <span className="auth-user" title={accounts[0].username}>{accounts[0].name}</span>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={logout}>Sign out</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
           <main className="content">
