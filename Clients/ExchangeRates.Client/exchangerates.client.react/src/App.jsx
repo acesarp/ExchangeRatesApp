@@ -8,7 +8,7 @@ import DbHealthBar from './components/DbHealthBar';
 import CryptoFeedBar from './components/CryptoFeedBar';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from './services/authConfig';
-import logoMark from './assets/exchangerates.svg';
+import logoMark from './assets/exchangerates-light.svg';
 
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
