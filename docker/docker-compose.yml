@@ -26,5 +26,8 @@ services:
       ASPNETCORE_ENVIRONMENT: UAT
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__ExchangeRates: ${EXCHANGERATES_CONNECTION_STRING}
+      IdentityServer__Authority: ${IDENTITYSERVER_AUTHORITY}
+      IdentityServer__ClientId: ${IDENTITYSERVER_CLIENT_ID}
+      IdentityServer__ClientSecret: ${IDENTITYSERVER_CLIENT_SECRET}
     restart: unless-stopped
 
