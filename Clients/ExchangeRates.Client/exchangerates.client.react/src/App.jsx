@@ -282,8 +282,10 @@ function App() {
       </header>
 
           <main className="content">
-			  <CryptoFeedBar />
-             <DbHealthBar />
+          <div className="status-strip">
+            <CryptoFeedBar />
+            <DbHealthBar />
+          </div>
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
                 <div className="form-grid">
