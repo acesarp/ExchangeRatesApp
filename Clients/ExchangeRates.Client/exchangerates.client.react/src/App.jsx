@@ -8,7 +8,10 @@ import DbHealthBar from './components/DbHealthBar';
 import CryptoFeedBar from './components/CryptoFeedBar';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from './services/authConfig';
+import './assets/ExRt-logo.png';
+import logo from './assets/logo.png'
 
+const logoPath = logo;
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
 function getTodayIsoDate() {
@@ -251,13 +254,16 @@ function App() {
     <div className="page">
       <audio ref={audioRef} hidden />
       <header className="app-header">
-        <h1>Exchange Rates</h1>
+              <h1>Exchange Rates</h1>
+              <div className="header-container">
+			  <img className="logo" src={logo} alt="Exchange Rates Logo" />
               <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
               <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
               <div className="auth">
                   {accounts.length === 0 ? (<button type="button" onClick={login}>Sign in</button>) :
-                      (<><span>Logged in as: {accounts[0].name}</span><button type="button" onClick={logout}>Sign out</button></>)
-                  }
+                          (<><span>Logged in as: {accounts[0].name}</span><button type="button" onClick={logout}>Sign out</button></>)
+                      }
+                  </div>
               </div>
       </header>
 

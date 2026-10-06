@@ -4,11 +4,25 @@
   flex-direction: column;
 }
 
+.logo {
+	width: 30em;
+	height: 30em;
+	margin-right: 8px;
+	display: flex;
+	flex-direction: row;
+	flex-flow: row wrap;
+    
+}
+.header-container {
+	display: flex;
+	align-items: center;
+}
+
 .app-header {
-  background: var(--color-primary);
-  color: #fff;
-  padding: 32px 24px;
-  text-align: center;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 32px 24px;
+    text-align: center;
 }
 
 .app-header h1 {
