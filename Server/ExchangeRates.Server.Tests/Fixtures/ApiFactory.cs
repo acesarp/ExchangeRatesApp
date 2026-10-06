@@ -24,10 +24,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program> {
 	public ApiFactory() {
 		Repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
-		Repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+		Repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 		Repository.Setup(x => x.GetCurrenciesAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync([Usd, Eur]);
+		Repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 	}
 
 	/// <summary> Makes the repository return a cached USD/EUR rate for the given day </summary>

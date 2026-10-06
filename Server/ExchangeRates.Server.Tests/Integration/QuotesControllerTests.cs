@@ -93,7 +93,7 @@ public class QuotesControllerTests : IAsyncLifetime {
 	[Fact]
 	public async Task ExchangeRates_AllDatesUnavailable_ReturnsEmptyList() {
 		var day = new DateOnly(2026, 10, 3);
-		_factory.Repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+		_factory.Repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([day]);
 
 		var response = await _client.GetAsync("/api/exchange-rates?baseCurrency=USD&quoteCurrency=EUR&fromDate=2026-10-03&toDate=2026-10-03");

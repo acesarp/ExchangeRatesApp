@@ -105,6 +105,9 @@ public sealed class CentralBankProviderFactory {
 		};
 	}
 
+	/// <summary> Whether a provider is implemented for the bank; the database also lists banks that have none </summary>
+	public bool HasProvider(string bankCode) => _providerFactories.ContainsKey(bankCode);
+
 	public ICentralBankProvider GetProvider(CentralBankEntity bank) {
 		if (!_providerFactories.TryGetValue(bank.BankCode, out var factory)) {
 			throw new ArgumentOutOfRangeException(nameof(bank), bank.BankCode, $"Unknown central bank provider '{bank.BankCode}'.");

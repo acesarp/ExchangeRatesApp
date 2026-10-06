@@ -12,16 +12,13 @@ public interface IExchangeRateRepository {
 	Task<IEnumerable<CentralBankEntity>> GetCentralBanksAsync(CancellationToken ct);
 	Task<CentralBankEntity> GetCentralBankAsync(string bankCode, CancellationToken ct);
 	/// <summary>
-	/// Finds the most suitable central bank for the given currency pair, considering whether the currencies are historic or not.
+	/// Gets the active central banks that publish both currencies, either as their native currency or as a supported one,
+	/// ordered by priority. Banks whose native currency is one of the two can quote the pair directly; the others can
+	/// only provide a cross rate through their native currency.
 	/// </summary>
-	/// <param name="currency1"></param>
-	/// <param name="currency2"></param>
-	/// <param name="ct"></param>
-	/// <param name="isHistoric1">Indicates whether the first currency is historic</param>
-	/// <param name="isHistoric2">Indicates whether the second currency is historic</param>
-	/// <returns></returns>
-	Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct, bool isHistoric1 = false, bool isHistoric2 = false);
+	Task<IReadOnlyList<CentralBankEntity>> GetBanksPublishingAsync(string currency1, string currency2, CancellationToken ct);
 	Task<int> AddUnavailableDatesAsync(IEnumerable<ExchangeRateUnavailableDateEntity> unavailableDates, CancellationToken ct);
 	Task<HashSet<ExchangeRateUnavailableDateEntity>> GetUnavailableDateEntitiesAsync(DateOnly from, DateOnly to, CancellationToken ct);
-	Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct);
+	/// <summary> Gets the dates on which no rate exists for the pair (in either direction), e.g. weekends and holidays </summary>
+	Task<HashSet<DateOnly>> GetUnavailableDatesAsync(string currency1, string currency2, DateOnly from, DateOnly to, CancellationToken ct);
 }

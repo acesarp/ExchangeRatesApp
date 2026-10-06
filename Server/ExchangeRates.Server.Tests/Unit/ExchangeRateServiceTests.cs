@@ -27,7 +27,9 @@ public class ExchangeRateServiceTests {
 		_repository = new Mock<IExchangeRateRepository>();
 		_repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
-		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
+		_repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 
 		var config = new ConfigurationBuilder()
@@ -78,7 +80,7 @@ public class ExchangeRateServiceTests {
 		result[0].BaseCurrency.Should().Be("USD");
 		result[0].QuoteCurrency.Should().Be("EUR");
 		result[0].Rate.Should().Be(0.92m);
-		_repository.Verify(x => x.FindSuitableBankAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+		_repository.Verify(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	[Fact]
@@ -121,7 +123,7 @@ public class ExchangeRateServiceTests {
 	public async Task GetRatesAsync_AllDatesMarkedUnavailable_ReturnsEmptyWithoutCallingProvider() {
 		// Arrange
 		var date = new DateOnly(2026, 10, 3);
-		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([date]);
 
 		// Act
@@ -129,7 +131,7 @@ public class ExchangeRateServiceTests {
 
 		// Assert
 		result.Should().BeEmpty();
-		_repository.Verify(x => x.FindSuitableBankAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+		_repository.Verify(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 	#endregion
 

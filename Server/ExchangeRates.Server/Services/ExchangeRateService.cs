@@ -1,4 +1,4 @@
-﻿using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Entities;
 using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Domain.Models;
 using ExchangeRates.Domain.Utilities;
@@ -14,6 +14,9 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	private readonly IExchangeRateRepository _repository;
 	private readonly CentralBankProviderFactory _providerFactory;
 	private readonly string _pivotCurrency;
+
+	// A bank that hangs would otherwise hold the request for the HttpClient default of 100s before the next bank is tried.
+	private static readonly TimeSpan BankTimeout = TimeSpan.FromSeconds(20);
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
@@ -23,7 +26,11 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 	}
 
-	/// <summary> Gets the exchange rates for the specified base and quote currencies between the given date range </summary>
+	/// <summary>
+	/// Gets the exchange rates for the specified base and quote currencies between the given date range.<br />
+	/// Uses a bank that quotes the pair directly when there is one; otherwise crosses two rates through a common currency.
+	/// Every rate fetched from a bank is stored, so later requests are served from the database.
+	/// </summary>
 	/// <exception cref="ArgumentException"></exception>
 	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
@@ -36,132 +43,174 @@ public sealed class ExchangeRateService : IExchangeRateService {
 				.ToList();
 		}
 
-		// Check if the rates are already available in the repository
-		var canonicalRates = await _repository.GetRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-
-		IEnumerable<ExchangeRateResult> rates = new List<ExchangeRateResult>();
-
-		if (canonicalRates?.Count > 0) {
-			rates = canonicalRates.Select(ExchangeRateMapper.ToResult);
+		var direct = await GetPairRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
+		if (direct is not null) {
+			return direct;
 		}
 
-		var missingDates = DateRangeHelper.GetMissingDates(fromDate, toDate, rates.Select(x => x.Date));
-
-		List<DateOnly> missingDatesFiltered = new List<DateOnly>();
-		if (missingDates.Count > 0) {
-			HashSet<DateOnly> unavailableDatesSet = await _repository.GetUnavailableDatesAsync(missingDates.Min(), missingDates.Max(), ct);
-			missingDatesFiltered = missingDates.Where(x => !unavailableDatesSet.Contains(x)).ToList();
-
-			_logger.LogInformation("All rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
-		}
-
-		if (missingDatesFiltered.Count > 0) {
-			_logger.LogInformation("Found {Count} missing dates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", missingDatesFiltered.Count, baseCurrency, quoteCurrency, fromDate, toDate);
-
-			// If there are missing rates, fetch them from the resolver
-			rates = await GetDirectRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
-			string bankProviderCode = rates.FirstOrDefault()?.Provider;
-			var rateDates = rates.Select(x => x.Date).ToHashSet();
-			if (rates.Any()) {
-				_logger.LogInformation("Direct rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
-
-				var centralBank = await _repository.GetCentralBankAsync(bankProviderCode, ct);
-
-				//Saved unavailable dates to avoid future unnecessary API calls
-				var missingdatesToSave = new List<ExchangeRateUnavailableDateEntity>();
-				for (var from = fromDate; from <= toDate; from = from.AddDays(1)) {
-					if (!rateDates.Contains(from)) {
-						missingdatesToSave.Add(new ExchangeRateUnavailableDateEntity {
-							CentralBankId = centralBank.Id,
-							BaseCurrency = baseCurrency,
-							QuoteCurrency = quoteCurrency,
-							UnavailableDate = from,
-							Reason = from.DayOfWeek == DayOfWeek.Saturday || from.DayOfWeek == DayOfWeek.Sunday ? "Weekend" : "Possible holiday",
-						});
-						_logger.LogInformation("Marking {Date} as unavailable for {BaseCurrency}/{QuoteCurrency}.", from, baseCurrency, quoteCurrency);
-					}
-				}
-				await _repository.AddUnavailableDatesAsync(missingdatesToSave, ct);
-
-				var ratesForDbToSave = await OrientToCanonical(rates, ct);
-				var currencyIds = (await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct))
-										.ToDictionary(x => x.CurrencyCode, x => x.Id);
-
-				// OrientToCanonical may have swapped base and quote (and inverted the rate), so store each row under its own currencies.
-				var rst = await _repository.AddRangeAsync(ratesForDbToSave.Select(x => ExchangeRateMapper.ToEntity(x, currencyIds[x.BaseCurrency], currencyIds[x.QuoteCurrency])), ct);
-
-				_logger.LogInformation("Saved {Count} new rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", rst, baseCurrency, quoteCurrency, fromDate, toDate);
-
-				return OrientRates(rates.ToList(), baseCurrency, quoteCurrency);
+		var banks = await GetUsableBanksAsync(baseCurrency, quoteCurrency, ct);
+		foreach (var pivot in GetPivotCurrencies(baseCurrency, quoteCurrency, banks)) {
+			var crossed = await GetCrossRatesAsync(baseCurrency, quoteCurrency, pivot, fromDate, toDate, ct);
+			if (crossed.Count > 0) {
+				return crossed;
 			}
 		}
-		else {
-			return OrientRates(rates.ToList(), baseCurrency, quoteCurrency);
-		}
 
-		_logger.LogInformation("Direct rates not found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}. Attempting triangulation.", baseCurrency, quoteCurrency, fromDate, toDate);
-		// If direct rates are not available, fetch triangulated rates
-		return await GetTriangulatedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct);
+		_logger.LogWarning("No rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
+		return [];
 	}
 
+	/// <summary> Active banks that publish both currencies and have a provider implementation, by priority </summary>
+	private async Task<IReadOnlyList<CentralBankEntity>> GetUsableBanksAsync(string currency1, string currency2, CancellationToken ct) {
+		var banks = await _repository.GetBanksPublishingAsync(currency1, currency2, ct);
+		return banks.Where(b => _providerFactory.HasProvider(b.BankCode)).ToList();
+	}
 
 	/// <summary>
-	/// Gets the exchange rates from the bank API for the specified base and quote currencies between the given date range. <br />
-	/// The direction of the exchange rate is not considered; if the provider's native currency is the quote currency, the inverse of the rate will be returned.<br />
+	/// Currencies to cross through when no bank quotes the pair directly: first the native currencies of banks that publish
+	/// both (both legs then come from the same source), then the configured pivot currency.
 	/// </summary>
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetDirectRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	private IEnumerable<string> GetPivotCurrencies(string baseCurrency, string quoteCurrency, IReadOnlyList<CentralBankEntity> banks) {
+		return banks.Select(b => b.NativeCurrency.CurrencyCode)
+			.Append(_pivotCurrency)
+			.Where(c => c != baseCurrency && c != quoteCurrency)
+			.Distinct();
+	}
 
-		CentralBankEntity bank = await _repository.FindSuitableBankAsync(baseCurrency, quoteCurrency, ct);
-		ICentralBankProvider provider = _providerFactory.GetProvider(bank);
-		if (provider == null) {
-			var message = $"No provider found for {baseCurrency}/{quoteCurrency} - bank: {bank.BankCode}.";
-			var ex = new InvalidOperationException(message);
-			_logger.LogError(ex, message);
-			throw ex;
+	/// <summary>
+	/// Gets the rates of a pair that some bank quotes directly: stored rates first, then the missing dates from the
+	/// candidate banks in priority order, falling back to the next bank when one fails or returns nothing.<br />
+	/// Returns null when dates are missing and no bank could provide any rate, so the caller can try a cross rate.
+	/// </summary>
+	private async Task<IReadOnlyList<ExchangeRateResult>?> GetPairRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var stored = (await _repository.GetRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, ct))
+			.Select(ExchangeRateMapper.ToResult)
+			.ToList();
+
+		IReadOnlyList<DateOnly> missingDates = DateRangeHelper.GetMissingDates(fromDate, toDate, stored.Select(x => x.Date));
+		if (missingDates.Count > 0) {
+			var unavailable = await _repository.GetUnavailableDatesAsync(baseCurrency, quoteCurrency, missingDates.Min(), missingDates.Max(), ct);
+			missingDates = missingDates.Where(x => !unavailable.Contains(x)).ToList();
 		}
-		var nativeCurrencyCode = bank.NativeCurrency.CurrencyCode;
+
+		if (missingDates.Count == 0) {
+			return OrientRates(stored, baseCurrency, quoteCurrency);
+		}
+
+		var fetchFrom = missingDates.Min();
+		var fetchTo = missingDates.Max();
+		var banks = await GetUsableBanksAsync(baseCurrency, quoteCurrency, ct);
+		var directBanks = banks.Where(b => b.NativeCurrency.CurrencyCode == baseCurrency || b.NativeCurrency.CurrencyCode == quoteCurrency);
+
+		foreach (var bank in directBanks) {
+			IReadOnlyList<ExchangeRateResult> fetched;
+			try {
+				using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+				timeout.CancelAfter(BankTimeout);
+				fetched = await FetchFromBankAsync(bank, baseCurrency, quoteCurrency, fetchFrom, fetchTo, timeout.Token);
+			}
+			catch (Exception ex) when (!ct.IsCancellationRequested) {
+				_logger.LogWarning(ex, "Bank {BankCode} failed for {BaseCurrency}/{QuoteCurrency}; trying the next one.", bank.BankCode, baseCurrency, quoteCurrency);
+				continue;
+			}
+
+			if (fetched.Count == 0) {
+				_logger.LogInformation("Bank {BankCode} returned no rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", bank.BankCode, baseCurrency, quoteCurrency, fetchFrom, fetchTo);
+				continue;
+			}
+
+			await SaveRatesAsync(bank, baseCurrency, quoteCurrency, fetchFrom, fetchTo, fetched, ct);
+
+			var storedDates = stored.Select(x => x.Date).ToHashSet();
+			var merged = stored.Concat(fetched.Where(x => !storedDates.Contains(x.Date) && x.Date >= fromDate && x.Date <= toDate))
+				.OrderBy(x => x.Date)
+				.ToList();
+			return OrientRates(merged, baseCurrency, quoteCurrency);
+		}
+
+		return stored.Count > 0 ? OrientRates(stored, baseCurrency, quoteCurrency) : null;
+	}
+
+	/// <summary>
+	/// Gets the rates from the bank API for the specified base and quote currencies between the given date range. <br />
+	/// The bank's native currency must be one of the two; the result is oriented as native/other.
+	/// </summary>
+	private async Task<IReadOnlyList<ExchangeRateResult>> FetchFromBankAsync(CentralBankEntity bank, string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var provider = _providerFactory.GetProvider(bank);
 		var localQuoteCurrency = (provider.NativeCurrencyCode == quoteCurrency) ? baseCurrency : quoteCurrency;
 
-		_logger.LogDebug("Direct provider {BankCode} selected for {BaseCurrency}/{QuoteCurrency}. Native={NativeCurrency}", provider.BankCode, baseCurrency, quoteCurrency, provider.NativeCurrencyCode);
+		_logger.LogDebug("Fetching {BaseCurrency}/{QuoteCurrency} from {BankCode}. Native={NativeCurrency}", baseCurrency, quoteCurrency, provider.BankCode, provider.NativeCurrencyCode);
 
 		var rates = await provider.GetRatesAsync(localQuoteCurrency, fromDate, toDate, ct);
 
-		rates = rates.Select(x => new ExchangeRateResult(x.Date, provider.NativeCurrencyCode, localQuoteCurrency, x.Rate, x.Provider))
-							.OrderBy(x => x.Date)
-							.ToList();
-
-		if (provider.NativeCurrencyCode == quoteCurrency) {
-			return OrientRates(rates, baseCurrency, quoteCurrency);
-		}
-
-		return rates;
+		return rates.Where(x => x.Rate > 0)
+			.Select(x => new ExchangeRateResult(x.Date, provider.NativeCurrencyCode, localQuoteCurrency, x.Rate, provider.BankCode))
+			.OrderBy(x => x.Date)
+			.ToList();
 	}
 
 	/// <summary>
-	/// Gets the exchange rates for the specified base and quote currencies between the given date range using triangulation through the pivot currency.
+	/// Stores fetched rates under their canonical currency order, and records the dates the bank had no rate for so they are
+	/// not requested again. Dates after the last returned one are not recorded: the bank may simply not have published them yet.
 	/// </summary>
-	private async Task<IReadOnlyList<ExchangeRateResult>> GetTriangulatedRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		_logger.LogInformation("Triangulating rates for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate} using pivot currency {PivotCurrency}.", baseCurrency, quoteCurrency, fromDate, toDate, _pivotCurrency);
-		var baseToPivot = await GetDirectRatesAsync(baseCurrency, _pivotCurrency, fromDate, toDate, ct);
-		var pivotToQuote = await GetDirectRatesAsync(_pivotCurrency, quoteCurrency, fromDate, toDate, ct);
+	private async Task SaveRatesAsync(CentralBankEntity bank, string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, IReadOnlyList<ExchangeRateResult> rates, CancellationToken ct) {
+		var rateDates = rates.Select(x => x.Date).ToHashSet();
+		var lastPublished = rates.Max(x => x.Date);
+		var unavailable = new List<ExchangeRateUnavailableDateEntity>();
 
-		if (baseToPivot.Count == 0 || pivotToQuote.Count == 0) {
-			return Array.Empty<ExchangeRateResult>();
+		for (var date = fromDate; date <= toDate && date < lastPublished; date = date.AddDays(1)) {
+			if (!rateDates.Contains(date)) {
+				unavailable.Add(new ExchangeRateUnavailableDateEntity {
+					CentralBankId = bank.Id,
+					BaseCurrency = baseCurrency,
+					QuoteCurrency = quoteCurrency,
+					UnavailableDate = date,
+					Reason = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday ? "Weekend" : "Possible holiday",
+				});
+			}
+		}
+		await _repository.AddUnavailableDatesAsync(unavailable, ct);
+
+		var canonical = await OrientToCanonical(rates, ct);
+		var currencyIds = (await _repository.GetCurrencyByCodesAsync([baseCurrency, quoteCurrency], ct))
+			.ToDictionary(x => x.CurrencyCode, x => x.Id);
+
+		// OrientToCanonical may have swapped base and quote (and inverted the rate), so store each row under its own currencies.
+		var saved = await _repository.AddRangeAsync(canonical.Select(x => ExchangeRateMapper.ToEntity(x, currencyIds[x.BaseCurrency], currencyIds[x.QuoteCurrency])), ct);
+
+		_logger.LogInformation("Saved {Count} new rates for {BaseCurrency}/{QuoteCurrency} from {BankCode} between {FromDate} and {ToDate}.", saved, baseCurrency, quoteCurrency, bank.BankCode, fromDate, toDate);
+	}
+
+	/// <summary>
+	/// Crosses base/pivot and pivot/quote into base/quote for the dates both legs have. Each leg is a directly quoted pair,
+	/// so it is read from and stored in the database like any other.
+	/// </summary>
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetCrossRatesAsync(string baseCurrency, string quoteCurrency, string pivot, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var baseLeg = await GetPairRatesAsync(baseCurrency, pivot, fromDate, toDate, ct);
+		if (baseLeg is not { Count: > 0 }) {
+			return [];
 		}
 
-		var quoteByDate = pivotToQuote.GroupBy(x => x.Date)
-															.ToDictionary(x => x.Key, x => x.First());
+		var quoteLeg = await GetPairRatesAsync(pivot, quoteCurrency, fromDate, toDate, ct);
+		if (quoteLeg is not { Count: > 0 }) {
+			return [];
+		}
 
-		var rates = baseToPivot.GroupBy(x => x.Date)
-											.Select(x => x.First())
-											.Where(x => quoteByDate.ContainsKey(x.Date))
-											.Select(x => {
-												var quoteRate = quoteByDate[x.Date];
-												return new ExchangeRateResult(x.Date, baseCurrency, quoteCurrency, x.Rate * quoteRate.Rate, $"{x.Provider}+{quoteRate.Provider}");
-											})
-											.OrderBy(x => x.Date)
-											.ToList();
-		return rates;
+		_logger.LogInformation("Crossing {BaseCurrency}/{QuoteCurrency} through {Pivot}.", baseCurrency, quoteCurrency, pivot);
+
+		var quoteByDate = quoteLeg.GroupBy(x => x.Date).ToDictionary(x => x.Key, x => x.First());
+
+		return baseLeg.GroupBy(x => x.Date)
+			.Select(x => x.First())
+			.Where(x => quoteByDate.ContainsKey(x.Date))
+			.Select(x => {
+				var quoteRate = quoteByDate[x.Date];
+				// Rates read back from the database carry no provider, so join only the ones that are known.
+				var provider = string.Join('+', new[] { x.Provider, quoteRate.Provider }.Where(p => !string.IsNullOrEmpty(p)).Distinct());
+				return new ExchangeRateResult(x.Date, baseCurrency, quoteCurrency, x.Rate * quoteRate.Rate, provider);
+			})
+			.OrderBy(x => x.Date)
+			.ToList();
 	}
 
 

@@ -96,10 +96,10 @@ public class RateDirectionTests {
 		var repository = new Mock<IExchangeRateRepository>();
 		repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
-		repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+		repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
-		repository.Setup(x => x.FindSuitableBankAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<bool>()))
-				.ReturnsAsync(bank);
+		repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([bank]);
 		repository.Setup(x => x.GetCentralBankAsync("CNB", It.IsAny<CancellationToken>()))
 				.ReturnsAsync(bank);
 		repository.Setup(x => x.GetCurrencyByCodesAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
