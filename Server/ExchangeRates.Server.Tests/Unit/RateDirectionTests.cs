@@ -98,6 +98,8 @@ public class RateDirectionTests {
 				.ReturnsAsync([]);
 		repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
+		repository.Setup(x => x.GetFixedRatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 		repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([bank]);
 		repository.Setup(x => x.GetCentralBankAsync("CNB", It.IsAny<CancellationToken>()))

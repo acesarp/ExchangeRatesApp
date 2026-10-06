@@ -19,6 +19,8 @@ public interface IExchangeRateRepository {
 	Task<IReadOnlyList<CentralBankEntity>> GetBanksPublishingAsync(string currency1, string currency2, CancellationToken ct);
 	Task<int> AddUnavailableDatesAsync(IEnumerable<ExchangeRateUnavailableDateEntity> unavailableDates, CancellationToken ct);
 	Task<HashSet<ExchangeRateUnavailableDateEntity>> GetUnavailableDateEntitiesAsync(DateOnly from, DateOnly to, CancellationToken ct);
+	/// <summary> Gets the active fixed pegs of a currency: 1 unit of PeggedOnCurrency = Rate units of the currency </summary>
+	Task<IReadOnlyList<FixedExchangeRateEntity>> GetFixedRatesAsync(string currencyCode, CancellationToken ct);
 	/// <summary> Gets the dates on which no rate exists for the pair (in either direction), e.g. weekends and holidays </summary>
 	Task<HashSet<DateOnly>> GetUnavailableDatesAsync(string currency1, string currency2, DateOnly from, DateOnly to, CancellationToken ct);
 }

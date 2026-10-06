@@ -29,6 +29,8 @@ public class ExchangeRateServiceTests {
 				.ReturnsAsync([]);
 		_repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
+		_repository.Setup(x => x.GetFixedRatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 		_repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 

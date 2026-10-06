@@ -17,6 +17,9 @@ public sealed class ExchangeRateService : IExchangeRateService {
 
 	// A bank that hangs would otherwise hold the request for the HttpClient default of 100s before the next bank is tried.
 	private static readonly TimeSpan BankTimeout = TimeSpan.FromSeconds(20);
+
+	private const string FixedProvider = "FIXED";
+	private const int MaxPegHops = 2;
 	#endregion Class Fields
 	public ExchangeRateService(ILogger<ExchangeRateService> logger, IExchangeRateRepository repository, CentralBankProviderFactory providerFactory, IConfiguration configuration) {
 		_logger = logger;
@@ -32,11 +35,16 @@ public sealed class ExchangeRateService : IExchangeRateService {
 	/// Every rate fetched from a bank is stored, so later requests are served from the database.
 	/// </summary>
 	/// <exception cref="ArgumentException"></exception>
-	public async Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+	public Task<IReadOnlyList<ExchangeRateResult>> GetRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
 		if (fromDate > toDate) {
 			throw new ArgumentException("fromDate cannot be greater than toDate.");
 		}
 
+		return ResolveRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, MaxPegHops, ct);
+	}
+
+	/// <param name="pegHops">How many more fixed pegs may be followed, which stops chains of pegs from recursing forever</param>
+	private async Task<IReadOnlyList<ExchangeRateResult>> ResolveRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, int pegHops, CancellationToken ct) {
 		if (baseCurrency == quoteCurrency) {
 			return Enumerable.Range(0, toDate.DayNumber - fromDate.DayNumber + 1)
 				.Select(i => new ExchangeRateResult(fromDate.AddDays(i), baseCurrency, quoteCurrency, 1m, "IDENTITY"))
@@ -56,8 +64,53 @@ public sealed class ExchangeRateService : IExchangeRateService {
 			}
 		}
 
+		if (pegHops > 0) {
+			var pegged = await GetPeggedRatesAsync(baseCurrency, quoteCurrency, fromDate, toDate, pegHops - 1, ct);
+			if (pegged.Count > 0) {
+				return pegged;
+			}
+		}
+
 		_logger.LogWarning("No rates found for {BaseCurrency}/{QuoteCurrency} between {FromDate} and {ToDate}.", baseCurrency, quoteCurrency, fromDate, toDate);
 		return [];
+	}
+
+	/// <summary>
+	/// Falls back to a fixed peg when no bank publishes a currency (e.g. USN = 1 USD, VED = 1 VES, historic currencies with a
+	/// fixed conversion): converts it to the currency it is pegged on and resolves the rest of the pair from there.
+	/// </summary>
+	private async Task<IReadOnlyList<ExchangeRateResult>> GetPeggedRatesAsync(string baseCurrency, string quoteCurrency, DateOnly fromDate, DateOnly toDate, int pegHops, CancellationToken ct) {
+		// 1 PeggedOn = Rate units of the pegged currency.
+		foreach (var peg in await _repository.GetFixedRatesAsync(baseCurrency, ct)) {
+			var peggedOn = peg.PeggedOnCurrency.CurrencyCode;
+			var rest = await ResolveRatesAsync(peggedOn, quoteCurrency, fromDate, toDate, pegHops, ct);
+			var rates = ApplyPeg(rest, peg, r => new ExchangeRateResult(r.Date, baseCurrency, quoteCurrency, r.Rate / peg.Rate, JoinProviders(FixedProvider, r.Provider)));
+			if (rates.Count > 0) {
+				return rates;
+			}
+		}
+
+		foreach (var peg in await _repository.GetFixedRatesAsync(quoteCurrency, ct)) {
+			var peggedOn = peg.PeggedOnCurrency.CurrencyCode;
+			var rest = await ResolveRatesAsync(baseCurrency, peggedOn, fromDate, toDate, pegHops, ct);
+			var rates = ApplyPeg(rest, peg, r => new ExchangeRateResult(r.Date, baseCurrency, quoteCurrency, r.Rate * peg.Rate, JoinProviders(r.Provider, FixedProvider)));
+			if (rates.Count > 0) {
+				return rates;
+			}
+		}
+
+		return [];
+	}
+
+	private static List<ExchangeRateResult> ApplyPeg(IReadOnlyList<ExchangeRateResult> rates, FixedExchangeRateEntity peg, Func<ExchangeRateResult, ExchangeRateResult> convert) {
+		return rates.Where(r => (peg.ValidFrom is null || r.Date >= peg.ValidFrom) && (peg.ValidTo is null || r.Date <= peg.ValidTo))
+			.Select(convert)
+			.ToList();
+	}
+
+	// Rates read back from the database carry no provider, so join only the ones that are known.
+	private static string JoinProviders(params string?[] providers) {
+		return string.Join('+', providers.Where(p => !string.IsNullOrEmpty(p) && p != "IDENTITY").Distinct());
 	}
 
 	/// <summary> Active banks that publish both currencies and have a provider implementation, by priority </summary>
@@ -205,9 +258,7 @@ public sealed class ExchangeRateService : IExchangeRateService {
 			.Where(x => quoteByDate.ContainsKey(x.Date))
 			.Select(x => {
 				var quoteRate = quoteByDate[x.Date];
-				// Rates read back from the database carry no provider, so join only the ones that are known.
-				var provider = string.Join('+', new[] { x.Provider, quoteRate.Provider }.Where(p => !string.IsNullOrEmpty(p)).Distinct());
-				return new ExchangeRateResult(x.Date, baseCurrency, quoteCurrency, x.Rate * quoteRate.Rate, provider);
+				return new ExchangeRateResult(x.Date, baseCurrency, quoteCurrency, x.Rate * quoteRate.Rate, JoinProviders(x.Provider, quoteRate.Provider));
 			})
 			.OrderBy(x => x.Date)
 			.ToList();

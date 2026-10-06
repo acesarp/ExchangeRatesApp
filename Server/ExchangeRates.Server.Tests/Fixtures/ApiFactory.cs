@@ -28,6 +28,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program> {
 				.ReturnsAsync([]);
 		Repository.Setup(x => x.GetCurrenciesAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync([Usd, Eur]);
+		Repository.Setup(x => x.GetFixedRatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
 		Repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 	}

@@ -84,6 +84,40 @@ public class RateRoutingTests {
 		rates.Should().ContainSingle().Which.Provider.Should().Be("CNB");
 	}
 
+	[Fact]
+	public async Task GetRatesAsync_CurrencyWithoutBank_UsesFixedPegAndResolvesTheRest() {
+		// No bank publishes USN; it is pegged 1:1 on USD, and USD/CZK comes from CNB.
+		var (service, repository, _) = CreateService([CnbBank(id: 7, WorkingUrl)]);
+		repository.Setup(x => x.GetFixedRatesAsync("USN", It.IsAny<CancellationToken>()))
+				.ReturnsAsync([UsnPeg()]);
+
+		var rates = await service.GetRatesAsync("USN", "CZK", Day, Day, CancellationToken.None);
+
+		rates.Should().ContainSingle();
+		rates[0].BaseCurrency.Should().Be("USN");
+		rates[0].QuoteCurrency.Should().Be("CZK");
+		rates[0].Rate.Should().BeApproximately(21.80m, 0.0000001m);
+		rates[0].Provider.Should().Be("FIXED+CNB");
+	}
+
+	[Fact]
+	public async Task GetRatesAsync_FixedPegOutsideItsValidity_IsNotUsed() {
+		var (service, repository, _) = CreateService([CnbBank(id: 7, WorkingUrl)]);
+		var peg = UsnPeg();
+		peg.ValidTo = Day.AddDays(-1);
+		repository.Setup(x => x.GetFixedRatesAsync("USN", It.IsAny<CancellationToken>()))
+				.ReturnsAsync([peg]);
+
+		var rates = await service.GetRatesAsync("USN", "CZK", Day, Day, CancellationToken.None);
+
+		rates.Should().BeEmpty();
+	}
+
+	private static FixedExchangeRateEntity UsnPeg() {
+		var usn = new CurrencyEntity("USN", 997, "US Dollar (Next day)", false, 300) { Id = 300 };
+		return new FixedExchangeRateEntity { Currency = usn, CurrencyId = usn.Id, PeggedOnCurrency = Usd, PeggedOnCurrencyId = Usd.Id, Rate = 1m, IsActive = true };
+	}
+
 	private static CentralBankEntity CnbBank(int id, string apiUrl) {
 		var bank = new CentralBankEntity {
 			Id = id,
@@ -107,6 +141,8 @@ public class RateRoutingTests {
 		repository.Setup(x => x.GetRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 		repository.Setup(x => x.GetUnavailableDatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync([]);
+		repository.Setup(x => x.GetFixedRatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync([]);
 		repository.Setup(x => x.GetBanksPublishingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(banks);

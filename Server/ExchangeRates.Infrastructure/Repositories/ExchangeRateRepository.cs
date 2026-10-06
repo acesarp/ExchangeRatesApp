@@ -157,6 +157,17 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	}
 
 	///<inheritdoc />
+	public async Task<IReadOnlyList<FixedExchangeRateEntity>> GetFixedRatesAsync(string currencyCode, CancellationToken ct) {
+		currencyCode = currencyCode.ToUpperInvariant();
+
+		return await _context.FixedExchangeRates.AsNoTracking()
+			.Include(x => x.Currency)
+			.Include(x => x.PeggedOnCurrency)
+			.Where(x => x.IsActive && x.Currency.CurrencyCode == currencyCode)
+			.ToListAsync(ct);
+	}
+
+	///<inheritdoc />
 	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(string currency1, string currency2, DateOnly from, DateOnly to, CancellationToken ct) {
 		currency1 = currency1.ToUpperInvariant();
 		currency2 = currency2.ToUpperInvariant();
