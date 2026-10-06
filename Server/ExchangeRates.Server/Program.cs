@@ -115,7 +115,11 @@ public class Program {
 				});
 			});
 
-			builder.Services.AddSignalR();
+			builder.Services.AddSignalR(s => {
+				s.EnableDetailedErrors = true;
+				s.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
+				s.KeepAliveInterval = TimeSpan.FromSeconds(5);
+			});
 
 			builder.Services.AddHostedService<BitcoinPriceWorker>();
 			builder.Services.AddHostedService<HealthStatusWorker>();
