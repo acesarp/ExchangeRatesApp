@@ -19,7 +19,7 @@ public class QuotesController : ControllerBase {
 	}
 
 	[HttpGet("exchange-rates", Name = "ExchangeRates")]
-	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> ExchangeRates(string baseCurrency = "jpy", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null) {
+	public async Task<ActionResult<IReadOnlyList<ExchangeRateResult>>> ExchangeRates(string baseCurrency = "jpy", string quoteCurrency = "EUR", DateOnly? fromDate = null, DateOnly? toDate = null, CancellationToken ct = default) {
 		baseCurrency = baseCurrency.ToUpperInvariant();
 		quoteCurrency = quoteCurrency.ToUpperInvariant();
 
@@ -31,7 +31,7 @@ public class QuotesController : ControllerBase {
 		var _toDate = toDate ?? _fromDate;
 
 		try {
-			var result = await _service.GetRatesAsync(baseCurrency, quoteCurrency, _fromDate, _toDate);
+			var result = await _service.GetRatesAsync(baseCurrency, quoteCurrency, _fromDate, _toDate, ct);
 			_logger.LogInformation($"GetRate response count: {result.Count} for {baseCurrency}->{quoteCurrency}");
 			return Ok(result);
 		}

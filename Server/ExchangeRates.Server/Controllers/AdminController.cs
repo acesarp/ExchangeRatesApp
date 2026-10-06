@@ -9,13 +9,19 @@ namespace ExchangeRates.Server.Controllers;
 [Route("api/[controller]")]
 //[Authorize(Roles = "Admin")]
 public sealed class AdminController : ControllerBase {
+	// Behind the proxy "/" would land on the host root instead of the app, so return to the public base URL when configured.
+	private readonly string _appRootUrl;
+
+	public AdminController(IConfiguration configuration) {
+		_appRootUrl = (configuration["IdentityServer:PublicBaseUrl"]?.TrimEnd('/') ?? string.Empty) + "/";
+	}
 
 	//[Produces("application/json")]
 	//[ApiExplorerSettings(GroupName = "Admin")]
 	[AllowAnonymous]
 	[HttpGet("login")]
 	public async Task<IActionResult> Login() {
-		return Challenge(new AuthenticationProperties { RedirectUri = "/" }, "oidc");
+		return Challenge(new AuthenticationProperties { RedirectUri = _appRootUrl }, "oidc");
 	}
 
 	[Authorize(Policy = "ApiScope")]
@@ -30,7 +36,7 @@ public sealed class AdminController : ControllerBase {
 
 	[HttpGet("logout")]
 	public IActionResult Logout() {
-		return SignOut(new AuthenticationProperties { RedirectUri = "/" }, "Cookies", "oidc");
+		return SignOut(new AuthenticationProperties { RedirectUri = _appRootUrl }, "Cookies", "oidc");
 	}
 
 	[Authorize(Policy = "ApiScope")]

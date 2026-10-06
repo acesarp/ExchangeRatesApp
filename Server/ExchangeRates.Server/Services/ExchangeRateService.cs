@@ -222,8 +222,4 @@ public sealed class ExchangeRateService : IExchangeRateService {
 										.ToList();
 	}
 
-	Task<IReadOnlyList<ExchangeRateResult>> IExchangeRateService.GetRatesAsync(string quoteCurrency, string toCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		throw new NotImplementedException();
-	}
-
 }
