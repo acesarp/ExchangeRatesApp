@@ -23,8 +23,12 @@ public sealed class BCUProvider : CentralBankProviderBase {
 	}
 
 	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
-		// BCU identifies currencies by its own numeric codes; 2225 = US dollar (billete).
-		if (quoteCurrency != "USD") {
+		// BCU identifies currencies by its own numeric codes (ProviderSeriesId), all quoted in pesos per unit:
+		// 2225 = US dollar (billete), 9800 = Unidad Indexada (UYI), 9700 = Unidad Previsional (UYW).
+		var bcuCode = Bank.SupportedCurrencies.FirstOrDefault(s => s.Currency.CurrencyCode == quoteCurrency)?.ProviderSeriesId
+			?? (quoteCurrency == "USD" ? "2225" : null);
+
+		if (string.IsNullOrWhiteSpace(bcuCode)) {
 			return [];
 		}
 
@@ -37,7 +41,7 @@ public sealed class BCUProvider : CentralBankProviderBase {
 					<soap:Body>
 						<cot:wsbcucotizaciones.Execute>
 							<cot:Entrada>
-								<cot:Moneda><cot:item>2225</cot:item></cot:Moneda>
+								<cot:Moneda><cot:item>{bcuCode}</cot:item></cot:Moneda>
 								<cot:FechaDesde>{fromDate:yyyy-MM-dd}</cot:FechaDesde>
 								<cot:FechaHasta>{toDate:yyyy-MM-dd}</cot:FechaHasta>
 								<cot:Grupo>0</cot:Grupo>
