@@ -5,7 +5,11 @@ import CurrencyModel from './models/CurrencyModel';
 import ExchangeRateResult from './models/ExchangeRateResult';
 import './App.css';
 import DbHealthBar from './components/DbHealthBar';
-
+import CryptoFeedBar from './components/CryptoFeedBar';
+import { useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
+import { loginRequest } from './services/authConfig';
+import logoMark from './assets/exchangerates-light.svg';
 
 const PRIORITY_CURRENCIES = ['USD', 'EUR', 'BRL', 'CAD', 'GBP', 'AUD'];
 
@@ -117,6 +121,12 @@ function RateChart({ rates, baseCurrency, quoteCurrency, zacaPictureSrc }) {
 }
 
 function App() {
+    const { instance, accounts, inProgress } = useMsal();
+    // MSAL rejects a new redirect while it is still starting up or handling the previous one (interaction_in_progress).
+    const msalBusy = inProgress !== InteractionStatus.None;
+    const login = () => instance.loginRedirect(loginRequest).catch(error => console.error('Sign in failed:', error));
+    const logout = () => instance.logoutRedirect().catch(error => console.error('Sign out failed:', error));
+
     const [environment, setEnvironment] = useState('');
     const [currencies, setCurrencies] = useState(/** @type {CurrencyModel[]} */ ([]));
     const [baseCurrency, setBaseCurrency] = useState('USD');
@@ -245,13 +255,37 @@ function App() {
     <div className="page">
       <audio ref={audioRef} hidden />
       <header className="app-header">
-        <h1>Exchange Rates</h1>
+        <div className="header-inner">
+          <div className="brand">
+            <img className="brand-mark" src={logoMark} alt="" />
+            <div className="brand-text">
+              <h1 className="brand-name">Exchange<span className="brand-name-accent">Rates</span></h1>
               <p className="subtitle">Look up historical currency exchange rates between two currencies.</p>
-              <div className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</div>
+            </div>
+          </div>
+          <div className="header-actions">
+            {environment && (
+              <span className={`environment-badge environment-${environment.toLowerCase()}`}>{environment}</span>
+            )}
+            <div className="auth">
+              {accounts.length === 0 ? (
+                <button type="button" className="btn btn-primary btn-sm" onClick={login} disabled={msalBusy}>Sign in</button>
+              ) : (
+                <>
+                  <span className="auth-user" title={accounts[0].username}>{accounts[0].name}</span>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={logout} disabled={msalBusy}>Sign out</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
           <main className="content">
+          <div className="status-strip">
+            <CryptoFeedBar />
             <DbHealthBar />
+          </div>
         <section className="card form-card" aria-label="Exchange rate search">
           <form onSubmit={handleSubmit} noValidate>
                 <div className="form-grid">

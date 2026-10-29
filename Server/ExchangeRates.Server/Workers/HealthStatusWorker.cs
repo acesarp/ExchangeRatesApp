@@ -3,7 +3,7 @@ using ExchangeRates.Server.Interfaces;
 
 using Microsoft.AspNetCore.SignalR;
 
-namespace ExchangeRates.Server.Services;
+namespace ExchangeRates.Server.Workers;
 
 public sealed class HealthStatusWorker : BackgroundService {
 	private readonly IServiceScopeFactory _scopeFactory;

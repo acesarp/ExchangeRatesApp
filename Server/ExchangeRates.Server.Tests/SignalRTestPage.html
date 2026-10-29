@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: darkgray;
+        }
+        #status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #messages {
+            background-color: lightgray;
+            padding: 10px;
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+    <title>SignalR Test Page</title>
+</head>
+<body>
+    <h1>SignalR Test Page</h1>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+        <script>
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/crypto")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("CryptoPriceUpdated", price => {
+                console.log(price);
+
+                document.getElementById("messages").textContent +=
+                    JSON.stringify(price, null, 2) + "\n\n";
+            });
+
+            connection.onreconnecting(() => {
+                document.getElementById("status").textContent = "Reconnecting...";
+            });
+
+            connection.onreconnected(() => {
+                document.getElementById("status").textContent = "Connected";
+            });
+
+            connection.onclose(() => {
+                document.getElementById("status").textContent = "Disconnected";
+            });
+
+            async function start() {
+                try {
+                    await connection.start();
+
+                    document.getElementById("status").textContent = "Connected";
+
+                    console.log("SignalR connected.");
+                }
+                catch (err) {
+                    console.error(err);
+                    setTimeout(start, 5000);
+                }
+            }
+
+            start();
+        </script>
+    <div id="status">Disconnected</div>
+    <pre id="messages"></pre>
+</body>
+</html>

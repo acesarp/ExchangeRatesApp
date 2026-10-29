@@ -95,31 +95,20 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 	}
 
 	///<inheritdoc />
-	public async Task<CentralBankEntity> FindSuitableBankAsync(string currency1, string currency2, CancellationToken ct, bool isHistoric1 = false, bool isHistoric2 = false) {
+	public async Task<IReadOnlyList<CentralBankEntity>> GetBanksPublishingAsync(string currency1, string currency2, CancellationToken ct) {
 		currency1 = currency1.ToUpperInvariant();
 		currency2 = currency2.ToUpperInvariant();
-		var query = _context.CentralBanks.AsNoTracking()
-																.Include(x => x.NativeCurrency)
-																.Include(x => x.SupportedCurrencies)
-																.ThenInclude(x => x.Currency)
-																.Where(x => x.IsActive &&
-																									((x.NativeCurrency.CurrencyCode == currency1 &&
-																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2 &&
-																																						sc.Currency.IsHistoric == isHistoric2))
-																										||
-																										(x.NativeCurrency.CurrencyCode == currency2 &&
-																										 x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1 &&
-																																						sc.Currency.IsHistoric == isHistoric1))
-																									)
-																)
-																.OrderBy(x => x.Priority ?? int.MaxValue)
-																.ThenBy(x => x.BankCode);
-		var result = await query.FirstOrDefaultAsync(ct);
 
-		if (result != null) {
-			return result;
-		}
-		throw new InvalidOperationException($"No provider available for {currency1}/{currency2}.");
+		return await _context.CentralBanks.AsNoTracking()
+			.Include(x => x.NativeCurrency)
+			.Include(x => x.SupportedCurrencies)
+			.ThenInclude(x => x.Currency)
+			.Where(x => x.IsActive &&
+						(x.NativeCurrency.CurrencyCode == currency1 || x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency1)) &&
+						(x.NativeCurrency.CurrencyCode == currency2 || x.SupportedCurrencies.Any(sc => sc.Currency.CurrencyCode == currency2)))
+			.OrderBy(x => x.Priority ?? int.MaxValue)
+			.ThenBy(x => x.BankCode)
+			.ToListAsync(ct);
 	}
 
 	/// <summary> Add a range of unavailable dates to the database.<br /> Weekends and holidays when the exchange rate is not available. </summary>
@@ -167,10 +156,28 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository {
 																							.ToHashSetAsync(ct);
 	}
 
-	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(DateOnly from, DateOnly to, CancellationToken ct) {
-		return await _context.ExchangeRateUnavailableDates.Where(x => x.UnavailableDate >= from && x.UnavailableDate <= to)
-																							.Select(x => x.UnavailableDate)
-																							.ToHashSetAsync(ct);
+	///<inheritdoc />
+	public async Task<IReadOnlyList<FixedExchangeRateEntity>> GetFixedRatesAsync(string currencyCode, CancellationToken ct) {
+		currencyCode = currencyCode.ToUpperInvariant();
+
+		return await _context.FixedExchangeRates.AsNoTracking()
+			.Include(x => x.Currency)
+			.Include(x => x.PeggedOnCurrency)
+			.Where(x => x.IsActive && x.Currency.CurrencyCode == currencyCode)
+			.ToListAsync(ct);
+	}
+
+	///<inheritdoc />
+	public async Task<HashSet<DateOnly>> GetUnavailableDatesAsync(string currency1, string currency2, DateOnly from, DateOnly to, CancellationToken ct) {
+		currency1 = currency1.ToUpperInvariant();
+		currency2 = currency2.ToUpperInvariant();
+
+		return await _context.ExchangeRateUnavailableDates
+			.Where(x => x.UnavailableDate >= from && x.UnavailableDate <= to &&
+						((x.BaseCurrency == currency1 && x.QuoteCurrency == currency2) ||
+						 (x.BaseCurrency == currency2 && x.QuoteCurrency == currency1)))
+			.Select(x => x.UnavailableDate)
+			.ToHashSetAsync(ct);
 	}
 
 	public async Task<CentralBankEntity> GetCentralBankAsync(string bankCode, CancellationToken ct) {

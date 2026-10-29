@@ -1,11 +1,12 @@
 using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
+using ExchangeRates.Server.Workers;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,11 @@ public class Program {
 	public static void Main(string[] args) {
 		try {
 			var builder = WebApplication.CreateBuilder(args);
+			Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+			Console.WriteLine($"Authority: {builder.Configuration["IdentityServer:Authority"] ?? "NULL"}");
+			Console.WriteLine($"ClientId: {builder.Configuration["IdentityServer:ClientId"] ?? "NULL"}");
+			Console.WriteLine($"ClientSecret configured: {!string.IsNullOrWhiteSpace(builder.Configuration["IdentityServer:ClientSecret"])}");
+
 			var connectionString = builder.Configuration.GetConnectionString("ExchangeRates");
 
 			var loggerConfiguration = new LoggerConfiguration()
@@ -30,6 +36,7 @@ public class Program {
 				.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
 				.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 				.Enrich.FromLogContext()
+				.WriteTo.Console()
 				.WriteTo.File("logs/log-.log", rollingInterval: RollingInterval.Day);
 
 			Exception? sqlSinkConfigurationException = null;
@@ -70,33 +77,51 @@ public class Program {
 			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
 
 			builder.Services.AddControllers()
-				.AddJsonOptions(options => {
-					options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-				});
+									.AddJsonOptions(options => {
+										options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+									});
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-			builder.Services.AddOpenApi();
+			//builder.Services.AddOpenApi();
+
+			builder.Services.AddExchangeRatesAuthentication(builder.Configuration);
+			builder.Services.AddAntiforgery(o => o.HeaderName = "X-XSRF-TOKEN");
+			// Several central bank sites (e.g. RBA) reject requests without a browser-like User-Agent, and some serve compressed responses.
+			builder.Services.ConfigureHttpClientDefaults(http => {
+				http.ConfigureHttpClient(client => {
+					client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
+					client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+				});
+				http.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.All });
+			});
 			builder.Services.AddHttpClient();
 
+			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
 			builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 			builder.Services.AddSingleton<FixedExchangeRateProvider>();
 			builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
 			builder.Services.AddScoped<CentralBankProviderFactory>();
+			builder.Services.AddSingleton<IKrakenMarketDataService, KrakenMarketDataService>();
+			builder.Services.AddSingleton<ICryptoMarketDataProvider, CoinbaseMarketDataProvider>();
 
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			builder.Services.AddCors(ob => {
-				ob.AddPolicy("Client", policy => {
+			builder.Services.AddCors(o => {
+				o.AddPolicy("Client", policy => {
 					policy.WithOrigins("https://localhost:7149", "http://localhost:62866", "https://localhost:62866")
-						   .AllowAnyMethod()
-						   .AllowAnyHeader()
-						   .AllowCredentials();
+							.AllowAnyMethod()
+						   .AllowAnyHeader();
+
 				});
 			});
 
-			builder.Services.AddSignalR();
+			builder.Services.AddSignalR(s => {
+				s.EnableDetailedErrors = true;
+				s.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
+				s.KeepAliveInterval = TimeSpan.FromSeconds(5);
+			});
 
-			builder.Services.AddScoped<IHealthStatusService, HealthStatusService>();
+			builder.Services.AddHostedService<BitcoinPriceWorker>();
 			builder.Services.AddHostedService<HealthStatusWorker>();
 
 			var app = builder.Build();
@@ -104,19 +129,28 @@ public class Program {
 			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV") {
-				app.MapOpenApi();
+			var isDevEnvironment = app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV";
+			if (isDevEnvironment) {
+				app.UseDeveloperExceptionPage();
 				app.UseSwagger();
 				app.UseSwaggerUI(options => {
 					options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
 					options.RoutePrefix = string.Empty;
 				});
+				//app.MapSwaggerUI("Swag");
 			}
 
+			app.UseStaticFiles();
 			app.UseHttpsRedirection();
+			app.UseAuthentication();
 			app.UseAuthorization();
+
 			app.MapControllers();
 			app.MapHub<HealthStatusHub>("/hubs/health");
+			app.MapHub<CryptoPriceHub>("/hubs/crypto");
+			if (isDevEnvironment) {
+				app.MapOpenApi();
+			}
 
 			app.Run();
 		}

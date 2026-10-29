@@ -13,37 +13,42 @@ steps:
   clean: true
 
 - powershell: |
+    $providerKeysPath = "$(Build.SourcesDirectory)\providerkeys.json"
+    $env:PROVIDER_KEYS_JSON | Set-Content -Path $providerKeysPath -Encoding UTF8
+
+    if (-not (Test-Path $providerKeysPath)) { throw "providerkeys.json was not created." }
+    Write-Host "providerkeys.json created successfully."
+  env:
+    PROVIDER_KEYS_JSON: $(PROVIDER_KEYS_JSON)
+  displayName: 'Create Provider Keys 🔑'
+
+- powershell: |
+    whoami
+    whoami /groups
     docker version
+    docker info
     docker compose version
-  displayName: 'Verify Docker'
+  displayName: 'Verify Docker 🔎'
 
 - powershell: |
-    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
+    docker compose -f docker/docker-compose.yml build
+  env:
+    EXCHANGERATES_CONNECTION_STRING: $(EXCHANGERATES_CONNECTION_STRING)
+  displayName: 'Build ExchangeRates 🛠️'
 
 - powershell: |
-    docker compose `
-      --env-file .env `
-      -f docker/docker-compose.yml `
-      build
-  displayName: 'Build ExchangeRates'
+    docker compose -f docker/docker-compose.yml up -d --remove-orphans
+  env:
+    EXCHANGERATES_CONNECTION_STRING: $(EXCHANGERATES_CONNECTION_STRING)
+    IDENTITYSERVER_AUTHORITY: $(IDENTITYSERVER_AUTHORITY)
+    IDENTITYSERVER_CLIENT_ID: $(IDENTITYSERVER_CLIENT_ID)
+    IDENTITYSERVER_CLIENT_SECRET: $(IDENTITYSERVER_CLIENT_SECRET)
+  displayName: 'Deploy ExchangeRates 🚀'
 
 - powershell: |
-    $env:EXCHANGERATES_CONNECTION_STRING = "$(EXCHANGERATES_CONNECTION_STRING)"
-
-- powershell: |
-    docker compose `
-      --env-file .env `
-      -f docker/docker-compose.yml `
-      up -d --remove-orphans
-  displayName: 'Deploy ExchangeRates'
-
-- powershell: |
-    docker compose `
-      --env-file .env `
-      -f docker/docker-compose.yml `
-      ps
-  displayName: 'Verify Deployment'
+    docker compose -f docker/docker-compose.yml ps
+  displayName: 'Verify Deployment 👀'
 
 - powershell: |
     docker image prune -f
-  displayName: 'Clean old images'
+  displayName: 'Clean old images 🧹'

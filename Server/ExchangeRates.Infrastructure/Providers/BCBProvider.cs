@@ -1,0 +1,59 @@
+using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+using System.Text.Json;
+namespace ExchangeRates.Infrastructure.Providers;
+
+/// <summary>
+/// Banco Central do Brasil
+/// </summary>
+public sealed class BCBProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
+	private readonly ILogger<BCBProvider> _logger;
+
+	public BCBProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCBProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
+
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var rates = new List<ExchangeRateResult>();
+
+		var url = $"{ApiUrl.TrimEnd('/')}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
+			$"?@moeda='{quoteCurrency}'&@dataInicial='{fromDate:MM-dd-yyyy}'&@dataFinalCotacao='{toDate:MM-dd-yyyy}'&$format=json";
+
+		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
+
+		if (!doc.RootElement.TryGetProperty("value", out var values)) {
+			return [];
+		}
+
+		foreach (var row in values.EnumerateArray()) {
+			// Each day has opening and intermediate bulletins plus the closing one ("Fechamento"), which is the official PTAX rate.
+			if (!row.TryGetProperty("tipoBoletim", out var bulletin) || bulletin.GetString() != "Fechamento") {
+				continue;
+			}
+
+			var buy = GetDecimal(row, "cotacaoCompra");
+			var sell = GetDecimal(row, "cotacaoVenda");
+			var rate = buy > 0 && sell > 0 ? (buy + sell) / 2m : Math.Max(buy, sell);
+
+			if (rate <= 0) {
+				continue;
+			}
+
+			var dateText = row.GetProperty("dataHoraCotacao").GetString();
+
+			if (!DateTime.TryParse(dateText, out var dateTime)) {
+				continue;
+			}
+
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(dateTime), quoteCurrency, Bank.NativeCurrency.CurrencyCode, rate, Bank.BankCode));
+		}
+
+		return rates;
+	}
+}

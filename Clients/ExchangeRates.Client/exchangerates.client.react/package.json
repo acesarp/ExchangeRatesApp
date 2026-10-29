@@ -1,5 +1,4 @@
 {
-
   "name": "exchangerates.client.react",
   "private": true,
   "version": "0.0.0",
@@ -12,6 +11,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.23.0",
+    "@azure/msal-react": "^5.7.1",
+    "@microsoft/signalr": "^10.0.11",
     "chart.js": "^4.5.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

@@ -1,8 +1,8 @@
 ﻿using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +15,7 @@ using Xunit;
 namespace ExchangeRates.Server.Tests.Integration;
 
 [Collection("CentralBanksDataApiTests")]
-[Trait("Category", "Integration")]
+[Trait("Category", "Live")]
 [CollectionDefinition("CentralBanksDataApiTests", DisableParallelization = true)]
 [TestCaseOrderer("Xunit.Extensions.Ordering.TestCaseOrderer", "Xunit.Extensions.Ordering")]
 public sealed class ProviderIntegrationTests : IDisposable {

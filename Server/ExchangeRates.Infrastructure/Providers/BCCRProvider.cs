@@ -1,0 +1,65 @@
+
+using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Models;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+using System.Globalization;
+using System.Xml.Linq;
+namespace ExchangeRates.Infrastructure.Providers;
+
+/// <summary>
+/// Banco Central de Costa Rica
+/// </summary>
+public sealed class BCCRProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
+	private readonly ILogger<BCCRProvider> _logger;
+	public BCCRProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BCCRProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
+	private string Token { get; set; }
+	private string NameParameter { get; set; }
+	private string Email { get; set; }
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		Token = Configuration["CentralBanks:BCCR:Token"] ?? throw new InvalidOperationException("BCCR Token is not configured.");
+		NameParameter = Configuration["CentralBanks:BCCR:UserName"] ?? throw new InvalidOperationException("BCCR UserName is not configured.");
+		Email = Configuration["CentralBanks:BCCR:Email"] ?? throw new InvalidOperationException("BCCR Email is not configured.");
+		const int indicator = 318; // USD reference selling rate
+
+		var url = $"{ApiUrl.TrimEnd('/')}/ObtenerIndicadoresEconomicosXML" +
+			$"?Indicador={indicator}" +
+			$"&FechaInicio={fromDate:dd/MM/yyyy}" +
+			$"&FechaFinal={toDate:dd/MM/yyyy}" +
+			$"&Nombre={Uri.EscapeDataString(NameParameter)}" +
+			$"&SubNiveles=N" +
+			$"&CorreoElectronico={Uri.EscapeDataString(Email)}" +
+			$"&Token={Uri.EscapeDataString(Token)}";
+
+		var xml = await Http.GetStringAsync(url, ct);
+		var document = XDocument.Parse(xml);
+
+		var rates = new List<ExchangeRateResult>();
+
+		foreach (var row in document.Descendants().Where(x => x.Name.LocalName == "INGC011_CAT_INDICADORECONOMIC")) {
+			var dateText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "DES_FECHA")?.Value;
+			var valueText = row.Elements().FirstOrDefault(x => x.Name.LocalName == "NUM_VALOR")?.Value;
+
+			if (!DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				continue;
+			}
+
+			if (!decimal.TryParse(valueText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate) || rate <= 0) {
+				continue;
+			}
+
+
+
+			rates.Add(new ExchangeRateResult(DateOnly.FromDateTime(date), quoteCurrency, Bank.NativeCurrency.CurrencyCode, rate, Bank.BankCode));
+		}
+
+		return rates;
+	}
+}
+

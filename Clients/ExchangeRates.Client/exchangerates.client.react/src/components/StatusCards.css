@@ -1,0 +1,172 @@
+.status-strip {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 700px) {
+  .status-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.status-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.status-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.status-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.status-card-meta {
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.is-placeholder {
+  color: var(--color-border);
+}
+
+/* Status pill */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-background);
+  color: var(--color-text-muted);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-live {
+  background: #e6f6ee;
+  color: var(--color-success);
+}
+
+.status-live .status-dot {
+  animation: status-pulse 2s ease-out infinite;
+}
+
+.status-waiting,
+.status-connecting,
+.status-reconnecting {
+  background: #fff7e6;
+  color: var(--color-warning);
+}
+
+.status-offline {
+  background: #fdecea;
+  color: var(--color-error);
+}
+
+@keyframes status-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(47, 133, 90, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(47, 133, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(47, 133, 90, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-live .status-dot {
+    animation: none;
+  }
+}
+
+/* Crypto */
+
+.crypto-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.crypto-price {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.crypto-direction {
+  font-size: 14px;
+}
+
+.crypto-up {
+  color: var(--color-success);
+}
+
+.crypto-down {
+  color: var(--color-error);
+}
+
+/* Database */
+
+.db-latency {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.db-latency-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.db-latency-unit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.latency-good {
+  color: var(--color-success);
+}
+
+.latency-fair {
+  color: var(--color-warning);
+}
+
+.latency-poor {
+  color: var(--color-error);
+}
+
+.status-error {
+  color: var(--color-error);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

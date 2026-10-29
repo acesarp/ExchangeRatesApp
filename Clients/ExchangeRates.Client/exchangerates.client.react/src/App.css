@@ -4,22 +4,153 @@
   flex-direction: column;
 }
 
+/* Header */
+
 .app-header {
   background: var(--color-primary);
   color: #fff;
-  padding: 32px 24px;
-  text-align: center;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 14px;
 }
 
-.app-header h1 {
+.header-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   color: #fff;
-  font-size: 32px;
-  margin-bottom: 8px;
+}
+
+.brand-name-accent {
+  color: var(--color-brand-teal);
 }
 
 .app-header .subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 15px;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.environment-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.environment-uat {
+  background: rgba(246, 173, 85, 0.18);
+  color: #fbd38d;
+  border-color: rgba(246, 173, 85, 0.45);
+}
+
+.environment-dev,
+.environment-development {
+  background: rgba(99, 179, 237, 0.18);
+  color: #90cdf4;
+  border-color: rgba(99, 179, 237, 0.45);
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-user {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* The navy primary button would vanish on the navy header, so header actions use the brand teal */
+.app-header .btn-primary {
+  background: var(--color-brand-teal);
+}
+
+.app-header .btn-primary:hover:not(:disabled) {
+  background: #00917f;
+}
+
+.app-header .btn-secondary {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.app-header .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn.btn-sm {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+  }
+
+  .app-header .subtitle {
+    display: none;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .content {
@@ -45,19 +176,19 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
 @media (max-width: 900px) {
   .form-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -75,6 +206,8 @@
 
 .form-field select,
 .form-field input {
+  width: 100%;
+  min-width: 0;
   height: 40px;
   padding: 0 12px;
   border: 1px solid var(--color-border);
@@ -294,6 +427,7 @@
 
 .currency-field {
     flex: 1;
+    min-width: 0;
 }
 
 .currency-swap {

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExchangeRates.Server.Controllers;
 
 [ApiController]
-[Route("/api")]
+[Route("api/[controller]")]
 public sealed class AppHealthController : ControllerBase {
 	private readonly IHealthStatusService _healthCheckService;
 	private readonly ILogger<AppHealthController> _logger;
@@ -15,9 +15,8 @@ public sealed class AppHealthController : ControllerBase {
 		_logger = logger;
 	}
 
-	[Route("health", Name = "HealthCheck")]
-	[HttpGet]
-	public async Task<IActionResult> GetHealthStatus(CancellationToken ct) {
+	[HttpGet("status-check")]
+	public async Task<IActionResult> HealthStatus(CancellationToken ct) {
 		try {
 			var isHealthy = await _healthCheckService.GetDbHealthAsync(ct);
 			if (isHealthy.CanConnect) {

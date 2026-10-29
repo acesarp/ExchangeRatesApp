@@ -1,13 +1,15 @@
 using ExchangeRates.Domain.Interfaces;
+using ExchangeRates.Infrastructure.Providers;
 using ExchangeRates.Server.Interfaces;
-using ExchangeRates.Server.Providers;
 using ExchangeRates.Server.Services;
 
 using FluentAssertions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+using Moq;
 
 using Xunit;
 
@@ -15,36 +17,23 @@ namespace ExchangeRates.Server.Tests.Unit;
 
 public class ExchangeRateServiceEdgeCaseTests {
 	private readonly IExchangeRateService _service;
-	private readonly IConfiguration _config;
-	private readonly IServiceProvider _serviceProvider;
 
 	public ExchangeRateServiceEdgeCaseTests() {
-		var configDict = new Dictionary<string, string?> {
-			["PivotCurrency"] = "USD"
-		};
-
-		_config = new ConfigurationBuilder()
-			.AddInMemoryCollection(configDict)
+		var config = new ConfigurationBuilder()
+			.AddInMemoryCollection(new Dictionary<string, string?> { ["PivotCurrency"] = "USD" })
 			.Build();
 
-		var services = new ServiceCollection();
+		// None of these cases should reach the repository: identity pairs and invalid ranges are resolved up front.
+		var repository = new Mock<IExchangeRateRepository>(MockBehavior.Strict);
 
-		services.AddSingleton<IConfiguration>(_config);
-		services.AddLogging(builder => builder.AddConsole());
-		services.AddHttpClient();
+		var services = new ServiceCollection()
+			.AddSingleton<IConfiguration>(config)
+			.AddLogging()
+			.BuildServiceProvider();
 
-		// IExchangeRateRepository precisa ser registrado/mockado aqui.
-		// services.AddSingleton<IExchangeRateRepository>(repository);
+		var factory = new CentralBankProviderFactory(services, NullLogger<CentralBankProviderFactory>.Instance);
 
-		_serviceProvider = services.BuildServiceProvider();
-
-		var repository = _serviceProvider.GetRequiredService<IExchangeRateRepository>();
-		var factoryLogger = _serviceProvider.GetRequiredService<ILogger<CentralBankProviderFactory>>();
-		var serviceLogger = _serviceProvider.GetRequiredService<ILogger<ExchangeRateService>>();
-
-		var factory = new CentralBankProviderFactory(_serviceProvider, factoryLogger);
-
-		_service = new ExchangeRateService(serviceLogger, repository, factory, _config);
+		_service = new ExchangeRateService(NullLogger<ExchangeRateService>.Instance, repository.Object, factory, config);
 	}
 
 	[Fact]
@@ -60,7 +49,7 @@ public class ExchangeRateServiceEdgeCaseTests {
 
 		sw.Stop();
 
-		result.Should().NotBeEmpty();
+		result.Should().HaveCount(365);
 		sw.ElapsedMilliseconds.Should().BeLessThan(5000);
 	}
 

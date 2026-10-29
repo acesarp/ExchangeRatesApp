@@ -8,8 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Constants\" />
-    <Folder Include="Views\" />
+    <Compile Remove="Constants\**" />
+    <Compile Remove="Views\**" />
+    <EmbeddedResource Remove="Constants\**" />
+    <EmbeddedResource Remove="Views\**" />
+    <None Remove="Constants\**" />
+    <None Remove="Views\**" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Interfaces;
 using ExchangeRates.Infrastructure;
 using ExchangeRates.Server.Interfaces;
 using ExchangeRates.Server.Services;
@@ -14,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace ExchangeRates.Server.Tests.Integration;
 
+[Trait("Category", "Live")]
 public sealed class ProviderCoverageIntegrationTests {
 	private readonly ITestOutputHelper _output;
 

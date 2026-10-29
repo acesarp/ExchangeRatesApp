@@ -1,0 +1,98 @@
+using ExchangeRates.Domain.Models;
+using ExchangeRates.Domain.Entities;
+using ExchangeRates.Domain.Utilities;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+using System.Globalization;
+namespace ExchangeRates.Infrastructure.Providers;
+
+/// <summary>
+/// Bank of Israel
+/// </summary>
+public sealed class BOIProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
+	private readonly ILogger<BOIProvider> _logger;
+	public BOIProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<BOIProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
+	/// 
+	/// <summary>
+	/// Bank of Israel.
+	/// Retrieves representative exchange rates against the Israeli Shekel (ILS).
+	/// </summary>
+
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string quoteCurrency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url = $"{ApiUrl.TrimEnd('/')}/" +
+								$"?c%5BDATA_TYPE%5D=OF00" +
+								$"&startperiod={fromDate:yyyy-MM-dd}" +
+								$"&endperiod={toDate:yyyy-MM-dd}" +
+								$"&format=csv" +
+								$"&labels=id";
+
+		var csv = await Http.GetStringAsync(url, ct);
+		var rates = new List<ExchangeRateResult>();
+		var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+		if (lines.Length < 2) {
+			return rates;
+		}
+
+		var headers = TextUtils.SplitCsv(lines[0]);
+		var dateIndex = headers.FindIndex(x => x.Equals("TIME_PERIOD", StringComparison.OrdinalIgnoreCase));
+		var unitMultIndex = headers.FindIndex(x => x.Equals("UNIT_MULT", StringComparison.OrdinalIgnoreCase));
+
+		foreach (var line in lines.Skip(1)) {
+			var columns = TextUtils.SplitCsv(line);
+
+			if (dateIndex < 0 || dateIndex >= columns.Count ||
+				!DateOnly.TryParse(columns[dateIndex], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				continue;
+			}
+
+			var seriesCode = columns.FirstOrDefault(x => x.StartsWith("RER_", StringComparison.OrdinalIgnoreCase));
+
+			if (seriesCode is null) {
+				continue;
+			}
+
+			// Example:
+			// RER_USD_ILS
+			var parts = seriesCode.Split('_');
+
+			if (parts.Length < 3) {
+				continue;
+			}
+
+			var currency = parts[1];
+
+			if (!currency.Equals(quoteCurrency, StringComparison.OrdinalIgnoreCase)) {
+				continue;
+			}
+			var rateText = columns.LastOrDefault(x => decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
+
+			if (rateText is null) {
+				continue;
+			}
+
+			if (!decimal.TryParse(rateText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate)) {
+				continue;
+			}
+
+			if (rate <= 0) {
+				continue;
+			}
+
+			// UNIT_MULT is a power of ten: RER_JPY_ILS has UNIT_MULT=2, i.e. shekels per 100 yen.
+			if (unitMultIndex >= 0 && unitMultIndex < columns.Count && int.TryParse(columns[unitMultIndex], out var unitMult) && unitMult > 0) {
+				rate /= (decimal)Math.Pow(10, unitMult);
+			}
+
+			rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, quoteCurrency, rate, Bank.BankCode));
+		}
+		return rates;
+	}
+}
+

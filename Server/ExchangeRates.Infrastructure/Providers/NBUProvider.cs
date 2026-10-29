@@ -1,0 +1,57 @@
+using ExchangeRates.Domain.Models;
+using ExchangeRates.Domain.Entities;
+using ExchangeRates.Infrastructure.Providers;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+using System.Globalization;
+using System.Text.Json;
+/// <summary>
+/// Natsionalnyi Bank Ukrainy
+/// </summary>
+public sealed class NBUProvider : CentralBankProviderBase {
+	protected override RateQuotation Quotation => RateQuotation.NativePerForeign;
+
+	private readonly ILogger<NBUProvider> _logger;
+
+	public NBUProvider(HttpClient http, IConfiguration configuration, CentralBankEntity bank, ILogger<NBUProvider> logger) : base(http, bank, configuration) {
+		_logger = logger;
+	}
+
+	protected override async Task<IReadOnlyList<ExchangeRateResult>> FetchAsync(string currency, DateOnly fromDate, DateOnly toDate, CancellationToken ct) {
+		var url =
+			$"{ApiUrl}?start={fromDate:yyyyMMdd}" +
+			$"&end={toDate:yyyyMMdd}" +
+			$"&valcode={currency}" +
+			"&sort=exchangedate" +
+			"&order=asc" +
+			"&json";
+
+		using var doc = JsonDocument.Parse(await Http.GetStringAsync(url, ct));
+		var rates = new List<ExchangeRateResult>();
+
+		foreach (var row in doc.RootElement.EnumerateArray()) {
+			var currencyCode = row.TryGetProperty("cc", out var c) ? c.GetString() : null;
+			var dateText = row.TryGetProperty("exchangedate", out var d) ? d.GetString() : null;
+
+			if (string.IsNullOrWhiteSpace(currencyCode) ||
+				string.IsNullOrWhiteSpace(dateText) ||
+				!DateOnly.TryParseExact(dateText, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) {
+				continue;
+			}
+
+			var rate = GetDecimal(row, "rate_per_unit");
+
+			if (rate <= 0) {
+				rate = GetDecimal(row, "rate");
+			}
+
+			if (rate > 0) {
+				rates.Add(new ExchangeRateResult(date, Bank.NativeCurrency.CurrencyCode, currencyCode, rate, BankCode));
+			}
+		}
+
+		return rates;
+	}
+}
