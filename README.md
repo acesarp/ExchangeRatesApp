@@ -1,6 +1,6 @@
 # Exchange Rates App
 
-A full-stack app that collects historical exchange rates directly from central banks around the world, caches them in SQL Server, and shows them in a React client with an interactive chart, a live Bitcoin price feed and a database health indicator.
+A full-stack app that collects historical exchange rates directly from central banks around the world, caches them in SQL Server and shows them in a React client with an interactive chart, a live Bitcoin price feed and a database health indicator.
 
 **Live:** https://guto.ca/exchangerates
 

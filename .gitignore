@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /Server/ExchangeRates.Server/providerkeys.json
 /Server/ClassDiagram1.cd
+
+# API keys for the central bank providers (mounted into the server container)
+providerkeys.json
