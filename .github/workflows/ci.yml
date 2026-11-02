@@ -24,8 +24,8 @@ jobs:
       # Program.cs requires providerkeys.json. The real keys are never in the repo, and the
       # tests that call real central bank APIs are excluded by default.runsettings.
       - name: Create empty provider keys
-        run: echo '{ "ProviderKeys": {} }' > Server/ExchangeRates.Server/providerkeys.json
-
+        run: |
+          echo '{ "ProviderKeys": {} }' > Server/ExchangeRates.Server/providerkeys.json
       - name: Restore
         run: dotnet restore Server/ExchangeRates.Server.slnx
 
