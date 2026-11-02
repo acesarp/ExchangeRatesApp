@@ -1,5 +1,8 @@
 name: Deploy Docker Image
 
+# Builds and tests the app on every push and pull request.
+# Deployment is done by the Azure DevOps pipeline (azure/main.yml), not here.
+
 on:
   push:
     branches: [main]
@@ -45,12 +48,14 @@ jobs:
     needs: build-image
     runs-on: self-hosted
 
-    steps:
-      - name: Pull image
-        run: docker pull ghcr.io/acesarp/exchangeratesapps:${{ github.sha }}
-
-      - name: Replace container
-        run: |
-          docker stop exchangerates || true
-          docker rm exchangerates || true
-          docker run -d --restart unless-stopped --name exchangerates ghcr.io/acesarp/exchangeratesapps:${{ github.sha }}
+      - name: Build client image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.Client
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/acesarp/exchangerates-client:latest
+            ghcr.io/acesarp/exchangerates-client:${{ github.sha }}
+          cache-from: type=gha,scope=client
+          cache-to: type=gha,mode=max,scope=client
