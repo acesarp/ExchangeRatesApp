@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "mssql1": {
+    "mssql": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:ExchangeRates1",
+      "connectionId": "ConnectionStrings:ExchangeRates",
       "dynamicId": null
     }
   }
