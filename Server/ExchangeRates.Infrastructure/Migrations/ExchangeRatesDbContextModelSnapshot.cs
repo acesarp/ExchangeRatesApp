@@ -22,7 +22,7 @@ namespace ExchangeRates.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateEntity", b =>
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CentralBankEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,13 +30,121 @@ namespace ExchangeRates.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BaseCurrency")
+                    b.Property<string>("ApiUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("CountryOfOrigin")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Priority")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankCode")
+                        .IsUnique();
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("Priority")
+                        .IsUnique()
+                        .HasFilter("[Priority] IS NOT NULL");
+
+                    b.ToTable("CentralBank", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CentralBankSupportedCurrencyEntity", b =>
+                {
+                    b.Property<int>("CentralBankId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderSeriesId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("CentralBankId", "CurrencyId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.ToTable("CentralBankSupportedCurrency", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CurrencyEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<bool>("IsHistoric")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<short>("NumericCode")
+                        .HasColumnType("smallint");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrencyCode")
+                        .IsUnique();
+
+                    b.HasIndex("Priority")
+                        .IsUnique();
+
+                    b.ToTable("Currency", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("BaseCurrencyId")
                         .HasColumnType("int");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<int>("QuoteCurrency")
+                    b.Property<int>("QuoteCurrencyId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Rate")
@@ -45,13 +153,61 @@ namespace ExchangeRates.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Date", "BaseCurrency", "QuoteCurrency")
+                    b.HasIndex("BaseCurrencyId");
+
+                    b.HasIndex("QuoteCurrencyId");
+
+                    b.HasIndex("Date", "BaseCurrencyId", "QuoteCurrencyId")
                         .IsUnique();
 
-                    b.ToTable("ExchangeRates");
+                    b.ToTable("ExchangeRate", (string)null);
                 });
 
-            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateFetch", b =>
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateUnavailableDateEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BaseCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .IsFixedLength();
+
+                    b.Property<int>("CentralBankId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUTC")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("QuoteCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .IsFixedLength();
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(124)
+                        .HasColumnType("nvarchar(124)");
+
+                    b.Property<DateOnly>("UnavailableDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CentralBankId", "BaseCurrency", "QuoteCurrency", "UnavailableDate")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ExchangeRateUnavailableDate");
+
+                    b.ToTable("ExchangeRateUnavailableDate", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.FixedExchangeRateEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -59,32 +215,238 @@ namespace ExchangeRates.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BaseCurrency")
+                    b.Property<int>("CurrencyId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("FetchedAtUtc")
-                        .HasColumnType("datetime2");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
-                    b.Property<DateOnly>("FromDate")
+                    b.Property<int>("PeggedOnCurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(28, 12)
+                        .HasColumnType("decimal(28,12)");
+
+                    b.Property<DateOnly?>("ValidFrom")
                         .HasColumnType("date");
 
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("QuoteCurrency")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("ToDate")
+                    b.Property<DateOnly?>("ValidTo")
                         .HasColumnType("date");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "BaseCurrency", "QuoteCurrency", "FromDate", "ToDate")
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("PeggedOnCurrencyId");
+
+                    b.HasIndex("CurrencyId", "ValidFrom", "ValidTo");
+
+                    b.ToTable("FixedExchangeRate", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FixedExchangeRate_DifferentCurrencies", "[CurrencyId] <> [PeggedOnCurrencyId]");
+
+                            t.HasCheckConstraint("CK_FixedExchangeRate_Rate", "[Rate] > 0");
+
+                            t.HasCheckConstraint("CK_FixedExchangeRate_ValidPeriod", "[ValidTo] IS NULL OR [ValidFrom] IS NULL OR [ValidTo] >= [ValidFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.PreferredProviderEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CentralBankId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CentralBankId");
+
+                    b.HasIndex("CurrencyId", "CentralBankId")
                         .IsUnique();
 
-                    b.ToTable("ExchangeRateFetches");
+                    b.HasIndex("CurrencyId", "IsActive", "Priority");
+
+                    b.ToTable("PreferredProvider", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Infrastructure.AccessLogEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("QueryString")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TimestampUtc");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AccessLog", (string)null);
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CentralBankEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "NativeCurrency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("NativeCurrency");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CentralBankSupportedCurrencyEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CentralBankEntity", "CentralBank")
+                        .WithMany("SupportedCurrencies")
+                        .HasForeignKey("CentralBankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "Currency")
+                        .WithMany("SupportedByCentralBanks")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CentralBank");
+
+                    b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "BaseCurrency")
+                        .WithMany()
+                        .HasForeignKey("BaseCurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "QuoteCurrency")
+                        .WithMany()
+                        .HasForeignKey("QuoteCurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BaseCurrency");
+
+                    b.Navigation("QuoteCurrency");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.ExchangeRateUnavailableDateEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CentralBankEntity", null)
+                        .WithMany()
+                        .HasForeignKey("CentralBankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.FixedExchangeRateEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "PeggedOnCurrency")
+                        .WithMany()
+                        .HasForeignKey("PeggedOnCurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("PeggedOnCurrency");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.PreferredProviderEntity", b =>
+                {
+                    b.HasOne("ExchangeRates.Domain.Entities.CentralBankEntity", "CentralBank")
+                        .WithMany()
+                        .HasForeignKey("CentralBankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ExchangeRates.Domain.Entities.CurrencyEntity", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CentralBank");
+
+                    b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CentralBankEntity", b =>
+                {
+                    b.Navigation("SupportedCurrencies");
+                });
+
+            modelBuilder.Entity("ExchangeRates.Domain.Entities.CurrencyEntity", b =>
+                {
+                    b.Navigation("SupportedByCentralBanks");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,16 +6,22 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-public sealed class KrakenMarketDataService : IKrakenMarketDataService {
+/// <summary>
+/// Represents a service for connecting to the Kraken WebSocket API and receiving BTC market data updates.
+/// </summary>
+public sealed class KrakenMarketDataService : IKrakenMarketDataService
+{
 	private const string KrakenWebSocketUrl = "wss://ws.kraken.com/v2";
 
 	private readonly ILogger<KrakenMarketDataService> _logger;
 
-	public KrakenMarketDataService(ILogger<KrakenMarketDataService> logger) {
+	public KrakenMarketDataService(ILogger<KrakenMarketDataService> logger)
+	{
 		_logger = logger;
 	}
 
-	public async Task ConnectAsync(CancellationToken ct) {
+	public async Task ConnectAsync(CancellationToken ct)
+	{
 		using var socket = new ClientWebSocket();
 
 		_logger.LogInformation("Connecting to Kraken WebSocket...");
@@ -28,10 +34,13 @@ public sealed class KrakenMarketDataService : IKrakenMarketDataService {
 		await ReceiveAsync(socket, ct);
 	}
 
-	private static async Task SubscribeAsync(ClientWebSocket socket, CancellationToken ct) {
-		var request = new {
+	private static async Task SubscribeAsync(ClientWebSocket socket, CancellationToken ct)
+	{
+		var request = new
+		{
 			method = "subscribe",
-			@params = new {
+			@params = new
+			{
 				channel = "ticker",
 				symbol = new[] { "BTC/USD" }
 			}
@@ -43,13 +52,16 @@ public sealed class KrakenMarketDataService : IKrakenMarketDataService {
 		await socket.SendAsync(buffer, WebSocketMessageType.Text, true, ct);
 	}
 
-	private async Task ReceiveAsync(ClientWebSocket socket, CancellationToken ct) {
+	private async Task ReceiveAsync(ClientWebSocket socket, CancellationToken ct)
+	{
 		var buffer = new byte[8192];
 
-		while (!ct.IsCancellationRequested && socket.State == WebSocketState.Open) {
+		while (!ct.IsCancellationRequested && socket.State == WebSocketState.Open)
+		{
 			var result = await socket.ReceiveAsync(buffer, ct);
 
-			if (result.MessageType == WebSocketMessageType.Close) {
+			if (result.MessageType == WebSocketMessageType.Close)
+			{
 				break;
 			}
 

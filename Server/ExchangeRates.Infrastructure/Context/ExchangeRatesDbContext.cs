@@ -13,9 +13,25 @@ public sealed class ExchangeRatesDbContext : DbContext {
 	public DbSet<CentralBankSupportedCurrencyEntity> CentralBankSupportedCurrencies => Set<CentralBankSupportedCurrencyEntity>();
 	public DbSet<ExchangeRateUnavailableDateEntity> ExchangeRateUnavailableDates => Set<ExchangeRateUnavailableDateEntity>();
 	public DbSet<PreferredProviderEntity> PreferredProviders => Set<PreferredProviderEntity>();
-
+	public DbSet<AccessLogEntity> AccessLogs => Set<AccessLogEntity>();
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		base.OnModelCreating(modelBuilder);
+
+		modelBuilder.Entity<AccessLogEntity>(e => {
+			e.ToTable("AccessLog");
+			e.HasIndex(x => x.TimestampUtc);
+			e.HasIndex(x => x.UserId);
+			e.Property(x => x.Path).HasMaxLength(512);
+			e.Property(x => x.QueryString).HasMaxLength(1024);
+			e.Property(x => x.UserAgent).HasMaxLength(512);
+			e.Property(x => x.IpAddress).HasMaxLength(64);
+			e.Property(x => x.City).HasMaxLength(64);
+			e.Property(x => x.Country).HasMaxLength(128);
+			e.Property(x => x.DurationMs).HasMaxLength(64);
+			e.Property(x => x.Region).HasMaxLength(128);
+			e.Property(x => x.Latitude).HasMaxLength(64);
+			e.Property(x => x.Longitude).HasMaxLength(64);
+		});
 
 		modelBuilder.Entity<ExchangeRateEntity>(entity => {
 			entity.ToTable("ExchangeRate");

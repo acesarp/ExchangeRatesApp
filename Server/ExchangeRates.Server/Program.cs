@@ -5,9 +5,11 @@ using ExchangeRates.Infrastructure.Repositories;
 using ExchangeRates.Server.Configuration;
 using ExchangeRates.Server.Hubs;
 using ExchangeRates.Server.Interfaces;
+using ExchangeRates.Server.Middleware;
 using ExchangeRates.Server.Services;
 using ExchangeRates.Server.Workers;
 
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
@@ -56,7 +58,7 @@ public class Program {
 					connectionString: connectionString,
 					sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", SchemaName = "dbo", AutoCreateSqlTable = true },
 					columnOptions: columnOptions,
-					restrictedToMinimumLevel: LogEventLevel.Warning);
+					restrictedToMinimumLevel: LogEventLevel.Information);
 			}
 
 			Log.Logger = loggerConfiguration.CreateLogger();
@@ -72,7 +74,11 @@ public class Program {
 
 			builder.Services.Configure<Dictionary<string, string>>(builder.Configuration.GetSection("ProviderKeys"));
 			builder.Services.Configure<CentralBankOptions>(builder.Configuration.GetSection("CentralBanks"));
-
+			builder.Services.Configure<ForwardedHeadersOptions>(o => {
+				o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+				o.KnownIPNetworks.Clear();   // the proxy is on the Docker network / LAN
+				o.KnownProxies.Clear();
+			});
 			// Add services to the container.
 			builder.Services.AddDbContext<ExchangeRatesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ExchangeRates")));
 
@@ -125,25 +131,25 @@ public class Program {
 			builder.Services.AddHostedService<HealthStatusWorker>();
 
 			var app = builder.Build();
-
+			app.UseForwardedHeaders();     // put this first, before UseCors
 			app.UseCors("Client");
 
 			// Configure the HTTP request pipeline.
 			var isDevEnvironment = app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "DEV";
 			if (isDevEnvironment) {
 				app.UseDeveloperExceptionPage();
-				app.UseSwagger();
 				app.UseSwaggerUI(options => {
 					options.SwaggerEndpoint("/swagger/v1/swagger.json", "FxRates API v1");
 					options.RoutePrefix = string.Empty;
 				});
-				//app.MapSwaggerUI("Swag");
 			}
 
 			app.UseStaticFiles();
 			app.UseHttpsRedirection();
 			app.UseAuthentication();
 			app.UseAuthorization();
+
+			app.UseMiddleware<AccessLogMiddleware>();
 
 			app.MapControllers();
 			app.MapHub<HealthStatusHub>("/hubs/health");

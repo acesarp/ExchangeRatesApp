@@ -18,9 +18,9 @@ public sealed class CoinbaseMarketDataProvider : ICryptoMarketDataProvider {
 		ArgumentNullException.ThrowIfNull(onPriceReceived);
 
 		var productIds = symbols.Where(x => !string.IsNullOrWhiteSpace(x))
-											.Select(NormalizeSymbol)
-											.Distinct(StringComparer.OrdinalIgnoreCase)
-											.ToArray();
+												.Select(NormalizeSymbol)
+												.Distinct(StringComparer.OrdinalIgnoreCase)
+												.ToArray();
 
 		using var socket = new ClientWebSocket();
 
@@ -90,7 +90,7 @@ public sealed class CoinbaseMarketDataProvider : ICryptoMarketDataProvider {
 
 			try {
 				var j = Encoding.UTF8.GetString(message.ToArray(), 0, message.ToArray().Length);
-				//Console.WriteLine(j);
+
 				message.Position = 0;
 				var response = JsonSerializer.Deserialize<Response>(message, new JsonSerializerOptions {
 					NumberHandling = JsonNumberHandling.AllowReadingFromString,
