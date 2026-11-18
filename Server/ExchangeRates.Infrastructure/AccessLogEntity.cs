@@ -18,4 +18,9 @@ public sealed class AccessLogEntity {
 	public string? City { get; set; }      // "Vancouver"
 	public double? Latitude { get; set; }
 	public double? Longitude { get; set; }
+	public string? Browser { get; set; }
+	public string? BrowserVersion { get; set; }
+	public string? OS { get; set; }
+	public string? Device { get; set; }
+	public bool? IsBot { get; set; }
 }

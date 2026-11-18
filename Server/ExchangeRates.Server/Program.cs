@@ -9,6 +9,8 @@ using ExchangeRates.Server.Middleware;
 using ExchangeRates.Server.Services;
 using ExchangeRates.Server.Workers;
 
+using MaxMind.GeoIP2;
+
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +19,8 @@ using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
 
 using System.Text.Json.Serialization;
+
+using UAParser;
 
 namespace ExchangeRates.Server;
 
@@ -108,7 +112,8 @@ public class Program {
 			builder.Services.AddScoped<CentralBankProviderFactory>();
 			builder.Services.AddSingleton<IKrakenMarketDataService, KrakenMarketDataService>();
 			builder.Services.AddSingleton<ICryptoMarketDataProvider, CoinbaseMarketDataProvider>();
-
+			builder.Services.AddSingleton(_ => new DatabaseReader(Path.Combine(AppContext.BaseDirectory, "GeoIP", "GeoLite2-City.mmdb")));
+			builder.Services.AddSingleton(Parser.GetDefault());
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
